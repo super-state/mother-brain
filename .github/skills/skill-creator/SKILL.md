@@ -18,6 +18,8 @@ Use this skill when the user wants a new reusable capability, or when you notice
 Create a complete skill folder at `.github/skills/<skill-name>/` with:
 - `SKILL.md` (clear instructions + constraints + validation)
 - `examples/` (at least one input and expected output)
+- `references/` (research findings, best practices, documentation links)
+- `scripts/` (helper scripts, templates, automation utilities)
 
 This skill is optimized for *minimal prompts, maximal clarity*, and iterative improvement.
 
@@ -27,7 +29,8 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
 - Each step must be **observable** (creates/changes something, or produces a checkable result).
 - Keep the description **one sentence** (when/why to use).
 - Include a **validation section** so success is unambiguous.
-- **Research first**: Check existing repo files/docs and search the web for best practices during skill creation (after wizard completes).
+- **Research first**: Check existing repo files/docs and search the web for best practices during skill creation (after wizard completes). All research findings MUST be saved to the skill's `references/` folder.
+- **Mandatory folders**: Every skill MUST have `references/` and `scripts/` folders with meaningful content. Empty folders are not acceptable.
 - **Product owner mindset**: Treat users as product owners, not developers. Ask about problems, pain points, and desired outcomes—not technical configurations.
 - **Problem-solving questions**: Focus on understanding what the user wants to achieve and why, not how they think it should be built.
 - **Wizard interface**: Use numbered multiple-choice questions (up to 3 options + freeform) that users can select via arrow keys or number keys.
@@ -104,6 +107,7 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
    - Check `.github/skills/` folder for similar skills and reference materials
    - Use `view` to read existing skill examples for patterns
    - Use `web_search` to find best practices, current standards, and reference materials for the skill domain
+   - **MANDATORY**: Save ALL research findings to skill's `references/` folder
    - Use research to inform the SKILL.md structure and content
    
    **If "Update existing skill":**
@@ -166,9 +170,17 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
      - **Accessibility note**: If skill creates applications/tools, include guidance on making output immediately usable (e.g., executable files, launcher scripts, not just source code)
    - Create `.github/skills/<skill-name>/examples/input-01.md` showing wizard interaction
    - Create `.github/skills/<skill-name>/examples/output-01.md` showing end-user accessible result
-   - Add `.github/skills/<skill-name>/references/` folder with:
-     - Any relevant documentation found during research
-     - Links to external resources in `resources.md`
+   - **MANDATORY**: Create `.github/skills/<skill-name>/references/` folder with:
+     - `resources.md` - Links to external documentation, tutorials, best practices
+     - Research findings from web_search (save as markdown files)
+     - Related technology documentation
+     - **MUST contain at least 2 files** with substantive content
+   - **MANDATORY**: Create `.github/skills/<skill-name>/scripts/` folder with:
+     - Helper scripts relevant to the skill's domain
+     - Template files or configuration examples
+     - Validation or testing utilities
+     - **MUST contain at least 1 useful script or template** that supports the skill's purpose
+     - If no scripts are needed, include a `templates.md` with useful templates/snippets
    - **After skill is created, ask user**:
      - "Would you like to use this skill now?"
      - Choices: "Yes, use it now", "No, just return to menu"
@@ -178,7 +190,8 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
    **For Update:**
    - Modify the existing SKILL.md
    - Update examples if needed
-   - Update references folder if needed
+   - **Update or create references folder** if needed (ensure at least 2 files with content)
+   - **Update or create scripts folder** if needed (ensure at least 1 useful script/template)
    - Return to main menu after completion
    
    **For Use:**
@@ -245,7 +258,10 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
    - **Step 1 includes wizard pattern** with `ask_user` for gathering context
    - Examples are present, clear, and demonstrate the skill
    - Examples show wizard interaction and end-user accessible output
-   - References folder contains relevant materials
+   - **MANDATORY FOLDERS CHECK**:
+     - `references/` folder exists with at least 2 files containing substantive content
+     - `scripts/` folder exists with at least 1 useful script, template, or helper file
+     - No empty folders allowed
    - `ask_user` is included in `allowed-tools`
    - All other required tools are listed in `allowed-tools`
    - If skill creates applications/tools, validation includes accessibility considerations

@@ -42,39 +42,83 @@ Mother Brain transforms high-level visions into executable reality by:
 - **User validation**: Always confirm work meets expectations before marking complete
 - **Self-improvement**: Learn from heal feedback and user responses
 - **Transparency**: Document decisions, rationale, and changes
+- **Wizard pattern for all interactions**: Use `ask_user` tool with numbered, selectable choices (2-3 options) for ALL user decisions—never ask freeform yes/no questions in text
 
 ## Steps
 
-### 1. **Detect Project State**
+### 1. **Show Welcome Menu with ASCII Art**
+   
+   **Display Mother Brain ASCII Art:**
+   ```
+       ___________________
+      /                   \
+     /  ╔═══════════════╗  \
+    |   ║  M O T H E R  ║   |
+    |   ║   B R A I N   ║   |
+     \  ╚═══════════════╝  /
+      \___________________/
+          ||         ||
+         //\\       //\\
+        //  \\     //  \\
+       //====\\   //====\\
+      
+      👽 Vision-Driven Development 👽
+   ```
+
+### 2. **Detect Project State & Show Progress**
    - Check current directory for existing Mother Brain artifacts
    - Look for:
      - `docs/vision.md` - Project vision document
      - `docs/roadmap.md` - Current roadmap
      - `docs/tasks/` - Task documentation folder
+     - `docs/session-state.json` - Last session info
      - `.github/skills/` - Project-specific skills
      - `README.md` - Project overview
    
    **If project exists:**
-   - Load vision, roadmap, and current task
-   - Display: "🧠 Welcome back to [Project Name]!"
-   - Show current status:
-     - Current phase
-     - Active task
-     - Completed vs. remaining tasks
-     - Skills available
-   - Ask: "What would you like to do?"
-     1. Continue current task
-     2. Start next task
-     3. Review/update roadmap
-     4. Realign with vision
-     5. View all skills
-     6. Create new skill
+   - Load session state from `docs/session-state.json`
+   - Display welcome back message:
+     ```
+     🧠 Welcome back to [Project Name]!
+     
+     📍 Where You Left Off:
+     • Phase: [Current Phase Name]
+     • Last Task: [Task Number] - [Task Name] ([Status])
+     • Progress: [X] of [Y] tasks completed in this phase
+     • Skills Created: [Count] skills available
+     • Last Session: [Date/Time]
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Continue where I left off"
+     - "Start next task"
+     - "Review/update roadmap"
+     - "Realign with vision"
+     - "View all skills"
+     - "Create new skill"
+   - Freeform automatically available for custom actions
    
    **If new project:**
-   - Display: "🧠 Welcome to Mother Brain!"
-   - Proceed to Vision Discovery
+   - Display:
+     ```
+     🧠 Welcome to Mother Brain!
+     
+     I'll help you transform your vision into reality by:
+     • Discovering your project vision
+     • Creating a phased roadmap
+     • Identifying needed skills
+     • Breaking down tasks
+     • Tracking your progress
+     
+     Ready to begin?
+     ```
+   - Use `ask_user` with choices:
+     - "Yes, start vision discovery"
+     - "I have a vision document already (import it)"
+     - "Show me an example first"
+   - Proceed based on selection
 
-### 2. **Vision Discovery** (New Projects Only)
+### 3. **Vision Discovery** (New Projects Only)
    - Use `ask_user` to conduct product discovery
    - Ask 8-12 contextual questions focusing on:
    
@@ -98,7 +142,7 @@ Mother Brain transforms high-level visions into executable reality by:
    - Allow freeform responses for complex answers
    - Dig deeper based on responses
 
-### 3. **Vision Document Creation**
+### 4. **Vision Document Creation**
    - Create `docs/vision.md` with structured content:
      ```markdown
      # [Project Name] - Vision
@@ -130,9 +174,13 @@ Mother Brain transforms high-level visions into executable reality by:
    
    - Create `README.md` with project overview
    - Display vision summary to user
-   - Ask: "Does this capture your vision?"
+   - Use `ask_user` with choices:
+     - "Yes, this captures it perfectly"
+     - "Close, but needs refinement"
+     - "No, let's start over"
+   - If refinement needed, ask what to adjust
 
-### 4. **Technology & Pattern Analysis**
+### 5. **Technology & Pattern Analysis**
    - Analyze vision to identify:
      - **Required technologies** (APIs, frameworks, databases)
      - **Repetitive patterns** (auth, file uploads, API calls, emails)
@@ -156,7 +204,7 @@ Mother Brain transforms high-level visions into executable reality by:
      ...
      ```
 
-### 5. **Skill Identification & Creation**
+### 6. **Skill Identification & Creation**
    - For each repetitive pattern, evaluate:
      - **Frequency**: Will this happen 3+ times in project?
      - **Complexity**: Is there wizard-worthy context to gather?
@@ -173,9 +221,12 @@ Mother Brain transforms high-level visions into executable reality by:
      Future Skills (create later when needed):
      3. [skill-name] - [what it does] - [when you'll need it]
      4. [skill-name] - [what it does] - [when you'll need it]
-     
-     Should I create the core skills now?
      ```
+   
+   - Use `ask_user` with choices:
+     - "Yes, create all core skills now"
+     - "Create them one at a time (I'll choose which)"
+     - "Skip for now, create as needed"
    
    - If user agrees, invoke skill-creator for each:
      - Provide context about project vision
@@ -183,7 +234,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - Let skill-creator run its wizard
      - Store created skills in `.github/skills/`
 
-### 6. **Roadmap Generation**
+### 7. **Roadmap Generation**
    - Break down project into phases based on:
      - MVP definition
      - Dependencies (what must come first)
@@ -221,7 +272,7 @@ Mother Brain transforms high-level visions into executable reality by:
    - Link each phase back to strategic themes
    - Make it visual and high-level
 
-### 7. **Task Document Creation**
+### 8. **Task Document Creation**
    - Create `docs/tasks/` directory
    - For first task in Phase 1, create `docs/tasks/001-[task-name].md`:
      ```markdown
@@ -261,9 +312,13 @@ Mother Brain transforms high-level visions into executable reality by:
      ```
    
    - Display task to user
-   - Ask: "Ready to start this task?"
+   - Use `ask_user` with choices:
+     - "Yes, start this task now"
+     - "Skip to next task"
+     - "Let me review the roadmap first"
+   - Proceed based on selection
 
-### 8. **Task Execution**
+### 9. **Task Execution**
    - Load current task document
    - Identify which skills to use (if any)
    - If skill exists: Invoke it using `skill` tool
@@ -271,7 +326,7 @@ Mother Brain transforms high-level visions into executable reality by:
    - Log decisions and progress in task document's "Notes & Decisions" section
    - Create deliverables as specified
 
-### 9. **Task Validation** (Critical)
+### 10. **Task Validation** (Critical)
    - After completing deliverables:
      - ✅ **Build Test**: If code, build/compile it
      - ✅ **Functional Test**: Run/open/execute the output
@@ -297,40 +352,54 @@ Mother Brain transforms high-level visions into executable reality by:
      3. Anything you'd like changed?
      ```
    
+   - Use `ask_user` to get feedback with choices:
+     - "Looks perfect, mark as complete"
+     - "Works but needs adjustment"
+     - "Doesn't meet expectations, needs rework"
+   - Provide freeform for detailed feedback
+   
    - If user confirms: Mark task complete (🟢 Complete)
-   - If issues: Fix and re-validate
+   - If issues: Ask what needs changing, fix and re-validate
    - Update task document with final status
    - Update roadmap checklist
 
-### 10. **Next Task or Session End**
-   - After task completion, ask:
-     ```
-     Task complete! What's next?
-     1. Start next task automatically
-     2. Review roadmap and choose task
-     3. Take a break (I'll remember where we are)
-     4. Realign with vision (check if we're on track)
+### 11. **Next Action Menu**
+   - After task completion, use `ask_user` with choices:
+     - "Start next task automatically"
+     - "Review roadmap and choose task"
+     - "Take a break (save progress)"
+     - "Update/refine the roadmap"
+   - Freeform available for custom actions
+   
+   - Save session state to `docs/session-state.json`:
+     ```json
+     {
+       "projectName": "Gaming Backlog Manager",
+       "lastTask": "003-localstorage-data-layer",
+       "lastTaskStatus": "DONE",
+       "currentPhase": "Phase 1",
+       "completedTasks": ["001", "002", "003"],
+       "totalTasks": 9,
+       "skillsCreated": ["pwa-builder"],
+       "lastSession": "2026-02-03T20:00:00Z"
+     }
      ```
    
-   - If continuing: Load next task, go to step 7
+   - If continuing: Load next task, go to step 8
    - If pausing: Save state, provide summary of progress
 
-### 11. **Session Continuity**
-   - When re-invoked, Mother Brain:
-     - Loads `docs/vision.md`
-     - Loads `docs/roadmap.md`
-     - Checks `docs/tasks/` for current task
-     - Displays status dashboard
-     - Asks what user wants to do
+### 12. **Session Continuity** (When Re-Invoked)
+   - When mother-brain is re-invoked:
+     - Show ASCII art again
+     - Load `docs/session-state.json`
+     - Load `docs/vision.md`
+     - Load `docs/roadmap.md`
+     - Check `docs/tasks/` for current task
+     - Display "Welcome back" menu (Step 2)
    
-   - Can handle:
-     - "Continue where I left off"
-     - "Start a different task"
-     - "Update the roadmap"
-     - "Create a new skill"
-     - "Review vision alignment"
+   - This ensures seamless continuation from any stopping point
 
-### 12. **Self-Improvement Integration**
+### 13. **Self-Improvement Integration**
    - After using heal on any skill (including Mother Brain):
      - Extract lesson learned
      - Update relevant documentation:

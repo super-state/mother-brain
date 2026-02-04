@@ -1,5 +1,21 @@
 # Learning Log
 
+## 2026-02-04 - Architecture Simplified: All Skills in .github/skills/ for CLI Compatibility
+**Issue Type**: Architecture clarification
+**User Insight**: "the architecture seem a bit weird. like the actual core mother brain files live in the github folder? and then there is a mother brain folder which doesn't contain those skills? is this because github needs them in there to work via copilot cli?"
+**Root Cause**: Initial "isolated architecture" put project skills in `.mother-brain/skills/`, but GitHub Copilot CLI only scans `.github/skills/` for skill discovery
+**Decision**: Simplified to keep ALL skills (framework + project) in `.github/skills/` for CLI compatibility
+**Fix Applied**:
+  - ALL skills now in `.github/skills/` (CLI-discoverable)
+  - `session-state.json` tracks `skillsCreated` array to differentiate project skills from core skills
+  - Core skills (mother-brain, skill-creator, skill-trigger-detector) are hardcoded, never in `skillsCreated`
+  - On eject: Delete skills listed in `skillsCreated` array from `.github/skills/`
+  - Simpler, more reliable, follows CLI conventions
+**Sections Updated**: Step 2B (eject process), Step 6 (skill creation/tracking), Step 9 (skill discovery), File Structure
+**Lesson Learned**: Follow platform conventions (Copilot CLI skill discovery) over custom architecture preferences. Simplicity and reliability trump isolation when it conflicts with tooling expectations.
+
+---
+
 ## 2026-02-04 - Mother Brain Self-Update: Isolated Architecture Skill Management
 **Issue Type**: Something broke or didn't work
 **User Report**: "we've changed our architecture, so mother brain can be loaded into a project but then kept separate from the project. this has worked but the problem is the project specific skills have not been ejected, and sometimes during development it couldn't find them, so i think you need sort that out"

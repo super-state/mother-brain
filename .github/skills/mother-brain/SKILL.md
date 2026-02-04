@@ -240,9 +240,9 @@ Mother Brain transforms high-level visions into executable reality by:
        - `mother-brain` (in `.github/skills/`)
        - `skill-creator` (in `.github/skills/`)
        - `skill-trigger-detector` (in `.github/skills/`)
-     - **Project-specific skills** are stored in `.mother-brain/skills/` (isolated architecture)
-     - **Important**: Check BOTH `.github/skills/` AND `.mother-brain/skills/` during ejection
-     - Only delete non-core skills from these locations
+     - **Project-specific skills** are also in `.github/skills/` but tracked in session-state.json
+     - **Differentiation**: Use `skillsCreated` array in session-state.json to identify which skills to delete
+     - Core skills are hardcoded and never in `skillsCreated` list
      
      **Step 2B.2: Backup Learning Log**
      - If `docs/learning-log.md` exists, keep it
@@ -252,10 +252,11 @@ Mother Brain transforms high-level visions into executable reality by:
      - Scan current directory for project-specific folders:
        - Any folder that is NOT: `.git`, `.github`, `.vscode`, `.mother-brain`, `node_modules`
        - Examples: `gaming-backlog-manager/`, `my-app/`, `src/`, etc.
-     - Scan `.mother-brain/skills/` for project-specific skills:
-       - Any skill in this directory is project-specific (isolated architecture)
-     - Also check `.github/skills/` for legacy project skills:
-       - Any skill NOT in core list (mother-brain, skill-creator, skill-trigger-detector)
+     - **Identify project skills from session-state.json**:
+       - Load `skillsCreated` array from session-state.json
+       - These are the skills to delete from `.github/skills/`
+       - Example: `["map-builder", "places-api-integrator", "visit-tracker"]`
+     - Core skills (mother-brain, skill-creator, skill-trigger-detector) are never in this list
      
      **Step 2B.4: Show Deletion Plan**
      - Display what will be deleted:
@@ -272,10 +273,9 @@ Mother Brain transforms high-level visions into executable reality by:
        • .mother-brain/docs/tasks/ (entire folder)
        • .mother-brain/session-state.json
        
-       Skills to DELETE:
-       • .mother-brain/skills/[project-skill-1]/
-       • .mother-brain/skills/[project-skill-2]/
-       • .github/skills/[legacy-project-skill]/ (if any)
+       Skills to DELETE (from session-state.json):
+       • .github/skills/[project-skill-1]/
+       • .github/skills/[project-skill-2]/
        
        Will KEEP:
        ✅ .mother-brain/docs/learning-log.md
@@ -298,9 +298,10 @@ Mother Brain transforms high-level visions into executable reality by:
          - `Remove-Item .mother-brain/docs/vision.md, .mother-brain/docs/roadmap.md -Force`
          - `Remove-Item -Recurse -Force .mother-brain/docs/tasks`
          - `Remove-Item .mother-brain/session-state.json -Force`
-         - `Remove-Item -Recurse -Force .mother-brain/skills/[project-skills]`
-         - `Remove-Item -Recurse -Force .github/skills/[legacy-project-skills]` (if any)
-       - Preserve: `.mother-brain/docs/learning-log.md`, core framework skills, framework config
+         - **Delete project skills from `.github/skills/`**:
+           - Load `skillsCreated` array from session-state.json
+           - For each skill in array: `Remove-Item -Recurse -Force .github/skills/[skill-name]`
+       - Preserve: `.mother-brain/docs/learning-log.md`, core framework skills (mother-brain, skill-creator, skill-trigger-detector)
      
      **Step 2B.6: Create Eject Log Entry**
      - Add entry to `docs/learning-log.md`:
@@ -699,9 +700,10 @@ Mother Brain transforms high-level visions into executable reality by:
          - Invoke skill-creator with context from research findings
          - Explain role/pattern/need from Step 5 analysis
          - Let skill-creator run its wizard
-         - **Store created skills in `.mother-brain/skills/`** (isolated architecture)
+         - **Store created skills in `.github/skills/`** (CLI-discoverable location)
+         - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
-           1. Check `.mother-brain/skills/[skill-name]/SKILL.md` exists
+           1. Check `.github/skills/[skill-name]/SKILL.md` exists
            2. Test invoke the skill with a simple "hello" or status check
            3. If invocation fails:
               - Show error: "⚠️ Skill [name] created but can't be invoked"
@@ -971,10 +973,10 @@ Mother Brain transforms high-level visions into executable reality by:
        - If user agrees, invoke skill-creator
    
    - **Skill Matching**:
-     - **Check `.mother-brain/skills/` first** for project-specific skills (isolated architecture)
-     - **Fall back to `.github/skills/`** for framework skills
+     - **Check `.github/skills/`** for all skills (framework + project-specific)
      - If skill-trigger-detector exists, invoke it to auto-match skills to task
      - Identify which skills to use (if any)
+     - Project skills are differentiated by `skillsCreated` array in session-state.json
    
    - **Execution**:
      - If skill exists: Invoke it using `skill` tool with task context
@@ -1461,36 +1463,36 @@ Mother Brain transforms high-level visions into executable reality by:
 
 ```
 project-root/
-├── .mother-brain/                    # Mother Brain isolated directory
+├── .mother-brain/                    # Mother Brain isolated directory (project docs only)
 │   ├── docs/
 │   │   ├── vision.md                 # Project vision (what, who, when, WHY)
 │   │   ├── roadmap.md                # Phased execution plan
-│   │   ├── learning-log.md           # Self-improvement tracking
+│   │   ├── learning-log.md           # Self-improvement tracking (PRESERVED on eject)
 │   │   └── tasks/
 │   │       ├── 001-task-name.md      # Individual task documents
 │   │       ├── 002-task-name.md
 │   │       └── ...
-│   ├── skills/                       # Project-specific skills
-│   │   ├── [project-skill-1]/
-│   │   └── [project-skill-2]/
-│   ├── session-state.json            # Current session state
+│   ├── session-state.json            # Current session state (tracks skillsCreated)
 │   └── README.md                     # Mother Brain directory info
 ├── .github/
-│   └── skills/                       # Core framework skills only
-│       ├── mother-brain/
-│       ├── skill-creator/
-│       └── skill-trigger-detector/
+│   └── skills/                       # ALL skills (framework + project-specific)
+│       ├── mother-brain/             # Core framework (never delete)
+│       ├── skill-creator/            # Core framework (never delete)
+│       ├── skill-trigger-detector/   # Core framework (never delete)
+│       ├── [project-skill-1]/        # Project-specific (tracked in session-state.json)
+│       └── [project-skill-2]/        # Project-specific (tracked in session-state.json)
 ├── src/                              # Source code (standard structure)
 ├── tests/                            # Tests (standard structure)
 ├── README.md                         # Project overview
 └── [other standard project files]
 ```
 
-**Key Principle (Isolated Architecture)**:
-- Mother Brain files are in `.mother-brain/` directory (separate from project)
-- Project-specific skills are in `.mother-brain/skills/` (not `.github/skills/`)
-- Core framework skills stay in `.github/skills/` (mother-brain, skill-creator, skill-trigger-detector)
-- This allows easy ejection: delete `.mother-brain/` except `learning-log.md`
+**Key Principles:**
+- **CLI Compatibility**: All skills in `.github/skills/` so Copilot CLI can find them
+- **Skill Tracking**: `session-state.json` tracks which skills are project-specific via `skillsCreated` array
+- **Easy Ejection**: Delete skills listed in `skillsCreated`, keep core framework skills
+- **Isolated Docs**: Project documentation in `.mother-brain/docs/` (separate from project code)
+- **Learning Preservation**: `learning-log.md` is preserved on eject for continuous improvement
 
 ## Validation Checklist
 

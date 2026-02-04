@@ -449,14 +449,20 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Return to clean state (as if new project)
      - Next invocation will show new project menu
 
-### 2.5. **Environment & Presentation Discovery** (One-Time Setup)
+### 2.5. **Environment & Presentation Discovery** (Lazy/On-Demand)
    
    **Purpose**: Discover user's environment and establish reliable output presentation methods
    
    **When to Run**:
-   - **New projects**: After user selects "Yes, start vision discovery" (before Step 3)
-   - **Existing projects**: Skip if `environment` already in session-state.json
+   - **NOT during project setup** - don't ask about browsers before knowing if project needs visual output
+   - **On first visual output**: When a task produces HTML, images, or other visual files for the first time
    - **On demand**: If presentation fails during task validation, re-run this step
+   - **Skip entirely**: For CLI tools, libraries, or other non-visual projects
+   
+   **Trigger Condition**:
+   - During Step 10 (Task Validation), if deliverables include visual files (HTML, images, etc.)
+   - AND `environment.presentationPreferences` doesn't exist in session-state.json
+   - THEN run this discovery before presenting output
    
    **Discovery Process**:
    

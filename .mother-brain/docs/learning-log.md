@@ -1,5 +1,31 @@
 # Learning Log
 
+## 2026-02-04 - Environment Discovery Made Lazy/On-Demand
+**Issue Type**: Something broke or didn't work
+**User Report**: "The vision process was asking what output browser i preferred - i never want this to happen. this needs to be specific to the project only if mother brain identifies there is even something to show. it cant be upfront because it doesnt know anything about the project yet"
+**Problem**:
+  - Step 2.5 (Environment Discovery) was running BEFORE vision discovery
+  - Asked about browser preferences before knowing project type
+  - Wasteful and confusing for non-visual projects (CLI tools, libraries, etc.)
+  - Doesn't make sense to ask "how do you want to see output" when we don't know what output exists
+**Fix Applied**:
+  - Changed Step 2.5 from "One-Time Setup" to "Lazy/On-Demand"
+  - **Removed** trigger: "After user selects vision discovery (before Step 3)"
+  - **Added** trigger: "On first visual output" - during Step 10 when task produces visual files
+  - Only runs when:
+    1. Task produces HTML, images, or other visual files
+    2. AND environment preferences don't exist yet
+  - Skip entirely for non-visual projects
+**Sections Updated**: Step 2.5 header and "When to Run" section
+**Lesson Learned**: 
+  - Don't ask setup questions before understanding the problem domain
+  - Lazy initialization > eager initialization for context-dependent config
+  - Environment discovery should be triggered by need, not by workflow position
+  - "Just in time" is better than "just in case"
+**Impact**: Vision discovery is now cleaner; environment questions only appear when actually needed.
+
+---
+
 ## 2026-02-04 - Restart Step Made Optional (User Insight)
 **Issue Type**: User observation / process improvement
 **User Report**: "This does work without restarting - do we really need this restart step?"

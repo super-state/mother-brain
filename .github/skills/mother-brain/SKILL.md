@@ -50,8 +50,61 @@ Mother Brain transforms high-level visions into executable reality by:
 - **User-driven evolution**: Provide "Update Mother Brain" menu option for users to report issues and improvements directly
 - **Spatial UI Clarification**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to SPECIFIC existing elements before implementing (e.g., "inside player card" vs "above card" vs "overlay"). Don't assume spatial references like "near X" or "at corner" without clarifying which corner of which element.
 - **Visual Quality First**: When vision mentions visual/aesthetic/beauty/UI/design requirements, automatically trigger design system research and enforce consistency through skills. Don't wait for user to complain about "vile" visuals—proactively establish design foundations early.
+- **Branded Menu Styling**: Always wrap menu displays with retro purple ASCII borders for consistent Mother Brain identity. Use the menu frame template defined in Universal Patterns.
 
 ## Universal Patterns for All Workflows
+
+### Branded Menu Frame
+
+**Use this template for ALL menus and selections in Mother Brain:**
+
+**Theme: Clean Header with Brain Emoji**
+
+```
+🧠 **MOTHER BRAIN**
+
+[Menu Title]
+
+[Content line 1]
+[Content line 2]
+[Content line 3]
+```
+
+**Theme Elements:**
+- Header: 🧠 emoji + bold "MOTHER BRAIN" text
+- Horizontal rule (---) before and after menu block
+- Plain text content with bullet points (•) if listing
+- No code fences around the output (prevents red styling)
+
+**Styling Rules:**
+- Use markdown horizontal rule (---) to frame the menu visually
+- Header is always: 🧠 **MOTHER BRAIN**
+- Use bullet character • for lists (not - which triggers markdown)
+- Keep content simple and readable
+- No ASCII box borders (caused red text in terminals)
+
+**Example - Welcome Back Menu:**
+```
+🧠 **MOTHER BRAIN**
+
+Welcome back to [Project Name]!
+
+Phase: [Current Phase]
+Last Task: [Task Name] ([Status])
+Progress: [X]/[Y] tasks
+Skills: [Count] available
+```
+
+**Example - Selection Menu:**
+```
+🧠 **MOTHER BRAIN**
+
+What would you like to do?
+```
+
+Then use `ask_user` with choices immediately after the branded text.
+
+**Important**: Do NOT wrap the menu output in triple-backtick code fences when displaying to user. Just output the text directly. Code fences cause terminal styling issues.
 
 ### Issue Reporting via Freeform Input
 
@@ -137,24 +190,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ## Steps
 
-### 1. **Show Welcome Menu with ASCII Art**
+### 1. **Show Welcome Menu**
    
-   **Display Mother Brain ASCII Art:**
-   ```
-       ___________________
-      /                   \
-     /  ╔═══════════════╗  \
-    |   ║  M O T H E R  ║   |
-    |   ║   B R A I N   ║   |
-     \  ╚═══════════════╝  /
-      \___________________/
-          ||         ||
-         //\\       //\\
-        //  \\     //  \\
-       //====\\   //====\\
-      
-      👽 Vision-Driven Development 👽
-   ```
+   - Skip ASCII art - just proceed to Step 2 (Detect Project State)
+   - The branded box in Step 2 serves as the visual identity
 
 ### 2. **Detect Project State & Show Progress**
    - Check current directory for existing Mother Brain artifacts
@@ -216,7 +255,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Yes, start vision discovery"
      - "I have a vision document already (import it)"
      - "Show me an example first"
-     - "🚨 Report Issue (something's not working)"
+     - "Update Mother Brain (report issues/improvements)"
    - Proceed based on selection
 
 ### 2A. **Update Mother Brain** (Self-Improvement Flow)
@@ -304,8 +343,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        (Usually not needed - I've already learned the new pattern)
        ```
      - Use `ask_user` with choices:
-       - "Restart Mother Brain (if needed)"
        - "Continue (recommended - I've already learned)"
+       - "Report another issue/improvement"
+       - "Restart Mother Brain (if needed)"
      
      - **If restart selected:**
        1. Save current context to `.mother-brain/session-state.json`
@@ -315,6 +355,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - **If continue selected (default):**
        - Simply continue with the new behavior immediately
        - No interruption to workflow
+     
+     - **If "Report another issue/improvement" selected:**
+       - Loop back to beginning of Step 2A (ask for issue type)
    
    - After successful update:
      - Show summary of what was changed
@@ -389,6 +432,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        • .mother-brain/docs/roadmap.md
        • .mother-brain/docs/tasks/ (entire folder)
        • .mother-brain/session-state.json
+       • README.md (project-specific README)
        
        Skills to DELETE (from session-state.json):
        • .github/skills/[project-skill-1]/
@@ -415,6 +459,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
          - `Remove-Item .mother-brain/docs/vision.md, .mother-brain/docs/roadmap.md -Force`
          - `Remove-Item -Recurse -Force .mother-brain/docs/tasks`
          - `Remove-Item .mother-brain/session-state.json -Force`
+         - `Remove-Item README.md -Force -ErrorAction SilentlyContinue` # Project-specific README
          - **Delete project skills from `.github/skills/`**:
            - Load `skillsCreated` array from session-state.json
            - For each skill in array: `Remove-Item -Recurse -Force .github/skills/[skill-name]`
@@ -651,6 +696,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "No, let's start over"
      - "🚨 Report Issue (something's not working)"
    - If refinement needed, ask what to adjust
+   - **After user confirms vision**: Proceed immediately to Step 5 (Technology & Pattern Analysis)
+   - Do NOT stop or return to menu - the full setup flow (Steps 5-8) must complete
 
 ### 5. **Technology & Pattern Analysis**
    - **Dynamic Research-Driven Discovery**:
@@ -716,6 +763,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Add [specific area] we haven't covered"
        - "Remove [specific area] we don't need"
      - Iterate until user confirms coverage is complete
+   - **After user confirms**: Proceed to Step 5A (check for visual requirements) or Step 6 (Skill Identification)
 
 ### 5A. **Design System Discovery** (For Projects with Visual Requirements)
    - **Automatic Detection**: Scan vision document for visual requirement keywords
@@ -777,6 +825,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Validate visual consistency during task execution
    
    - **Note**: This step ensures visual quality is baked into the project from the start, not added as "polish" at the end. Design foundations are established **before** any visual implementation begins.
+   - **After completing Step 5A**: Proceed immediately to Step 6 (Skill Identification)
 
 ### 6. **Skill Identification & Creation**
    - **Dynamic Skill Discovery** (from Step 5 research findings):
@@ -845,6 +894,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Create all optional skills now"
        - "Let me choose which optional skills to create"
        - "Skip optional skills, create later if needed"
+   - **After skills are created**: Proceed immediately to Step 6A (Delivery Strategy Research)
 
 ### 6A. **Delivery Strategy Research**
    - **Research How to Deliver This Type of Project**:
@@ -895,6 +945,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - If user wants leaner: Identify what can be deferred post-MVP
      - If user wants more complete: Identify critical additions before launch
      - Finalize Phase 1 scope = MVP (shortest path to value)
+     - **After delivery strategy confirmed**: Proceed immediately to Step 7 (Roadmap Generation)
 
 ### 7. **Roadmap Generation**
    - **MVP-First Phasing Using Research Findings**:

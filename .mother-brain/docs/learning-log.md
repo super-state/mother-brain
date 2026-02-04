@@ -1639,3 +1639,199 @@ Also expanded:
 - Self-learning automation (removed approval gates)
 - Design system discovery for visual projects
 
+
+---
+
+## 2026-02-04 - Eject Missing README.md Cleanup
+**Issue Type**: Something broke or didn't work
+**User Report**: "There was a README file left over from a previous session so I don't think eject worked properly - when creating vision, edit README.md failed with 'No match found'"
+**Problem**:
+  - Step 2B.5 (Execute Deletion) listed specific files to delete but missed README.md
+  - After eject, old project's README.md persisted
+  - New project's vision creation tried to edit README.md assuming fresh state
+  - Edit failed because old content didn't match expected patterns
+**Root Cause**: 
+  - Eject step was too conservative - only listed .mother-brain/ files
+  - README.md is project-specific content but was in the "keep" category implicitly
+**Fix Applied**:
+  - Added Remove-Item README.md -Force -ErrorAction SilentlyContinue to Step 2B.5
+  - Updated Step 2B.4 (Show Deletion Plan) to display README.md in files to delete
+**Sections Updated**: Step 2B.4 (Show Deletion Plan), Step 2B.5 (Execute Deletion)
+**Lesson Learned**: 
+  - Project-level files (README.md, package.json, etc.) should be ejected too
+  - Eject should leave repo in "framework-only" state ready for new project
+  - Be explicit about what "project artifacts" means - includes root-level project files
+**Impact**: Future eject operations will properly clean up README.md, preventing new project failures.
+
+---
+
+## 2026-02-04 - Post-Update Menu Missing "Another Improvement" Option
+**Issue Type**: A feature is missing
+**User Report**: "Whenever a new update is done and you're asking what to do next, there should be an option for making another improvement"
+**Problem**:
+  - After completing an update to Mother Brain, the menu only offered:
+    1. Restart Mother Brain
+    2. Continue
+  - No way to chain multiple improvements in one session
+  - User had to return to main menu and re-select "Update Mother Brain"
+**Fix Applied**:
+  - Added "Report another issue/improvement" as a third choice in Session Restart menu
+  - Added handler: loops back to beginning of Step 2A if selected
+  - Reordered: "Continue" is now first (recommended default)
+**Sections Updated**: Step 2A (Session Restart section)
+**Lesson Learned**: 
+  - Self-improvement flows should support iteration/chaining
+  - After completing one update, user likely has more feedback
+  - "Report another" pattern is common in support/feedback systems
+**Impact**: Users can now chain multiple improvements without navigating back to main menu.
+
+---
+
+## 2026-02-04 - Missing Step Transitions Caused Incomplete Setup
+**Issue Type**: Something broke or didn't work
+**User Report**: "I started a new project with Mother Brain but it never created any skills - why did this happen?"
+**Problem**:
+  - Vision document was created successfully (Step 4)
+  - But Steps 5-8 (Research, Skills, Roadmap, Tasks) were never executed
+  - Project was left incomplete with just a vision document
+  - Session ended or agent didn't proceed after vision confirmation
+**Root Cause**: 
+  - Steps 4, 5, 5A, 6, 6A lacked explicit "proceed to next step" instructions
+  - Agent could interpret each step as a stopping point
+  - No clear instruction that the full setup flow (Steps 3-8) must complete as a unit
+**Fix Applied**:
+  - Added explicit transition instructions at the end of:
+    - Step 4: "After user confirms vision: Proceed immediately to Step 5"
+    - Step 5: "After user confirms: Proceed to Step 5A or Step 6"
+    - Step 5A: "After completing: Proceed immediately to Step 6"
+    - Step 6: "After skills are created: Proceed immediately to Step 6A"
+    - Step 6A: "After delivery strategy confirmed: Proceed immediately to Step 7"
+  - Added note: "Do NOT stop or return to menu - the full setup flow (Steps 5-8) must complete"
+**Sections Updated**: Steps 4, 5, 5A, 6, 6A
+**Lesson Learned**: 
+  - Multi-step workflows need explicit transition instructions
+  - Never assume agent will automatically flow to next step
+  - Critical flows (like project setup) should be marked as "must complete as a unit"
+**Impact**: Future project setups will complete the full flow (vision → research → skills → roadmap → tasks) without gaps.
+
+---
+
+## 2026-02-04 - Branded Menu Styling Added
+**Issue Type**: I have a suggestion for improvement
+**User Report**: "Can we make this little selection menu more branded when we're in the Mother Brain menu? like retro purple borders and stuff?"
+**Improvement**:
+  - Added "Branded Menu Styling" to Operating Principles
+  - Created new "Branded Menu Frame" section in Universal Patterns
+  - Defined consistent ASCII box-drawing template using box characters
+  - Added 🧠 MOTHER BRAIN header to all menus
+  - Created examples for Welcome Back and Selection menus
+**Sections Updated**: Operating Principles, Universal Patterns (new section)
+**Styling Details**:
+  - Uses box-drawing chars: ╔═══╗, ║, ╚═══╝
+  - Header separator: ╠═══╣
+  - Max width: 62 characters
+  - Brain emoji: 🧠 for brand identity
+**Impact**: All Mother Brain menus now have consistent retro terminal styling, reinforcing the brand identity.
+
+---
+
+## 2026-02-04 - Simplified Visual Branding
+**Issue Type**: I have a suggestion for improvement
+**User Report**: "Remove the ASCII art and the alien emojis and the vision driven development and the vision driven sections. We just need the box"
+**Changes Made**:
+  - Removed ASCII art from Step 1 (now just proceeds to Step 2)
+  - Removed alien emoji (👽) from welcome screen
+  - Removed footer decoration ("< < < VISION DRIVEN > > >")
+  - Kept only the clean branded box with 🧠 emoji in header
+**Sections Updated**: Step 1, Branded Menu Frame section
+**Result**: Cleaner, more minimal visual identity - just the essentials
+**Impact**: Mother Brain now has a simpler, less cluttered appearance while retaining brand identity via the box header.
+
+---
+
+## 2026-02-04 - Project Ejected
+**Project Name**: UK Coffee Finder
+**Reason**: Testing/prototyping complete, resetting to framework
+**Files Removed**: 
+  - uk-coffee-finder/ (project source)
+  - docs/ (root docs folder)
+  - .mother-brain/docs/vision.md
+  - .mother-brain/docs/roadmap.md
+  - .mother-brain/docs/tasks/ (3 task files)
+  - .mother-brain/session-state.json
+  - README.md
+**Skills Removed**: None (no project skills were created)
+**Files Preserved**: learning-log.md, core framework skills
+**Learnings Preserved**: All previous entries in learning log
+
+---
+
+## 2026-02-04 - Update Mother Brain Option Missing from New Project Menu
+**Issue Type**: A feature is missing
+**User Report**: "When Mother Brain skill is launched it should always have the option to update Mother Brain"
+**Problem**:
+  - New project menu (Step 2, new project branch) only had:
+    - "Yes, start vision discovery"
+    - "I have a vision document already"
+    - "Show me an example first"
+    - "Report Issue"
+  - Missing "Update Mother Brain" option that exists in returning project menu
+**Fix Applied**:
+  - Replaced "Report Issue" with "Update Mother Brain (report issues/improvements)"
+  - This is more discoverable and consistent with returning project menu
+**Sections Updated**: Step 2 (new project menu choices)
+**Lesson Learned**: 
+  - All Mother Brain menus should have consistent options for self-improvement
+  - "Update Mother Brain" is more user-friendly than "Report Issue"
+**Impact**: Users can now improve Mother Brain from any state (new or existing project).
+
+---
+
+## 2026-02-04 - Removed Markdown-Triggering Characters from Branding
+**Issue Type**: Something broke or didn't work
+**User Report**: "The text inside the Mother Brain branding keeps going red and I don't know why"
+**Problem**:
+  - Text inside the branded box was rendering in red
+  - Likely caused by terminal/CLI interpreting certain characters as markdown
+  - Suspects: '>' (blockquote), '-' (list item), '----' (horizontal rule)
+**Root Cause**: 
+  - Terminal or Copilot CLI markdown renderer applies styling to these characters
+  - This is outside SKILL.md control but we can avoid triggering it
+**Fix Applied**:
+  - Removed '>' prefix from menu titles
+  - Removed '-' bullet points from content lines
+  - Changed progress bars from [####----] to [####....] (dots instead of dashes)
+  - Updated Theme Elements and Styling Rules sections
+  - Updated all example menus
+**Sections Updated**: Branded Menu Frame (template, elements, rules, examples)
+**Lesson Learned**: 
+  - Avoid markdown-significant characters inside branded output
+  - Terminal rendering varies; stick to truly neutral ASCII
+  - Characters to avoid in content: '>', '-' (at line start), '----' sequences
+**Impact**: Branded menus should now render without unexpected color styling.
+
+---
+
+## 2026-02-04 - Replaced ASCII Box with Simple Header Format
+**Issue Type**: Something broke or didn't work
+**User Report**: "Only the words are red - the border is fine" (continuing from previous fix attempt)
+**Problem**:
+  - ASCII box with code fence wrapping caused red text in terminal
+  - Removing '>' and '-' characters didn't fix it
+  - The code fence + box pattern combination triggered CLI styling
+**Root Cause**: 
+  - Copilot CLI's markdown renderer applies syntax highlighting to code blocks
+  - Text content inside ASCII box within code fence was being styled red
+  - This is a CLI rendering behavior, not controllable via SKILL.md
+**Fix Applied**:
+  - Replaced entire ASCII box format with simple header style
+  - New format: 🧠 **MOTHER BRAIN** header + plain text content
+  - Use horizontal rules (---) for visual framing instead of box
+  - Use bullet character • instead of '-' for lists
+  - Added explicit note: "Do NOT wrap in code fences when displaying"
+**Sections Updated**: Branded Menu Frame (complete rewrite)
+**Lesson Learned**: 
+  - Code fences in CLI output can trigger unwanted syntax highlighting
+  - Simple markdown formatting is more reliable than ASCII art
+  - When visual styling causes issues, prefer content clarity over decoration
+**Impact**: Mother Brain menus now display without red text styling.

@@ -44,6 +44,13 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
 - **TEST OUTPUT**: Skills MUST verify their output actually works before claiming success. Build it, run it, test it. Don't assume—prove.
 - **Continuous self-improvement**: When the Heal function fixes a skill execution issue, extract the general lesson and update skill-creator itself to prevent creating skills with similar flaws in the future.
 - **Skill composition**: Skills should detect when they need expertise from another skill and invoke it using the `skill` tool. This allows skills to collaborate and combine their capabilities for better results.
+- **Guided external service setup**: When skills require external services (databases, APIs, cloud platforms), NEVER dump technical instructions on the user. Instead:
+  - Explain in plain language WHAT the service does and WHY it's needed
+  - Estimate time required ("This takes about 5 minutes")
+  - Guide step-by-step with checkpoints ("Did that work? Great, let's continue...")
+  - Translate technical terms into user-friendly language (e.g., "API key" → "secret password for your app")
+  - Offer to pause and resume later if the setup is complex
+  - Consider the user as a product owner, not a developer
 
 ## Steps
 

@@ -1,5 +1,181 @@
 # Learning Log
 
+## 2026-02-04 - Added Self-Learning Loop (Step 2A.1)
+**Issue Type**: Suggestion for improvement
+**User Report**: "I'd like there to be an option to trigger a self learning loop. Mother Brain will simulate a project creation itself, run through all the steps until they have an MVP and come out with a bunch of learnings. It should report what kind of project it made, what steps went wrong, and what it learned. The user can confirm or reject. The project should be different each time and decided by Mother Brain."
+**Root Cause**: Mother Brain only learned from real user projects. No way to proactively discover issues through simulation.
+**Fix Applied**:
+- Added "Trigger self-learning loop (simulate project)" to Step 2A issue type menu
+- Added **Step 2A.1: Self-Learning Loop** with 7 sub-steps:
+  - 2A.1.1: Generate Random Test Project (random type, domain, vision)
+  - 2A.1.2: Simulate Setup Flow (Steps 3-7 mentally/logically)
+  - 2A.1.3: Simulate Task Execution (Steps 8-11)
+  - 2A.1.4: Simulate MVP Completion (Step 11A)
+  - 2A.1.5: Compile Learnings Report (friction points, lessons, proposed improvements)
+  - 2A.1.6: User Review & Approval (apply all, select, reject, or run again)
+  - 2A.1.7: Log Simulation in learning-log.md
+**Sections Updated**: Step 2A (added menu option), Added Step 2A.1
+**Lesson Learned**: 
+- Self-improvement shouldn't only happen when things go wrong with real users
+- Simulated projects can discover edge cases before users encounter them
+- Random diversity in simulations maximizes coverage of project types
+- User should control what improvements are applied (no auto-apply without consent)
+
+---
+
+## 2026-02-04 - Made Post-Task Reflection Mandatory (Step 10B)
+**Issue Type**: Suggestion for improvement
+**User Report**: "We have a nice learning feature at the end of the vision stage where mother brain looks at what went wrong and heals. I think this should be applied on a task based level too. Mother Brain must look at the task and the output and self improve any failings in the current task, in the project specific skills and then in mother brain agnostic of project."
+**Root Cause**: Step 10B (Post-Task Reflection & Learning) existed but:
+1. The flow from Step 10 → 10B was implied, not explicit
+2. "When to run" said "after task is marked complete" but didn't say ALWAYS
+3. Easy to skip from task completion straight to Next Action Menu without running 10B
+**Fix Applied**:
+- **Step 10**: Added explicit instruction: "CRITICAL: After marking task complete, ALWAYS run Step 10B before proceeding to Step 11"
+- **Step 10B**: Made trigger mandatory: "ALWAYS after task is marked complete - this is mandatory, not optional"
+- **Step 10B**: Added explicit flow: "Step 10 task completion → Step 10B runs automatically → then Step 11"
+- **Step 10B**: Added scope clarity: "3-layer learning at task level (fix task → heal skills → update Mother Brain)"
+- **Step 10B.7**: Added explicit transition: "After Step 10B completes: Proceed to Step 11"
+**Sections Updated**: Step 10, Step 10B header, Step 10B.7
+**Lesson Learned**: Self-learning must be mandatory, not optional. When a learning step exists, the flow must EXPLICITLY require it - implied flows get skipped. Every task completion is a learning opportunity that must not be bypassed.
+
+---
+
+## 2026-02-04 - Added MVP Complete & Beyond (Step 11A)
+**Issue Type**: A feature is missing
+**User Report**: "We need a path beyond MVP. Once we reach the end of MVP the important thing is making that 'done' criteria for the user done. If this was an app that needs to get published and released with pipelines and automated testing - that should be the focus. If the user wants to replan or consider a different direction that should be an option. If the user wants to pad out the roadmap for the next phases that should also be an option. It should also use the skill trigger detector when the user suggests new things."
+**Root Cause**: Mother Brain was good at creating initial MVP and skills, but lacked a structured path for:
+1. Achieving the user's actual "done" criteria (deploy, publish, release)
+2. Post-MVP direction choices (extend, replan, new direction)
+3. Dynamic skill creation when user describes new features
+**Fix Applied**:
+- Added **Step 11A: MVP Complete & Beyond** with 7 sub-steps:
+  - 11A.1: Detect MVP Completion (auto-trigger when Phase 1 complete)
+  - 11A.2: Celebrate & Assess (show what was achieved vs MVP definition)
+  - 11A.3: Research "Done" Criteria for This Project Type (web search)
+  - 11A.4: Present "Done" Criteria Options (deploy, CI/CD, publish, etc.)
+  - 11A.5: Post-MVP Direction Menu (extend, replan, add features, pause, continue)
+  - 11A.6: Handle User's Direction Choice (detailed logic for each option)
+  - 11A.7: Skill-Trigger-Detector Integration (detect patterns in new features)
+**Sections Updated**: Added Step 11A after Step 11
+**Lesson Learned**: 
+- MVP completion is a decision point, not the end
+- "Done" means different things for different projects (deploy vs publish vs local)
+- User may want to extend, replan, or pivot after MVP - all need support
+- skill-trigger-detector should run on ALL new user input, not just initial vision
+- Project-agnostic design: research delivery patterns for whatever project type this is
+
+---
+
+## 2026-02-04 - Added Setup Validation & Self-Healing (Step 7.6)
+**Issue Type**: Suggestion for improvement
+**User Report**: "At the end of the vision setup process motherbrain needs to look up the command line and see if anything went wrong, and if it did, it needs to do our 2 layer learn - 1. resolve the issue in the setup, 2. consider what changes could be made for the overall motherbrain skill to prevent this from happening again for projects regardless of the context"
+**Root Cause**: Setup flow (Steps 3-7) could complete with errors/issues going undetected, missing opportunities to self-heal and learn.
+**Fix Applied**:
+- Added **Step 7.6: Setup Validation & Self-Healing** with 5 sub-steps:
+  - 7.6.1: Scan conversation for setup issues (failures, retries, warnings)
+  - 7.6.2: Layer 1 - Fix current project setup
+  - 7.6.3: Layer 2 - Extract meta-lessons for Mother Brain
+  - 7.6.4: Auto-apply Mother Brain updates
+  - 7.6.5: Display summary if issues were found
+**Sections Updated**: Added Step 7.6 after Step 7.5
+**Lesson Learned**: Every autonomous flow should end with a self-healing validation step that both fixes current issues AND extracts lessons for future projects. Two-layer learning (fix now + prevent forever) should apply to all major workflow endpoints, not just task execution.
+
+---
+
+## 2026-02-04 - Removed Presentation Preferences Menu Option
+**Issue Type**: Suggestion for improvement
+**User Report**: "we dont need presentation preferences in the mother brain menu"
+**Root Cause**: The "Update presentation preferences" menu option was unnecessary clutter. Step 2.5 (Environment & Presentation Discovery) is designed to run lazily/on-demand only when visual output is first presented, not proactively from the main menu.
+**Fix Applied**:
+- Removed "Update presentation preferences" from Step 2 menu choices
+- Removed the handler code for this option
+**Sections Updated**: Step 2 (Detect Project State & Show Progress)
+**Lesson Learned**: Keep main menus focused on core workflows. Utility features that run automatically on-demand don't need explicit menu entries.
+
+---
+
+## 2026-02-04 - Added Setup Complete Menu (Step 7.5)
+**Issue Type**: Something broke or didn't work
+**User Report**: "After the initial discover vision was complete it didn't ask the user in a menu to pick something next"
+**Problem**:
+  - After vision was confirmed and setup flow completed (Steps 5-7), there was no clear menu for user to pick next action
+  - Step 7.4 was asking user to "validate phasing" (inconsistent with Expert Autonomy)
+  - Flow would complete setup but leave user without clear options
+**Fix Applied**:
+  - **Step 7.4**: Changed from "Validate Phasing with User" to "Display Roadmap Summary" (no approval needed)
+  - **Added Step 7.5**: "Setup Complete - What's Next?" menu with clear options:
+    - "Start Task 001 now"
+    - "Review the full roadmap first"
+    - "Review the vision document"
+    - "I want to adjust something before starting"
+  - This provides a clear handoff point from autonomous setup to user-driven execution
+**Sections Updated**: Step 7.4, Added Step 7.5
+**Lesson Learned**:
+  - Every autonomous flow must end with a clear user choice point
+  - "Expert Autonomy" applies to technical decisions, but user must control WHEN to start work
+  - After setup completes, always show summary + menu
+**Impact**: 
+  - Clear transition from setup to execution
+  - User sees what was done and chooses when to start
+  - Consistent with Expert Autonomy - no approval gates, but clear control points
+
+---
+
+## 2026-02-04 - Explicit List Formatting Examples
+**Issue Type**: Formatting improvement
+**User Report**: "Can you make mother brain have its responses of bullet points to be on different lines rather than trying to cram them all horizontally?"
+**Problem**:
+  - Despite having vertical list formatting rule, outputs still appeared cramped
+  - Rule was stated but lacked explicit examples of correct/incorrect formatting
+  - No visual reference for what "vertical" vs "horizontal" looks like
+**Fix Applied**:
+  - Added "Output Formatting Rules (CRITICAL)" section with explicit examples
+  - Shows ❌ bad examples (comma-separated, bullet char inline)
+  - Shows ✅ good examples (each item on own line with dash)
+  - Reinforced: "Each item gets its own line. No exceptions."
+**Sections Updated**: Operating Principles, new Output Formatting Rules section
+**Lesson Learned**:
+  - Explicit examples are more effective than abstract rules
+  - Show what NOT to do alongside what TO do
+  - Visual contrast helps AI understand formatting requirements
+**Impact**: 
+  - Clearer formatting guidance prevents cramped horizontal lists
+
+## 2026-02-04 - Expert Autonomy: Remove Setup Approval Gates
+**Issue Type**: Suggestion for improvement
+**User Report**: "We absolutely should always do the research and pattern analysis and design and skills and delivery strat and roadmap etc - but we just don't need to make the user participate in approving it. We should be doing research making the skills, thinking about delivery and tech stack - but ultimately the user has described their problem and that's all they should be focused on, trying to get something working that solves that core need. So while we must absolutely ask about all the users pain points and what they're looking to achieve, we don't need to confirm with them the possible skills and the research and the delivery strategy because WE are the expert - Mother Brain is the all knowing being that makes it happen."
+**Problem**:
+  - Steps 5-7 had multiple user approval checkpoints:
+    - Step 5.4: Asked user to clarify research findings
+    - Step 5.6: Asked user to validate technology choices
+    - Step 6: Asked user to approve optional skills
+    - Step 6A.4: Asked user to validate delivery strategy
+    - Step 7.1: Asked user what's essential for Phase 1
+  - This created unnecessary friction during setup
+  - User's job is to describe the problem; Mother Brain's job is to solve it
+  - Technical decisions should be made by the expert (Mother Brain), not validated by user
+**Fix Applied**:
+  - Added new Operating Principle: **Expert Autonomy** - Mother Brain makes ALL technical decisions autonomously after vision is confirmed
+  - **Step 5.4**: Removed contextual clarification prompts - Mother Brain decides based on research
+  - **Step 5.6**: Removed "Validate Findings" - display findings for transparency only, don't ask approval
+  - **Step 6**: Changed from "Essential + Optional (user chooses)" to "Create ALL beneficial skills automatically"
+  - **Step 6A.4**: Renamed from "Validate Strategy" to "Finalize Scope" - no user approval needed
+  - **Step 7.1**: Removed "Ask user what's essential" - Mother Brain determines optimal MVP scope
+**Sections Updated**: Operating Principles, Steps 5.4-5.6, Step 6, Step 6A.4-6A.5, Step 7.1
+**Lesson Learned**:
+  - User focus = describing their problem and validating outputs meet expectations
+  - Mother Brain focus = ALL technical decisions (stack, skills, delivery, roadmap structure)
+  - Only re-engage user for: (1) vision refinement, (2) task validation, (3) roadmap adjustments post-MVP
+  - "Expert systems should act like experts" - don't defer decisions back to non-experts
+**Impact**: 
+  - Smoother setup flow with fewer interruptions
+  - User stays focused on their problem domain
+  - Mother Brain takes full ownership of technical excellence
+  - Faster time-to-first-task while maintaining quality
+
+---
+
 ## 2026-02-04 - Environment Discovery Made Lazy/On-Demand
 **Issue Type**: Something broke or didn't work
 **User Report**: "The vision process was asking what output browser i preferred - i never want this to happen. this needs to be specific to the project only if mother brain identifies there is even something to show. it cant be upfront because it doesnt know anything about the project yet"
@@ -1859,3 +2035,136 @@ Also expanded:
   - Keep pre-tool text to context/explanation only
   - Less is more in CLI output
 **Impact**: Future sessions should have cleaner output without question repetition.
+
+---
+
+## 2026-02-04 - Added Vertical List Formatting Rule
+**Issue Type**: I have a suggestion for improvement
+**User Report**: "I'd like Mother Brain not list out tasks in this horizontal way, it makes it harder to read, it should be in a table or vertical points"
+**Problem**:
+  - Tasks were displayed as horizontal comma-separated list
+  - Hard to scan and read in terminal output
+**Fix Applied**:
+  - Added Operating Principle: "Vertical list formatting"
+  - Rule: Use vertical bullet points or tables instead of horizontal lists
+**Sections Updated**: Operating Principles
+**Lesson Learned**: Terminal output is easier to read when lists are vertical, not horizontal
+**Impact**: All future task/option lists will be displayed vertically.
+
+## 2026-02-04 - Timeline Questions Removed (Quality-First)
+**Issue Type**: Suggestion for improvement
+**User Report**: "Timeline questions are degrading quality. Weekend project leads to skipped skills and shortcuts. AI can do a weekend project in minutes anyway. Always aim for best quality regardless of perceived size. Focus on vision, features, problem, audience - not artificial time constraints."
+**Root Cause**:
+  - Step 3 included "What's your timeline?" as a core discovery question
+  - Short timelines (e.g., "weekend project") triggered reduced quality:
+    - Fewer skills created
+    - Less design research
+    - More rework needed later
+  - Timeline is irrelevant to AI execution - quality should be constant
+**Fix Applied**:
+  - **Removed** "Timeline" question from Step 3 Core Questions
+  - **Added** explicit note: "Do NOT ask about timeline/duration"
+  - **Updated** Constraints question to exclude time (now: "Budget, skills, tech preferences")
+  - **Updated** vision document template section from "Timeline & Constraints" to just constraints
+  - **Added** new Operating Principle: "Quality-First Execution"
+**Sections Updated**:
+  - Operating Principles (added Quality-First Execution)
+  - Step 3 Core Questions (removed timeline, updated constraints)
+  - Step 4 Vision Document Template (updated section name)
+**Lesson Learned**: AI execution time is not a human constraint. Every project deserves the same quality treatment: proper research, design thinking, skill creation, and best practices. "Weekend project" vs "enterprise project" makes no difference to output quality standards.
+
+## 2026-02-04 - Simplified Menu Format
+**Issue Type**: Suggestion for improvement
+**User Report**: "I like the brain icon and text but find the format and branding hard to read. Can go back to original? But without ASCII art or 'Vision-Driven Development' bit."
+**Root Cause**:
+  - Previous format used markdown tables which are hard to read in terminals
+  - Bold **MOTHER BRAIN** header with horizontal rules was cluttered
+  - User found original bullet-point format cleaner
+**Fix Applied**:
+  - Changed header format from "🧠 **MOTHER BRAIN**" to "🧠 Welcome back to [Project]!"
+  - Removed horizontal rules (---) around menu blocks
+  - Removed markdown tables, replaced with bullet points (•)
+  - Kept 📍 emoji for status section
+  - Explicitly noted: No ASCII art, no "Vision-Driven Development" tagline
+**Sections Updated**:
+  - Universal Patterns → Branded Menu Frame (complete rewrite)
+**Lesson Learned**: Simple bullet-point formatting with emoji markers is more readable in terminal environments than tables, bold headers, or horizontal rules.
+
+## 2026-02-04 - Project Ejected
+**Project Name**: Snakes and Ladders
+**Reason**: User requested eject
+**Files Removed**: 
+  - .mother-brain/docs/vision.md
+  - .mother-brain/docs/roadmap.md
+  - .mother-brain/docs/tasks/
+  - .mother-brain/session-state.json
+  - README.md
+**Files Pending Manual Deletion**:
+  - snakes-and-ladders/ (locked by another process)
+**Skills Removed**: None (no project skills created)
+**Files Preserved**: learning-log.md, core framework skills
+**Learnings Preserved**: All entries in learning log
+
+## 2026-02-04 - Enforce Vertical Bullet Points
+**Issue Type**: Suggestion for improvement
+**User Report**: "Can you make mother brain have its responses of bullet points to be on different lines rather than trying to cram them all horizontally?"
+**Root Cause**:
+  - Operating principle mentioned vertical formatting but wasn't strong enough
+  - Agent was still occasionally cramming bullets horizontally
+**Fix Applied**:
+  - Strengthened "Vertical list formatting" principle with explicit "ALWAYS" and "one item per line"
+  - Added: "Never use horizontal comma-separated lists or inline bullet points"
+  - Added: "Each bullet point (•) must be on its own line"
+  - Added: "This applies to ALL output"
+**Sections Updated**:
+  - Operating Principles → Vertical list formatting
+**Lesson Learned**: Formatting rules need to be explicit and absolute ("ALWAYS", "NEVER") to be consistently followed.
+
+## 2026-02-04 - Use Standard Markdown Dashes for Lists
+**Issue Type**: Suggestion for improvement (continued)
+**User Report**: "just default ai formation command line"
+**Root Cause**:
+  - Was using special bullet character (•) which doesn't render well in all terminals
+  - Standard markdown dashes (-) are more universally supported
+**Fix Applied**:
+  - Updated "Vertical list formatting" principle to specify dashes (-) instead of bullet chars (•)
+  - Replaced all 46 instances of bullet character (•) with dash (-) in SKILL.md
+  - Examples now use standard markdown format
+**Sections Updated**:
+  - Operating Principles → Vertical list formatting
+  - All examples throughout SKILL.md
+**Lesson Learned**: Use standard markdown formatting (dashes for lists) for maximum terminal compatibility. Avoid special characters.
+
+## 2026-02-04 - Added Mandatory Checkpoint for Steps 5-6A
+**Issue Type**: Something broke or didn't work
+**User Report**: Agent skipped Steps 5 (Technology & Pattern Analysis), 5A (Design System Discovery), and 6 (Skill Identification) entirely. Went straight from vision confirmation to roadmap creation without research or skills.
+**Root Cause**:
+  - The instruction "Proceed immediately to Step 5" existed but was ignored
+  - No explicit blocker/checkpoint to prevent skipping
+  - Agent treated user's "Yes, this captures it perfectly" as permission to rush ahead
+**Fix Applied**:
+  - Added prominent "⚠️ MANDATORY CHECKPOINT - DO NOT SKIP" section after Step 4
+  - Listed all required steps as checklist: Step 5, 5A, 6, 6A
+  - Added explicit warning: "NEVER skip directly to roadmap creation"
+  - Added self-check instruction: "If you find yourself about to create a roadmap without having done research and created skills, STOP and go back"
+**Sections Updated**:
+  - Step 4 (Vision Document Creation) - added mandatory checkpoint block
+**Lesson Learned**: Instructions to "proceed to X" are not enough. Need explicit STOP signs and self-check instructions to prevent workflow shortcuts. Make the consequence of skipping clear.
+
+---
+
+## 2026-02-04 - Guided External Service Setup (Skill-Creator Update)
+**Issue Type**: UX improvement
+**User Report**: "This is a pretty important step for the user. The average product person won't know how to setup a supabase project or what it is even for. You can't expect to just dump it on them. You need to give them instructions and help them through the process. You need to explain these things not as technology terms, but what is needed from the user and how you will guide them through."
+**Root Cause**: When skills require external services (Supabase, APIs, cloud platforms), the agent dumped technical instructions on users instead of guiding them step-by-step.
+**Fix Applied**:
+- Added "Guided external service setup" principle to skill-creator's Operating Principles
+- Principle requires:
+  - Plain language explanations of WHAT and WHY
+  - Time estimates ("This takes about 5 minutes")
+  - Step-by-step guidance with checkpoints
+  - Translation of technical terms (e.g., "API key" → "secret password")
+  - Option to pause and resume later
+  - Product owner perspective, not developer perspective
+**Sections Updated**: skill-creator/SKILL.md - Operating Principles
+**Lesson Learned**: Technical setup steps are user experience moments, not just documentation. Users are product owners who want to achieve a goal, not developers who understand infrastructure. Every external service setup should feel like a guided tour, not a manual.

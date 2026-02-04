@@ -47,10 +47,11 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Self-improvement**: Learn from user feedback and update own SKILL.md to prevent future issues
 - **Transparency**: Document decisions, rationale, and changes
 - **Wizard pattern for all interactions**: Use `ask_user` tool with numbered, selectable choices (2-3 options) for ALL user decisions—never ask freeform yes/no questions in text
+- **No question duplication**: When using `ask_user`, do NOT repeat the question in text output before calling the tool. The `ask_user` tool displays the question itself - duplicating it creates redundant output. Only include context/explanation text, not the question.
 - **User-driven evolution**: Provide "Update Mother Brain" menu option for users to report issues and improvements directly
 - **Spatial UI Clarification**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to SPECIFIC existing elements before implementing (e.g., "inside player card" vs "above card" vs "overlay"). Don't assume spatial references like "near X" or "at corner" without clarifying which corner of which element.
 - **Visual Quality First**: When vision mentions visual/aesthetic/beauty/UI/design requirements, automatically trigger design system research and enforce consistency through skills. Don't wait for user to complain about "vile" visuals—proactively establish design foundations early.
-- **Branded Menu Styling**: Always wrap menu displays with retro purple ASCII borders for consistent Mother Brain identity. Use the menu frame template defined in Universal Patterns.
+- **Branded Menu Styling**: Use simple header format (🧠 **MOTHER BRAIN**) for consistent identity. Avoid ASCII boxes and code fences which cause terminal styling issues.
 
 ## Universal Patterns for All Workflows
 

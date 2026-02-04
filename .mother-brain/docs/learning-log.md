@@ -1835,3 +1835,27 @@ Also expanded:
   - Simple markdown formatting is more reliable than ASCII art
   - When visual styling causes issues, prefer content clarity over decoration
 **Impact**: Mother Brain menus now display without red text styling.
+
+---
+
+## 2026-02-04 - Added No Question Duplication Principle
+**Issue Type**: I have a suggestion for improvement
+**User Report**: "There is some duplication in the command line and the selection box. For example, there's a bullet then 'asking user: Please describe your suggestion' then below that in the box it says 'please describe your suggestion' - it always repeats it."
+**Problem**:
+  - Agent was outputting question text in response BEFORE calling ask_user
+  - ask_user tool ALSO displays the question in its UI
+  - Result: user sees the same question twice
+**Root Cause**: 
+  - No explicit guidance to avoid duplicating ask_user's question parameter
+  - Agent naturally writes context + question, then calls tool with same question
+**Fix Applied**:
+  - Added new Operating Principle: "No question duplication"
+  - Rule: Do NOT repeat the question in text output before calling ask_user
+  - Only include context/explanation text, not the question itself
+  - Also updated Branded Menu Styling to reflect new simple format
+**Sections Updated**: Operating Principles
+**Lesson Learned**: 
+  - When tools display their own prompts, don't duplicate in text output
+  - Keep pre-tool text to context/explanation only
+  - Less is more in CLI output
+**Impact**: Future sessions should have cleaner output without question repetition.

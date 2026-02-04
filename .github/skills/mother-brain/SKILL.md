@@ -609,11 +609,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Scan current directory for project-specific folders:
        - Any folder that is NOT: `.git`, `.github`, `.vscode`, `.mother-brain`, `node_modules`
        - Examples: `gaming-backlog-manager/`, `my-app/`, `src/`, etc.
-     - **Identify project skills from session-state.json**:
-       - Load `skillsCreated` array from session-state.json
-       - These are the skills to delete from `.github/skills/`
-       - Example: `["map-builder", "places-api-integrator", "visit-tracker"]`
-     - Core skills (mother-brain, skill-creator, skill-trigger-detector) are never in this list
+     - **Identify project skills using comparison method** (CRITICAL - not skillsCreated):
+       - Define core skills: `mother-brain`, `skill-creator`, `skill-trigger-detector`
+       - Get all skills in `.github/skills/`
+       - Project skills = all skills MINUS core skills
+       - This method is reliable even if skillsCreated array is empty/null/incomplete
+     - Core skills are NEVER deleted regardless of what's in session-state.json
      
      **Step 2B.4: Show Deletion Plan**
      - Display what will be deleted:

@@ -1,5 +1,19 @@
 # Learning Log
 
+## 2026-02-04 - Fixed Eject Not Removing Project Skills
+**Issue Type**: Something broke or didn't work
+**User Report**: "When you ejected you didnt remove the project specific skills. you need to clean them up now and going forward"
+**Root Cause**: Step 2B.5 (Execute Deletion) relied on skillsCreated array from session-state.json to identify which skills to delete. If this array was empty, null, or incomplete (e.g., skills created before proper tracking), project skills would NOT be removed during eject.
+**Fix Applied**:
+- Updated Step 2B.3 to use **comparison method** instead of relying on skillsCreated array
+- Updated Step 2B.5 to define core skills explicitly and use set subtraction:
+  - coreSkills = @("mother-brain", "skill-creator", "skill-trigger-detector")
+  - projectSkills = allSkills | Where-Object {  -notin  }
+- Added explicit warnings: "NEVER rely solely on skillsCreated array"
+**Sections Updated**: Step 2B.3, Step 2B.5
+**Lesson Learned**: When identifying items to delete during cleanup/eject, use a comparison method against a known-good list (allowlist/denylist) rather than relying on tracking arrays that may be incomplete. This is more robust and self-healing.
+
+---
 ## 2026-02-04 - Added Self-Learning Loop (Step 2A.1)
 **Issue Type**: Suggestion for improvement
 **User Report**: "I'd like there to be an option to trigger a self learning loop. Mother Brain will simulate a project creation itself, run through all the steps until they have an MVP and come out with a bunch of learnings. It should report what kind of project it made, what steps went wrong, and what it learned. The user can confirm or reject. The project should be different each time and decided by Mother Brain."

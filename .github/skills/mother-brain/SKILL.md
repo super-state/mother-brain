@@ -51,6 +51,90 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Spatial UI Clarification**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to SPECIFIC existing elements before implementing (e.g., "inside player card" vs "above card" vs "overlay"). Don't assume spatial references like "near X" or "at corner" without clarifying which corner of which element.
 - **Visual Quality First**: When vision mentions visual/aesthetic/beauty/UI/design requirements, automatically trigger design system research and enforce consistency through skills. Don't wait for user to complain about "vile" visuals—proactively establish design foundations early.
 
+## Universal Patterns for All Workflows
+
+### Issue Reporting via Freeform Input
+
+**Simplified Approach: Use freeform text for issue reporting**
+
+- Use `allow_freeform: true` on all `ask_user` calls (this is the default)
+- The tool automatically adds "Other" as the last option for freeform text input
+- **No explicit "Report Issue" option needed** - users can type their issues in freeform
+- When user's freeform input contains issue-related keywords, jump to **Step 2A: Update Mother Brain**
+
+**Issue Detection Keywords** (check freeform responses for these):
+- "issue", "problem", "broken", "bug", "not working", "wrong", "error"
+- "doesn't work", "fix", "report", "something's wrong", "this is broken"
+
+**Example Pattern:**
+```
+ask_user with allow_freeform: true and choices:
+- "Option 1 (normal workflow)"
+- "Option 2 (alternative)"
+- "Option 3 (other action)"
+# Tool automatically adds "Other" at the end for freeform input
+```
+
+**What user sees:**
+```
+1. Option 1 (normal workflow)
+2. Option 2 (alternative)
+3. Option 3 (other action)
+4. Other  ← Auto-added by tool, allows freeform text
+```
+
+**Handling Freeform Responses:**
+1. Check if response contains issue-related keywords
+2. If issue detected:
+   - Capture current context (step, action, phase, task)
+   - Display: "🚨 **Issue Detected**"
+   - Jump to Step 2A with context
+3. If not an issue: Process response normally and continue workflow
+
+**When issue is detected in freeform:**
+1. Capture current context
+2. Display: "🚨 **Issue Detected from your feedback**"
+3. Pre-populate issue context: "You were at [Step X], attempting [Action Y]"
+4. Jump to Step 2A with context
+5. Apply 3-layered troubleshooting approach (what happened, root cause, fix)
+5. Apply 3-layered troubleshooting approach (what happened, root cause, fix)
+
+This ensures users can ALWAYS break out of bad behavior and report issues in-context.
+
+### Handling "Report Issue" Selection
+
+When user selects "🚨 Report Issue (something's not working)" from ANY `ask_user`:
+
+1. **Capture Context:**
+   ```
+   Context:
+   - Current Step: [Step number/name being executed]
+   - Action Attempted: [What Mother Brain was trying to do]
+   - Phase: [If in project: current phase]
+   - Task: [If in task execution: task number/name]
+   - Last Command: [Last tool used, if applicable]
+   ```
+
+2. **Display Issue Capture:**
+   ```
+   🚨 **Issue Reporting Mode Activated**
+   
+   I detected you triggered issue reporting from:
+   • Step: [Current step]
+   • Action: [What was happening]
+   [If in task] • Task: [Task number/name]
+   
+   This will help me understand what went wrong.
+   ```
+
+3. **Jump to Step 2A** (Update Mother Brain) with pre-populated context
+
+4. **Ask for issue description** with context already captured:
+   - "What went wrong or didn't work as expected?"
+   - Pre-fill with context: "At [Step], while [Action], the issue was: [user describes]"
+
+This pattern ensures NO workflow ever traps the user—there's always an escape hatch.
+
 ## Steps
 
 ### 1. **Show Welcome Menu with ASCII Art**
@@ -106,6 +190,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "Update presentation preferences"
      - "Update Mother Brain (report issues/improvements)"
      - "Eject project (reset to framework + learnings)"
+     - "🚨 Report Issue (something's not working)"
    - Freeform automatically available for custom actions
    
    - **If "Update presentation preferences" selected**:
@@ -131,6 +216,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "Yes, start vision discovery"
      - "I have a vision document already (import it)"
      - "Show me an example first"
+     - "🚨 Report Issue (something's not working)"
    - Proceed based on selection
 
 ### 2A. **Update Mother Brain** (Self-Improvement Flow)
@@ -154,6 +240,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "A feature is missing"
      - "The workflow is confusing"
      - "I have a suggestion for improvement"
+     - "🚨 Report Issue (something's not working)"
    
    - After user selects issue type, use `ask_user` (freeform) to get details:
      - "Please describe the issue or improvement in detail:"
@@ -175,6 +262,7 @@ Mother Brain transforms high-level visions into executable reality by:
        - "Yes, apply this fix"
        - "No, try a different approach"
        - "Let me refine my description"
+       - "🚨 Report Issue (something's not working)"
    
    - **Apply Update:**
      - If approved, use `edit` tool to update SKILL.md
@@ -195,9 +283,38 @@ Mother Brain transforms high-level visions into executable reality by:
        - "Perfect, issue resolved"
        - "Better, but needs more refinement"
        - "Actually, revert this change"
+       - "🚨 Report Issue (something's not working)"
    
    - If further refinement needed, loop back to Solution Design
    - If revert requested, restore original content
+   
+   - **Session Restart (Only When Necessary):**
+     - **Restart is usually NOT needed** - the agent learns the correct behavior during the conversation
+     - SKILL.md updates are for FUTURE sessions; current session already knows what to do
+     - Only offer restart if:
+       1. Complex multi-step workflow changes that require re-reading SKILL.md
+       2. Agent is stuck in old patterns and can't adapt mid-conversation
+       3. User explicitly requests it
+     
+     - If restart is needed, display:
+       ```
+       ✅ Changes saved to Mother Brain SKILL.md
+       
+       Would you like to restart to ensure the changes take effect?
+       (Usually not needed - I've already learned the new pattern)
+       ```
+     - Use `ask_user` with choices:
+       - "Restart Mother Brain (if needed)"
+       - "Continue (recommended - I've already learned)"
+     
+     - **If restart selected:**
+       1. Save current context to `.mother-brain/session-state.json`
+       2. Display instructions to re-invoke mother-brain skill
+       3. End current session
+     
+     - **If continue selected (default):**
+       - Simply continue with the new behavior immediately
+       - No interruption to workflow
    
    - After successful update:
      - Show summary of what was changed
@@ -526,6 +643,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "Yes, this captures it perfectly"
      - "Close, but needs refinement"
      - "No, let's start over"
+     - "🚨 Report Issue (something's not working)"
    - If refinement needed, ask what to adjust
 
 ### 5. **Technology & Pattern Analysis**
@@ -959,6 +1077,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "Yes, start this task now"
      - "Skip to next task"
      - "Let me review the roadmap first"
+     - "🚨 Report Issue (something's not working)"
    - Proceed based on selection
 
 ### 9. **Task Execution**
@@ -1115,6 +1234,7 @@ Mother Brain transforms high-level visions into executable reality by:
      - "Looks perfect, mark as complete"
      - "Works but needs adjustment"
      - "Doesn't meet expectations, needs rework"
+     - "🚨 Report Issue (something's not working)"
    - Provide freeform for detailed feedback
    
    - If user confirms: Mark task complete (🟢 Complete)

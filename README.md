@@ -1,0 +1,165 @@
+# 🧠 Mother Brain
+
+![Mother Brain Banner](assets/brand/mother-brain-banner.svg)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Last Updated](https://img.shields.io/badge/last%20updated-February%202026-blue)](https://github.com/super-state/mother-brain)
+
+**Open Source AI Project Management Framework for GitHub Copilot CLI**
+
+Transform your vision into reality with Mother Brain—an intelligent meta-framework that guides AI assistants through vision-driven project execution. Built for developers who want to ship faster with AI-powered automation, research-driven roadmaps, and automatic skill generation.
+
+**Last Updated**: February 2026 | **License**: MIT | **Status**: Production-Ready
+
+## Brand & Design
+
+Mother Brain uses a retro-tech visual identity with neon accents on a dark base.  
+See `docs/brand-guidelines.md` for the full palette, typography, and usage rules.
+
+## Why Mother Brain?
+
+- **Vision-Driven Development**: Start with WHY, not just WHAT
+- **Automatic Skill Generation**: Creates specialized agents for your project patterns
+- **MVP-First Roadmaps**: Research-driven phasing that delivers value fast
+- **Self-Learning**: Improves from every project it manages
+- **Zero Token Waste**: Efficient execution with intelligent context management
+
+## Quick Start
+
+```bash
+# Clone the framework
+git clone https://github.com/super-state/mother-brain.git
+cd mother-brain
+
+# Invoke Mother Brain in Copilot CLI
+gh copilot explain "Use the mother-brain skill"
+```
+
+Then select "Yes, start vision discovery" and Mother Brain will guide you through the rest.
+
+**2-Minute Onboarding**:
+- Quick start guide: `docs/quick-start.md`
+- Example project walkthrough: `docs/example-project.md`
+
+## Features
+
+- 🎯 **Vision Discovery Wizard**: 8-12 questions to clarify your project's purpose
+- 📋 **Research-Driven Roadmaps**: Automatically researches best practices for your project type
+- 🛠️ **Dynamic Skill Creation**: Identifies repetitive patterns and generates specialized skills
+- ✅ **Task Management**: Breaks down phases into actionable, trackable tasks
+- 🔄 **Session Continuity**: Pick up exactly where you left off
+- 🧠 **Self-Improvement**: Learns from feedback and updates itself
+- 🚀 **MVP Focus**: Delivers core value first, iterates based on real feedback
+
+## What Makes It Different?
+
+Mother Brain isn't just a tool—it's a **thinking partner** for your AI development workflow:
+
+- **Product-First**: Focuses on outcomes and user value, not just features
+- **Research-Driven**: Automatically researches best practices for your project type
+- **Adaptive**: Roadmaps evolve based on learnings, not rigid plans
+- **Self-Improving**: Updates itself when issues are found—learns from every project
+
+## Project Structure
+
+```
+mother-brain/
+├── .github/skills/         # Framework skills
+│   ├── mother-brain/       # Core orchestrator
+│   ├── skill-creator/      # Generates new skills
+│   └── skill-trigger-detector/ # Auto-matches skills to tasks
+├── .mother-brain/          # Your project docs (created on first use)
+│   ├── docs/
+│   │   ├── vision.md       # Project vision
+│   │   ├── roadmap.md      # Phased execution plan
+│   │   ├── tasks/          # Individual task documents
+│   │   └── learning-log.md # Self-improvement tracking
+│   └── session-state.json  # Session continuity
+└── README.md               # This file
+```
+
+## Use Cases
+
+- **New Projects**: Start with vision, get a complete roadmap and skill library
+- **Existing Projects**: Import your vision, identify patterns, create skills
+- **Learning AI Development**: See best practices in action
+- **Team Collaboration**: Share vision and roadmap documents
+
+## Requirements
+
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) installed and configured
+- Git for version control
+
+## License
+
+MIT - See LICENSE file for details
+
+## Community
+
+- Report issues or suggest improvements via GitHub Issues
+- Share your projects built with Mother Brain
+
+## Contributing
+
+We welcome contributions of all kinds. Please read:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## Frequently Asked Questions
+
+**Q: What problem does Mother Brain solve?**  
+A: Mother Brain eliminates wasted tokens and confusion in AI-driven development by providing structured workflows—from vision discovery to MVP delivery. It automates repetitive patterns through skill generation and uses research-backed best practices for every project type.
+
+**Q: Is this only for GitHub Copilot CLI?**  
+A: Currently yes. Mother Brain is optimized for GitHub Copilot CLI's skill system, but the framework principles (vision-driven development, skill automation, MVP-first roadmaps) apply to any AI coding assistant.
+
+**Q: How is this different from traditional project management tools?**  
+A: Mother Brain is built specifically for AI-driven development. Unlike traditional PM tools, it:
+- Automatically researches best practices for your project type
+- Generates specialized skills for repetitive patterns
+- Learns from every project and improves itself
+- Focuses on outcomes (vision) rather than just tasks
+
+**Q: Do I need to know how to code to use Mother Brain?**  
+A: Yes, Mother Brain is designed for developers building software projects with AI assistance. You'll need GitHub Copilot CLI installed and basic Git knowledge.
+
+**Q: Can I use Mother Brain for existing projects?**  
+A: Absolutely! You can import your existing vision/goals, and Mother Brain will help identify patterns, create skills, and generate a phased roadmap to guide continued development.
+
+**Q: How does the self-learning feature work?**  
+A: When issues occur or improvements are suggested, Mother Brain can update its own SKILL.md file to prevent similar issues in future projects. It learns from real-world feedback and compounds knowledge across all projects.
+
+**Q: Is Mother Brain free to use?**  
+A: Yes! Mother Brain is open source under the MIT License. You're free to use, modify, and distribute it.
+
+## Comparison with Alternatives
+
+| Feature | Mother Brain | Traditional PM Tools | AI Coding Assistants Alone |
+|---------|--------------|---------------------|---------------------------|
+| Vision Discovery | ✅ Built-in wizard | ❌ Manual | ❌ Not included |
+| Research-Driven Roadmaps | ✅ Automatic | ❌ Manual | ❌ Not included |
+| Skill Automation | ✅ Auto-generates | ❌ None | ⚠️ Manual prompt eng. |
+| Self-Learning | ✅ Improves itself | ❌ Static | ❌ Stateless |
+| Session Continuity | ✅ Resumes progress | ⚠️ Manual tracking | ❌ No memory |
+| MVP-First Focus | ✅ Research-backed | ⚠️ Varies | ❌ Not guided |
+
+## Roadmap & Changelog
+
+See `.github/skills/mother-brain/SKILL.md` for the complete framework documentation and capabilities.
+
+## Author & Maintainers
+
+**Created by**: Mother Brain Project Contributors  
+**Maintained by**: Open Source Community  
+**First Released**: February 2026  
+
+
+## References & Learn More
+
+- [GitHub Copilot CLI Documentation](https://docs.github.com/en/copilot/github-copilot-in-the-cli)
+- [Open Source Project Management Best Practices](https://opensource.guide/)
+- [Vision-Driven Development Principles](https://en.wikipedia.org/wiki/Vision_document)
+
+## Project Status
+
+Mother Brain is **production-ready** and actively maintained.

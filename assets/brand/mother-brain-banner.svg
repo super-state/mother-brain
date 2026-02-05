@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="220" viewBox="0 0 1200 220" role="img" aria-label="Mother Brain banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B0F14"/>
+      <stop offset="100%" stop-color="#151A22"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF3CAC"/>
+      <stop offset="50%" stop-color="#6B1AFF"/>
+      <stop offset="100%" stop-color="#00AEEF"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="220" fill="url(#bg)"/>
+
+  <g opacity="0.35">
+    <path d="M80 40 L1120 40" stroke="#1F2A37" stroke-width="1"/>
+    <path d="M80 180 L1120 180" stroke="#1F2A37" stroke-width="1"/>
+    <path d="M120 20 L120 200" stroke="#1F2A37" stroke-width="1"/>
+    <path d="M1080 20 L1080 200" stroke="#1F2A37" stroke-width="1"/>
+  </g>
+
+  <g filter="url(#glow)">
+    <path d="M110 110 C150 60, 230 60, 270 110 C230 160, 150 160, 110 110 Z" fill="none" stroke="url(#neon)" stroke-width="4"/>
+    <path d="M150 95 C170 75, 210 75, 230 95" fill="none" stroke="#A8E6CF" stroke-width="2"/>
+    <path d="M150 125 C170 145, 210 145, 230 125" fill="none" stroke="#A8E6CF" stroke-width="2"/>
+  </g>
+
+  <text x="320" y="105" fill="url(#neon)" font-family="Orbitron, 'Major Mono Display', 'IBM Plex Mono', monospace" font-size="52" font-weight="700" letter-spacing="2">
+    MOTHER BRAIN
+  </text>
+  <text x="320" y="145" fill="#9AA4B2" font-family="IBM Plex Mono, Inter, monospace" font-size="18">
+    AI-driven project execution framework for GitHub Copilot CLI
+  </text>
+</svg>

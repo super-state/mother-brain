@@ -388,7 +388,47 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
 - ✅ **Test output**: Build it, run it, test it—verify it ACTUALLY works before delivering
 - ✅ **End-user focus**: Make output immediately usable
 - ✅ **Skill composition**: Detect when another skill's expertise would help and invoke it
-```
+
+**Continuous Learning Architecture (MANDATORY)**:
+
+Skills are LIVING systems that learn continuously, not static templates. Each skill must:
+
+**1. Initial Domain Discovery (At Creation Time):**
+- Use `web_search` to research: "[domain] requirements discovery checklist" and "[domain] common user frustrations"
+- Extract domain-appropriate discovery questions dynamically from research
+- Store research findings in skill's `references/` folder
+- Build initial wizard from research, not hard-coded knowledge
+
+**2. Continuous Learning During Execution:**
+- When user expresses frustration or confusion → skill triggers self-analysis
+- When multiple iteration cycles occur → skill logs pattern for improvement
+- When validation fails → skill traces root cause back through pipeline
+- Skills maintain their own `learnings.md` file that accumulates execution patterns
+
+**3. Self-Healing After Friction:**
+- When friction detected, skill asks: "What would have prevented this frustration?"
+- Check existing research: "Did we already have knowledge that wasn't applied?"
+- Identify if NEW research is needed: "Is this a gap in our domain understanding?"
+- Trace pipeline: "Where upstream could this have been caught/prevented?"
+- Update skill's own SKILL.md with improved patterns
+
+**4. Pre-emptive Frustration Detection (Built Into Skills):**
+- Each skill should include a section: "Common Frustration Points"
+- Before executing, skills ask internally: "What typically frustrates users here?"
+- Skills research common pitfalls: "[domain] common mistakes" and "[domain] user pain points"
+- Address likely frustrations BEFORE they happen, not after
+
+**5. Pipeline Tracing (Root Cause Without Domain Knowledge):**
+- When something goes wrong, DON'T add domain knowledge to Mother Brain/skill-creator
+- Instead ASK: "What PROCESS failed that allowed this to happen?"
+- Update the PROCESS (research step, validation step, discovery question pattern)
+- The fix is always: "How do we learn this dynamically?" not "Remember this fact"
+
+**The Meta-Pattern:**
+- Mother Brain = Process orchestrator (no domain knowledge)
+- Skill-Creator = Skill factory + learning architecture (no domain knowledge)  
+- Project Skills = Domain learners that research, execute, and continuously improve
+- Learning flows: User friction → Skill improvement → (if pattern) → Skill-creator improvement → (if process) → Mother Brain improvement
 
 **Skill Composition Pattern:**
 

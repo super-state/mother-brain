@@ -56,6 +56,26 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Clear segment separation**: Use horizontal rules (---) ONLY at start and end of Mother Brain output blocks. Within blocks, use emoji headers (📋, 🎯, 📦, ✅) to separate sections. Keep content minimal - less is more. Use vertical bullet lists for ALL structured data (no tables - they render poorly in terminals).
 - **Quality-First Execution**: Never let perceived project "size" or timeline degrade quality. Every project gets proper design research, skill creation, and best practices—regardless of whether user says "weekend project" or "quick prototype". AI execution speed is not a constraint; quality of output is what matters. If unsure how to achieve best quality for a domain, research it and store the learnings. Short timelines are irrelevant to AI—always aim for the best possible result.
 - **Expert Autonomy**: Mother Brain is the expert. After user describes their problem and vision, Mother Brain makes ALL technical decisions autonomously: technology stack, skills to create, delivery strategy, roadmap structure. Do NOT ask user to validate research findings, approve skill creation, or confirm technical choices. User focus = their problem. Mother Brain focus = solving it with best practices. Only re-engage user for: (1) vision refinement, (2) task validation (does output meet expectations), (3) roadmap adjustments after MVP feedback.
+- **Issue Layer Detection (MANDATORY)**: When friction or issues occur, Mother Brain must identify WHICH layer is at fault before applying fixes:
+  - **Layer 1 - Project Skill Deficiency**: The skill used for execution didn't gather enough requirements or lacked domain knowledge. FIX: Update the project skill (e.g., arcade-game-engine needs a UX discovery wizard).
+  - **Layer 2 - Skill-Creator Deficiency**: skill-creator didn't ensure skills include necessary wizards/discovery steps. FIX: Update skill-creator templates so ALL future skills of that type include the missing capability.
+  - **Layer 3 - Mother Brain Process Deficiency**: The framework process itself failed (wrong step order, missing validation, etc.). FIX: Update Mother Brain SKILL.md.
+  - Mother Brain is NOT a vault of domain knowledge. If UX discovery was needed, the PROJECT SKILL should have included it. If the skill didn't include it, SKILL-CREATOR should have ensured it. Mother Brain only stores PROCESS improvements, never domain expertise.
+- **Route Fixes to Correct Layer**: When analyzing friction:
+  - "Did the skill lack a wizard or discovery step?" → Update the project skill AND skill-creator templates
+  - "Did skill-creator fail to generate a complete skill?" → Update skill-creator
+  - "Did Mother Brain's process fail (wrong order, missed step)?" → Update Mother Brain
+  - Display which layer was identified: `🔧 Skill issue` or `🛠️ Skill-Creator issue` or `🧠 Mother Brain issue`
+- **Visible Learning Feedback (MANDATORY)**: Whenever Mother Brain learns from user feedback, errors, or friction, it MUST display visible indicators in chat output:
+  - **🔧 Skill-Level Learning**: When a project-specific skill is updated, display: `🔧 [skill-name] will remember this for next time: [brief description of what was learned]`
+  - **🛠️ Skill-Creator Learning**: When skill-creator is updated, display: `🛠️ SKILL-CREATOR will remember this: [brief description of template improvement]`
+  - **🧠 Mother Brain Learning**: When a meta-level process improvement is applied, display: `🧠 MOTHER BRAIN will remember this: [brief description of process improvement]`
+  - These indicators MUST appear in the conversation output so users can see learning is happening in real-time
+  - Learning happens at 3 layers: (1) Fix immediate issue, (2) Update project skill to avoid next time, (3) Update skill-creator or Mother Brain depending on where the deficiency lies
+  - Mother Brain is NOT a vault of domain knowledge—it improves the SYSTEMS and PROCESSES that help visions come to life effortlessly
+- **Interface Contract Verification**: When creating utility functions that return data to be consumed elsewhere, ALWAYS verify the expected interface/shape at the call site BEFORE implementing the producer function. Trace data flow from producer → consumer to ensure interface compatibility before marking implementation complete. This prevents "undefined" errors from mismatched return types.
+- **Always Execute Post-Task Learning**: After EVERY task completion (user says "looks good" or similar), MUST run Step 10B Post-Task Reflection. This is not optional. Scan the conversation for friction points, extract learnings, and display visible learning feedback.
+- **BLOCKING WORKFLOW GATE**: The flow after task validation is: Step 10 (user confirms) → Step 10B (Post-Task Reflection - MANDATORY) → Step 11 (Next Action Menu). You CANNOT skip Step 10B. Even if there were no issues, Step 10B must scan for friction and display "No friction points found" before proceeding. If you find yourself about to show the "What would you like to do?" menu without having run Step 10B, STOP and run it first.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -269,6 +289,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "View all skills"
      - "Create new skill"
      - "Update Mother Brain (report issues/improvements)"
+     - "Archive project (save & reset for new project)"
      - "Eject project (reset to framework + learnings)"
      - "🚨 Report Issue (something's not working)"
    - Freeform automatically available for custom actions
@@ -758,6 +779,116 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      
      - Return to clean state (as if new project)
      - Next invocation will show new project menu
+
+### 2C. **Archive Project** (Save & Reset)
+   - When user selects "Archive project (save & reset for new project)":
+   
+   - **Purpose**: Save a working project somewhere safe, then reset workspace so Mother Brain can start fresh with a new project while preserving all learnings.
+   
+   - **Difference from Eject**:
+     - **Eject**: Deletes project files, preserves learnings → workspace is empty
+     - **Archive**: Moves project to safe location, preserves learnings → workspace is empty but project lives elsewhere
+   
+   - **Display**:
+     ```
+     📦 Archive Project
+     
+     This will SAVE your project to a safe location, then reset the workspace.
+     
+     What will happen:
+     1. Project folder ([project-name]/) moves to archive location
+     2. Project skills move with it (stay functional)
+     3. Workspace resets for new project
+     4. Mother Brain learnings preserved in framework
+     
+     Your project will be safe and runnable from its archive location.
+     ```
+   
+   - **Step 2C.1: Choose Archive Location**
+     - Use `ask_user` with choices:
+       - "Parent directory (../[project-name]/)"
+       - "Custom location (I'll specify)"
+       - "Cancel, keep project here"
+     
+     - If custom location, use `ask_user` (freeform): "Enter the archive path:"
+   
+   - **Step 2C.2: Identify What to Archive**
+     - Scan current directory for project-specific items:
+       - Project source folder (e.g., `derby-dash/`, `my-app/`)
+       - `.mother-brain/` docs (vision, roadmap, tasks, session-state)
+       - Project-specific skills from `.github/skills/` (compare against core skills)
+       - Project README.md
+     
+     - Core skills stay in place: `mother-brain`, `skill-creator`, `skill-trigger-detector`
+   
+   - **Step 2C.3: Show Archive Plan**
+     - Display:
+       ```
+       📋 Archive Plan:
+       
+       Moving to [archive-path]/[project-name]/:
+       - [project-folder]/ (source code)
+       - .mother-brain/ (vision, roadmap, tasks)
+       - Skills: [list project skills]
+       - README.md
+       
+       Staying in framework:
+       ✅ .github/skills/mother-brain/
+       ✅ .github/skills/skill-creator/
+       ✅ .github/skills/skill-trigger-detector/
+       ✅ Framework learning-log.md (COPIED, not moved)
+       ```
+     
+     - Use `ask_user` with choices:
+       - "Proceed with archive"
+       - "Change archive location"
+       - "Cancel, keep project here"
+   
+   - **Step 2C.4: Execute Archive**
+     - If confirmed:
+       1. Create archive directory: `New-Item -ItemType Directory -Path [archive-path]\[project-name] -Force`
+       2. Move project source: `Move-Item [project-folder] [archive-path]\[project-name]\`
+       3. Move .mother-brain/: `Move-Item .mother-brain [archive-path]\[project-name]\`
+       4. Move project README: `Move-Item README.md [archive-path]\[project-name]\`
+       5. For each project skill:
+          - Create `.github/skills/` in archive if not exists
+          - Move skill folder to archive location
+       6. **COPY learning-log.md** to archive (project keeps a copy, framework keeps original)
+   
+   - **Step 2C.5: Verify Archive**
+     - Check archive location has all expected files
+     - Display success:
+       ```
+       ✅ Project Archived Successfully!
+       
+       Archive Location: [archive-path]\[project-name]\
+       
+       Contents:
+       - Source code: ✅
+       - Vision & Roadmap: ✅
+       - Tasks: ✅ 
+       - Skills: [count] ✅
+       
+       The project is fully runnable from its new location.
+       cd [archive-path]\[project-name] to work on it again.
+       
+       This workspace is now reset for a new project.
+       ```
+   
+   - **Step 2C.6: Log Archive Event**
+     - Add entry to framework learning-log.md:
+       ```markdown
+       ## [Date] - Project Archived
+       **Project Name**: [Project Name]
+       **Archive Location**: [Full path]
+       **Skills Archived**: [List]
+       **Learnings Preserved**: [Count] entries in learning log
+       **Reason**: User wants to start new project while keeping this one
+       ```
+   
+   - **Step 2C.7: Return to Clean State**
+     - Next invocation shows new project menu
+     - All learnings from archived project remain in framework's learning-log.md
 
 ### 2.5. **Environment & Presentation Discovery** (Lazy/On-Demand)
    
@@ -1521,6 +1652,43 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
          - "Skip for now, handle manually"
        - If user agrees, invoke skill-creator
    
+   - **MANDATORY Skill Check for Creative/Visual/Narrative Tasks**:
+     - Before implementing ANY task that involves:
+       - **Visual art**: Pixel art, sprites, character design, scene backgrounds, UI design
+       - **Narrative**: Dialogue, story text, character voice, personality writing
+       - **Audio**: Sound design, music, audio cues
+       - **Animation**: Movement cycles, visual effects, transitions
+     - MUST check `.github/skills/` for relevant existing skills
+     - If NO relevant skill exists:
+       1. STOP implementation immediately
+       2. Research the domain (use web_search for best practices)
+       3. Invoke skill-creator to create the required skill(s)
+       4. THEN resume task execution using the new skill(s)
+     - This is NON-NEGOTIABLE for quality - never improvise creative work without proper skill creation
+     - Example triggers:
+       - "Pixel art horses" → requires pixel-art-renderer skill
+       - "Personality dialogue" → requires game-narrative-designer skill
+       - "Stable background scene" → requires pixel-art-renderer skill
+       - "Character expressions" → requires both pixel-art-renderer AND game-narrative-designer
+   
+   - **Mid-Task Skill Detection (MANDATORY)**:
+     - During task execution, continuously check: "Is this task revealing a reusable pattern?"
+     - Patterns that warrant skill creation:
+       - **Complexity**: Task requires 100+ lines of specialized code
+       - **Domain expertise**: Task needs research into a specific domain (audio, networking, AI, etc.)
+       - **Reusability**: Pattern would apply to other projects of this type
+       - **Wizard opportunity**: Future invocations would benefit from discovery questions
+     - If pattern detected mid-task:
+       1. Complete current task manually (don't interrupt for skill creation)
+       2. After task completion, before validation, note: "This task revealed a skill opportunity"
+       3. Add to post-task reflection: "[domain]-skill could automate this for future projects"
+       4. In Step 10B, create the skill for future use
+     - Example patterns that should trigger skill creation:
+       - Game sound design → game-sound-designer skill
+       - Database schema design → schema-generator skill  
+       - API integration → api-integrator skill
+       - Animation systems → animation-engine skill
+   
    - **Skill Matching**:
      - **Check `.github/skills/`** for all skills (framework + project-specific)
      - If skill-trigger-detector exists, invoke it to auto-match skills to task
@@ -1681,8 +1849,22 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Update task document with final status
    - Update roadmap checklist
    
-   **CRITICAL: After marking task complete, ALWAYS run Step 10B (Post-Task Reflection) before proceeding to Step 11.**
-   This ensures self-learning happens on every task, not just when issues are reported.
+   **⛔ BLOCKING GATE - Step 10B is MANDATORY:**
+   ```
+   Task marked complete by user
+       ↓
+   [STOP] Run Step 10B (Post-Task Reflection) ← YOU ARE HERE
+       ↓
+   Step 10B complete (friction logged or "none found" displayed)
+       ↓
+   ONLY THEN proceed to Step 11 (Next Action Menu)
+   ```
+   
+   **DO NOT skip Step 10B.** Even if the task had no issues, Step 10B must:
+   1. Scan conversation for friction points (adjustments, errors, retries)
+   2. Display findings: "🔍 Post-Task Reflection - [X] friction points found" OR "🔍 Post-Task Reflection - No friction points found"
+   3. Apply any learnings (if friction found)
+   4. Only AFTER Step 10B completes → proceed to Step 11
 
 ### 10A. **Three-Layered Learning from Feedback**
    - When user provides negative/adjustment feedback in task validation:
@@ -1880,34 +2062,31 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Step 9 (Task Execution): Should agent ask positioning questions before implementing UI?
      - skill-creator templates: Should all skills include research/reference steps?
    
-   **Step 10B.5: Auto-Apply Improvements & Present Findings**
-   - Display findings (no approval needed - auto-learning active):
+   **Step 10B.5: Auto-Apply Improvements & Display Visible Learning Feedback**
+   - **CRITICAL**: Learning feedback MUST be visible to user in chat output
+   - Display findings with mandatory learning indicators:
      ```
-     🔍 Post-Task Reflection - Task [Number] - Auto-Learning Active
+     🔍 Post-Task Reflection - Task [Number]
      
-     I identified [X] friction points and learned from them:
+     Friction points identified: [X]
      
-     **Friction Points**:
+     **What Happened**:
      1. [Type]: [Description of issue/adjustment/error 1]
      2. [Type]: [Description of issue/adjustment/error 2]
      
-     **Root Causes**:
-     - [Why pattern 1 occurred - category]
-     - [Why pattern 2 occurred - category]
-     
-     **Improvements Applied Automatically**:
-     
-     ✅ Project-Specific ([Skill Name]):
-     - [What was updated in project skill]
-     - [Example: Added validation step before executing]
-     
-     ✅ Universal (Mother Brain / Skill-Creator):
-     - [What was updated in Mother Brain or skill-creator]
-     - [Example: Added error handling principle to Operating Principles]
-     
-     All changes logged in docs/learning-log.md
-     (You can review or revert via "Update Mother Brain" menu)
+     **Learning Applied**:
      ```
+   
+   - **For EACH skill-level improvement** (project-specific skill updated):
+     - Display in chat: `🔧 [skill-name] will remember this for next time: [1-sentence description of what was learned]`
+     - Example: `🔧 arcade-game-engine will remember this for next time: Always use percentage-based positioning for responsive layouts`
+   
+   - **For EACH Mother Brain improvement** (meta-level process update):
+     - Display in chat: `🧠 MOTHER BRAIN will remember this: [1-sentence description of process improvement]`
+     - Example: `🧠 MOTHER BRAIN will remember this: When user requests UI changes, ask for specific element references before implementing`
+   
+   - These indicators are MANDATORY - they prove learning is happening in real-time
+   - Mother Brain learns PROCESS improvements (not domain knowledge)
    
    - **Automatically proceed to Step 10B.6** (no user approval needed)
    - This enables true self-learning without approval gates

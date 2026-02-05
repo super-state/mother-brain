@@ -402,9 +402,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    **If "Trigger self-learning loop" selected:**
    - Jump to **Step 2A.1: Self-Learning Loop**
 
-### 2A.1 **Self-Learning Loop** (Simulated Project Training)
-   - **Purpose**: Mother Brain simulates a full project lifecycle to discover and fix its own issues
-   - **Outcome**: Learnings applied to SKILL.md to improve future projects
+### 2A.1 **Self-Learning Loop** (Real Project Training)
+   - **Purpose**: Mother Brain ACTUALLY builds a test project through the full lifecycle, then analyzes what went wrong
+   - **Outcome**: Real friction discovered from real execution, learnings applied to SKILL.md
+   - **Key Difference**: Not a mental simulation - an actual build with real files, real commands, real failures
    
    **Step 2A.1.1: Generate Random Test Project**
    - Mother Brain invents a test project (different each time):
@@ -415,7 +416,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Display:
      ```
-     🧪 Self-Learning Loop - Simulating Project
+     🧪 Self-Learning Loop - Building Real Test Project
      
      Test Project:
      - Name: [Generated Name]
@@ -424,92 +425,146 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Vision: [1-2 sentence vision]
      - MVP: [Key features]
      
-     Simulating full project lifecycle...
+     I will now build this project for real, simulating user responses.
+     All steps, commands, and outputs will be tracked for analysis.
+     At the end, the project will be ejected and learnings extracted.
+     
+     Starting build...
      ```
    
-   **Step 2A.1.2: Simulate Setup Flow (Steps 3-7)**
-   - Run through each step mentally/logically:
-     - Step 3: Vision Discovery (simulate answers)
-     - Step 4: Vision Document Creation (create in memory)
-     - Step 5: Technology & Pattern Analysis (research patterns)
-     - Step 5A: Design System Discovery (if visual project)
-     - Step 6: Skill Identification & Creation (identify skills needed)
-     - Step 6A: Delivery Strategy Research
-     - Step 7: Roadmap Generation (create in memory)
+   **Step 2A.1.2: Execute Full Project Build (Steps 3-7)**
+   - **Actually run** each step (not simulate):
+     - Step 3: Vision Discovery - Mother Brain generates realistic user answers
+     - Step 4: Vision Document Creation - Create real vision.md
+     - Step 5: Technology & Pattern Analysis - Run real web searches
+     - Step 5A: Design System Discovery - If visual project, run real research
+     - Step 6: Skill Identification & Creation - Create real skills
+     - Step 6A: Delivery Strategy Research - Run real research
+     - Step 7: Roadmap Generation - Create real roadmap.md
    
-   - **Track all friction points during simulation**:
-     - Steps that felt unclear or incomplete
-     - Missing instructions for this project type
-     - Research that would have been needed
-     - Skills that couldn't be created
-     - Edge cases not covered by SKILL.md
+   - **Log EVERYTHING during execution**:
+     - Every command run and its output
+     - Every file created
+     - Every error encountered
+     - Every retry attempt
+     - Every step skipped or missed
    
-   **Step 2A.1.3: Simulate Task Execution (Steps 8-11)**
-   - For each simulated Phase 1 task:
-     - Step 8: Create task document (in memory)
-     - Step 9: Execute task (identify what would happen)
-     - Step 10: Validation (simulate what could go wrong)
-     - Step 10B: Post-task reflection (identify learnings)
+   **Step 2A.1.3: Execute Task Implementation (Steps 8-11)**
+   - For each Phase 1 task (at least first 2-3 tasks):
+     - Step 8: Create real task document
+     - Step 9: Execute task - create real files, run real commands
+     - Step 10: Validation - Mother Brain simulates user approval/rejection
+     - Step 10B: Post-task reflection - Run real reflection
    
-   - **Track execution friction**:
-     - Tasks that would have failed
-     - Skills that would have been inadequate
-     - Validation steps that would have missed issues
-     - Error handling that was missing
+   - **Continue logging everything**:
+     - Build failures and their error messages
+     - Commands that succeeded vs failed
+     - Files created and their paths
+     - Any unexpected behavior
    
-   **Step 2A.1.4: Simulate MVP Completion**
-   - Run through Step 11A logic:
-     - What would "done" mean for this project type?
-     - What delivery patterns would apply?
-     - What skills would be needed for deployment?
+   **Step 2A.1.4: Analyze Execution Logs**
+   - After building, scan ALL conversation output for:
+     - **Failures**: Commands that returned errors, builds that failed
+     - **Retries**: Steps that had to be re-run
+     - **Skipped Steps**: Steps in SKILL.md that were not executed
+     - **Missing Handling**: Error types that weren't handled gracefully
+     - **Unexpected Behavior**: Output that didn't match expectations
+     - **Inefficiencies**: Extra steps that could have been avoided
    
-   **Step 2A.1.5: Compile Learnings Report**
+   - Create structured friction list:
+     ```
+     📋 Execution Analysis:
+     
+     Errors Encountered:
+     - [Error 1]: [Command/Step] → [Error message]
+     - [Error 2]: [Command/Step] → [Error message]
+     
+     Steps Skipped/Missed:
+     - [Step X] was not executed because [reason]
+     
+     Retries Required:
+     - [Step Y] failed first attempt, succeeded on retry
+     
+     Inefficiencies:
+     - [Observation about wasted effort]
+     ```
+   
+   **Step 2A.1.5: Auto-Eject Test Project**
+   - Automatically run the eject process (Step 2B):
+     - Remove all project files created during test
+     - Remove all project-specific skills created
+     - Preserve learning-log.md
+     - Preserve core framework skills
+   - Display: "🗑️ Test project ejected - framework reset"
+   
+   **Step 2A.1.6: Extract Meta-Level Improvements**
+   
+   **CRITICAL PRINCIPLE - Meta-Level Improvements Only:**
+   Mother Brain is NOT a repository of domain knowledge. It is a PROCESS framework that adapts dynamically.
+   
+   - ❌ **WRONG** improvements (project-specific knowledge):
+     - "Add VS Code extension API knowledge to Step 5"
+     - "Include library publishing patterns in Step 6A"
+     - "Add game development conventions to Step 5A"
+     - These embed static domain knowledge that becomes stale and bloated
+   
+   - ✅ **RIGHT** improvements (meta-level process):
+     - "Step 5 should detect project category and trigger category-specific research dynamically"
+     - "Step 6A should use web_search to find delivery patterns for detected project type"
+     - "Step 10 validation should adapt presentation method based on project type"
+     - These improve HOW Mother Brain learns and adapts, not WHAT it knows
+   
+   **The Test:** For every proposed improvement, ask:
+   - "Would this improvement help with ANY future project type, including ones we haven't imagined?"
+   - "Does this add static knowledge, or does it improve dynamic learning capability?"
+   - If it adds static knowledge → REJECT
+   - If it improves dynamic capability → ACCEPT
+   
    - Display comprehensive report:
      ```
      🧪 Self-Learning Loop Complete
      
-     📋 Test Project Summary:
+     📋 Test Project Built:
      - Name: [Project Name]
      - Type: [Type] | Domain: [Domain]
-     - Tasks Simulated: [Count]
-     - Skills That Would Be Needed: [List]
+     - Tasks Completed: [Count]
+     - Skills Created: [List]
      
-     🔍 Friction Points Discovered:
+     🔍 Real Friction Discovered (from execution logs):
      
-     **Setup Flow Issues (Steps 3-7)**:
-     1. [Issue description - which step, what was missing/unclear]
-     2. [Issue description]
+     **Errors/Failures**:
+     1. [What failed] - [Error message] - [Which step]
+     2. [What failed] - [Error message] - [Which step]
      
-     **Task Execution Issues (Steps 8-11)**:
-     1. [Issue description - what would have failed]
-     2. [Issue description]
+     **Steps Skipped or Incomplete**:
+     1. [Step X] - [Why it was missed]
      
-     **MVP Completion Issues (Step 11A)**:
-     1. [Issue description - what wasn't covered]
+     **Inefficiencies**:
+     1. [What could have been done better]
      
-     📚 Lessons Learned:
-     1. [Meta-lesson 1 - project-agnostic principle]
-     2. [Meta-lesson 2 - project-agnostic principle]
-     3. [Meta-lesson 3 - project-agnostic principle]
+     📚 Meta-Level Lessons (Process Improvements Only):
+     1. [How Mother Brain's PROCESS could better handle this - NOT domain knowledge]
+     2. [Dynamic capability improvement - NOT static knowledge addition]
+     3. [Adaptive behavior enhancement - NOT project-specific details]
      
-     🔧 Proposed Mother Brain Improvements:
+     🔧 Proposed Mother Brain Improvements (Meta-Level Only):
      
      **Improvement 1**:
      - Step affected: [Step number/name]
-     - Current behavior: [What SKILL.md currently says]
-     - Proposed change: [What should be added/modified]
-     - Reason: [Why this improves future projects]
+     - Friction observed: [What actually went wrong in the build]
+     - Proposed change: [Process/capability improvement - NOT domain knowledge]
+     - Why meta-level: [Explain how this helps ALL projects dynamically]
      
      **Improvement 2**:
      - Step affected: [Step number/name]
-     - Current behavior: [What SKILL.md currently says]
-     - Proposed change: [What should be added/modified]
-     - Reason: [Why this improves future projects]
+     - Friction observed: [What actually went wrong in the build]
+     - Proposed change: [Process/capability improvement - NOT domain knowledge]
+     - Why meta-level: [Explain how this helps ALL projects dynamically]
      
      [... additional improvements ...]
      ```
    
-   **Step 2A.1.6: User Review & Approval**
+   **Step 2A.1.7: User Review & Approval**
    - Use `ask_user` with choices:
      - "Apply all improvements"
      - "Review and select which to apply"
@@ -538,27 +593,35 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    **If "Run another simulation":**
    - Loop back to Step 2A.1.1 with new random project
    
-   **Step 2A.1.7: Log Simulation**
+   **Step 2A.1.8: Log Simulation**
    - Add to learning-log.md:
      ```markdown
-     ## [Date] - Self-Learning Loop Simulation
+     ## [Date] - Self-Learning Loop (Real Build)
      **Test Project**: [Name] ([Type] - [Domain])
      **MVP Scope**: [Features]
-     **Friction Points Found**: [Count]
+     **Tasks Built**: [Count]
+     **Skills Created**: [List - now ejected]
+     **Errors Encountered**: [Count]
+     **Steps Missed**: [Count]
      **Improvements Proposed**: [Count]
      **Improvements Applied**: [Count]
-     **Key Learnings**:
-     - [Lesson 1]
-     - [Lesson 2]
+     **Key Meta-Learnings**:
+     - [Process lesson 1]
+     - [Process lesson 2]
      **Steps Updated**: [List of steps modified]
      ```
    
    **Key Principles**:
-   - **Random diversity**: Each simulation uses a different project type/domain to discover edge cases
-   - **Full lifecycle**: Simulate the entire flow, not just setup
-   - **Meta-learning focus**: Extract project-agnostic lessons, not project-specific fixes
+   - **Real execution, not imagination**: Actually build the project, create files, run commands
+   - **Log everything**: Track all outputs, errors, and behavior for post-analysis
+   - **Auto-eject after**: Clean up test project automatically, keep only learnings
+   - **Random diversity**: Each run uses different project type/domain
+   - **Meta-learning ONLY**: Extract PROCESS improvements, never domain-specific knowledge
+     - Mother Brain is a dynamic learning framework, not a knowledge repository
+     - Improvements should enhance HOW Mother Brain adapts, not WHAT it knows about specific domains
+     - Every improvement must pass the test: "Would this help with project types we haven't imagined yet?"
    - **User control**: User reviews and approves changes before they're applied
-   - **Compounding improvement**: Each simulation makes Mother Brain smarter
+   - **Compounding improvement**: Each simulation makes Mother Brain smarter at LEARNING, not at specific project types
 
 ### 2B. **Eject Project** (Reset to Framework)
    - When user selects "Eject project (reset to framework + learnings)":
@@ -1302,10 +1365,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Review the vision document"
      - "I want to adjust something before starting"
    
-   - If "Start Task 001 now": Proceed to Step 8 (Task Document Creation)
+   - If "Start Task 001 now": **FIRST run Step 7.6 (mandatory)**, then proceed to Step 8 (Task Document Creation)
    - If "Review roadmap": Display full roadmap, then return to this menu
    - If "Review vision": Display vision summary, then return to this menu
    - If "Adjust something": Use `ask_user` to ask what needs adjusting, make changes, return to this menu
+   
+   - **MANDATORY**: After ANY selection from this menu, run Step 7.6 (Setup Validation & Self-Healing) BEFORE proceeding to the chosen action. This ensures setup issues are caught and fixed before task execution begins.
    
    - Use outcome-focused language (what gets achieved, not just tasks)
    - Link Phase 1 tasks back to MVP criteria from vision
@@ -1461,6 +1526,15 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - If skill-trigger-detector exists, invoke it to auto-match skills to task
      - Identify which skills to use (if any)
      - Project skills are differentiated by `skillsCreated` array in session-state.json
+   
+   - **Working Directory Management** (CRITICAL):
+     - **NEVER assume working directory persists between tool calls**
+     - When executing commands for a specific project folder:
+       - ALWAYS prefix commands with explicit directory change
+       - Example: `Set-Location [project-path]; npm install`
+       - Or use full absolute paths for all file operations
+     - Track current project path in session state or as variable at task start
+     - This prevents "file not found" and "module not found" errors from wrong directory context
    
    - **Execution**:
      - If skill exists: Invoke it using `skill` tool with task context

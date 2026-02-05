@@ -1,5 +1,74 @@
 # Learning Log
 
+## 2026-02-05 - Self-Learning Loop (Real Build): SnippetVault Extension
+**Test Project**: SnippetVault (VS Code Extension - Developer Tooling)
+**MVP Scope**: Save, list, and insert code snippets
+**Tasks Built**: 2 (Scaffolding, Core commands)
+**Skills Created**: vscode-extension-scaffolder (ejected)
+**Errors Encountered**: 0 ✅
+**Steps Missed**: 0 ✅
+**Improvements Proposed**: 0 (previous improvements validated)
+**Improvements Applied**: 0
+**Key Meta-Learnings**:
+- Working directory management improvement from Simulation #1 prevented path errors
+- Framework is learning and improving - clean execution validates previous changes
+**Validation**: Previous improvements are effective
+
+---
+## 2026-02-05 - Self-Learning Loop (Real Build): FinanceFlow API
+**Test Project**: FinanceFlow API (API - Finance)
+**MVP Scope**: Exchange rates endpoint, stock quotes, API key auth
+**Tasks Built**: 2 (Project scaffolding, Auth + Exchange rates)
+**Skills Created**: express-api-scaffolder (ejected)
+**Errors Encountered**: 1 (wrong directory for server start)
+**Steps Missed**: 1 (Step 7.6 not explicitly run)
+**Improvements Proposed**: 2
+**Improvements Applied**: 2
+**Key Meta-Learnings**:
+- Working directory does not persist between tool calls - must explicitly manage it
+- Mandatory steps need stronger enforcement in the flow, not just documentation
+**Steps Updated**:
+- Step 9: Added "Working Directory Management" section with explicit guidance
+- Step 7.5: Added MANDATORY instruction to run Step 7.6 before proceeding
+
+---
+## 2026-02-05 - Rewrote Self-Learning Loop to Build Real Projects
+**Issue Type**: Suggestion for improvement
+**User Report**: "When we run simulations of projects we actually need to go through the motions of building them, with all the questions and answers a user might give. We should then check that all the steps were carried out, looking at the output logs, seeing what failed, seeing if any steps were missed. It should be like for like. The difference is at the end we eject automatically and then show the learning and improvements are reported to the user"
+**Root Cause**: Step 2A.1 was doing a "mental simulation" - thinking through what WOULD happen instead of actually executing. This missed real-world friction like:
+- Commands that actually fail
+- Files that don't get created properly
+- Steps that get skipped in practice
+- Error messages from real execution
+**Fix Applied**:
+- Completely rewrote Step 2A.1 from "Simulated Project Training" to "Real Project Training"
+- Step 2A.1.2: Now ACTUALLY RUNS Steps 3-7 with real file creation, real web searches, real skill creation
+- Step 2A.1.3: Now ACTUALLY BUILDS first 2-3 tasks with real commands and real files
+- Step 2A.1.4: Added "Analyze Execution Logs" step that scans conversation for actual errors, skipped steps, retries
+- Step 2A.1.5: Added AUTO-EJECT after build completes (cleanup is automatic, not manual)
+- Step 2A.1.6: Extract improvements from REAL friction discovered in logs
+- Updated Key Principles: "Real execution, not imagination" and "Log everything"
+**Sections Updated**: Entire Step 2A.1 rewritten
+**Lesson Learned**: Self-improvement requires real testing, not thought experiments. Mental simulations miss the friction that only appears in real execution. Build it, break it, learn from it, clean it up.
+
+---
+## 2026-02-05 - Fixed Self-Learning Loop Generating Project-Specific Improvements
+**Issue Type**: Suggestion for improvement
+**User Report**: "When i tried the self learning loop, all the suggestions for improvements were about adding project specific knowledge to mother brain. For example a one project ran for creating vs code extension, you the suggestions you came up with were to add platform specific knowledge of extensions to mother brain - this is WRONG, we never want to do this. We need to run the simulation and suggest improvements to motherbrain that would help mother brain in future handle projects better regardless of the project. Mother brain is not a massive repository for all possible projects, it is about having a brain that can understand the user's need and adapt as it goes, while learning to take that intelligence through to future projects"
+**Root Cause**: Step 2A.1.5 (Compile Learnings Report) didn't clearly distinguish between:
+- ❌ WRONG: Adding static domain knowledge to Mother Brain (e.g., "VS Code extension APIs")
+- ✅ RIGHT: Improving Mother Brain's dynamic PROCESS to handle any project (e.g., "detect project type and research accordingly")
+The template allowed improvements that embedded project-specific knowledge rather than meta-level process enhancements.
+**Fix Applied**:
+- Added "CRITICAL PRINCIPLE - Meta-Level Improvements Only" section to Step 2A.1.5
+- Added explicit examples of WRONG vs RIGHT improvements
+- Added "The Test" checklist: "Would this help with ANY future project type, including ones we haven't imagined?"
+- Updated report template to require "Why meta-level" explanation for each improvement
+- Updated Key Principles section to reinforce "Mother Brain is a dynamic learning framework, not a knowledge repository"
+**Sections Updated**: Step 2A.1.5, Key Principles (Step 2A.1)
+**Lesson Learned**: Self-improvement systems must distinguish between improving CAPABILITY (how the system learns and adapts) vs expanding KNOWLEDGE (what the system knows about specific domains). Mother Brain's value is in its adaptive process, not accumulated domain expertise. Static knowledge becomes stale; dynamic learning capability compounds.
+
+---
 ## 2026-02-04 - Fixed Eject Not Removing Project Skills
 **Issue Type**: Something broke or didn't work
 **User Report**: "When you ejected you didnt remove the project specific skills. you need to clean them up now and going forward"

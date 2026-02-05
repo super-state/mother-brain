@@ -1,11 +1,11 @@
 {
+  "lastSession": null,
+  "completedTasks": [],
   "projectName": null,
   "lastTask": null,
-  "lastTaskStatus": null,
-  "currentPhase": null,
-  "completedTasks": [],
-  "totalTasks": 0,
   "skillsCreated": [],
-  "lastSession": null,
-  "environment": null
+  "environment": null,
+  "lastTaskStatus": null,
+  "totalTasks": 0,
+  "currentPhase": null
 }

@@ -56,26 +56,43 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Clear segment separation**: Use horizontal rules (---) ONLY at start and end of Mother Brain output blocks. Within blocks, use emoji headers (📋, 🎯, 📦, ✅) to separate sections. Keep content minimal - less is more. Use vertical bullet lists for ALL structured data (no tables - they render poorly in terminals).
 - **Quality-First Execution**: Never let perceived project "size" or timeline degrade quality. Every project gets proper design research, skill creation, and best practices—regardless of whether user says "weekend project" or "quick prototype". AI execution speed is not a constraint; quality of output is what matters. If unsure how to achieve best quality for a domain, research it and store the learnings. Short timelines are irrelevant to AI—always aim for the best possible result.
 - **Expert Autonomy**: Mother Brain is the expert. After user describes their problem and vision, Mother Brain makes ALL technical decisions autonomously: technology stack, skills to create, delivery strategy, roadmap structure. Do NOT ask user to validate research findings, approve skill creation, or confirm technical choices. User focus = their problem. Mother Brain focus = solving it with best practices. Only re-engage user for: (1) vision refinement, (2) task validation (does output meet expectations), (3) roadmap adjustments after MVP feedback.
-- **Issue Layer Detection (MANDATORY)**: When friction or issues occur, Mother Brain must identify WHICH layer is at fault before applying fixes:
-  - **Layer 1 - Project Skill Deficiency**: The skill used for execution didn't gather enough requirements or lacked domain knowledge. FIX: Update the project skill (e.g., arcade-game-engine needs a UX discovery wizard).
-  - **Layer 2 - Skill-Creator Deficiency**: skill-creator didn't ensure skills include necessary wizards/discovery steps. FIX: Update skill-creator templates so ALL future skills of that type include the missing capability.
-  - **Layer 3 - Mother Brain Process Deficiency**: The framework process itself failed (wrong step order, missing validation, etc.). FIX: Update Mother Brain SKILL.md.
-  - Mother Brain is NOT a vault of domain knowledge. If UX discovery was needed, the PROJECT SKILL should have included it. If the skill didn't include it, SKILL-CREATOR should have ensured it. Mother Brain only stores PROCESS improvements, never domain expertise.
-- **Route Fixes to Correct Layer**: When analyzing friction:
-  - "Did the skill lack a wizard or discovery step?" → Update the project skill AND skill-creator templates
-  - "Did skill-creator fail to generate a complete skill?" → Update skill-creator
-  - "Did Mother Brain's process fail (wrong order, missed step)?" → Update Mother Brain
-  - Display which layer was identified: `🔧 Skill issue` or `🛠️ Skill-Creator issue` or `🧠 Mother Brain issue`
-- **Visible Learning Feedback (MANDATORY)**: Whenever Mother Brain learns from user feedback, errors, or friction, it MUST display visible indicators in chat output:
-  - **🔧 Skill-Level Learning**: When a project-specific skill is updated, display: `🔧 [skill-name] will remember this for next time: [brief description of what was learned]`
-  - **🛠️ Skill-Creator Learning**: When skill-creator is updated, display: `🛠️ SKILL-CREATOR will remember this: [brief description of template improvement]`
-  - **🧠 Mother Brain Learning**: When a meta-level process improvement is applied, display: `🧠 MOTHER BRAIN will remember this: [brief description of process improvement]`
-  - These indicators MUST appear in the conversation output so users can see learning is happening in real-time
-  - Learning happens at 3 layers: (1) Fix immediate issue, (2) Update project skill to avoid next time, (3) Update skill-creator or Mother Brain depending on where the deficiency lies
-  - Mother Brain is NOT a vault of domain knowledge—it improves the SYSTEMS and PROCESSES that help visions come to life effortlessly
+- **Child Brain for Friction Analysis (MANDATORY)**: When friction occurs (user feedback, errors, validation failures), Mother Brain MUST invoke Child Brain skill to handle learning. Child Brain:
+  - Asks deeper questions to understand root cause
+  - Splits learnings: project-specific → Project Brain, meta-level → Mother Brain
+  - Creates missing skills when patterns are detected
+  - Ensures Mother Brain never gets polluted with project-specific domain knowledge
+  - See `.github/skills/child-brain/SKILL.md` for full workflow
+- **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
+  - Style/tone preferences discovered during the project
+  - Validation checks derived from past friction
+  - Skills created for this project and why
+  - Project-specific learnings that don't belong in Mother Brain
+  - Child Brain maintains this file; Mother Brain reads it at task start
+- **Learning Separation Principle**: Mother Brain stores ONLY meta-level process improvements (things that help ALL projects). Project-specific learnings go to Project Brain. Domain knowledge goes to skills. This prevents Mother Brain pollution.
+- **Visible Learning Feedback (MANDATORY)**: When learning occurs, display visible indicators:
+  - **📘 PROJECT BRAIN**: `📘 PROJECT BRAIN updated: [what this project learned]`
+  - **🧠 MOTHER BRAIN**: `🧠 MOTHER BRAIN updated: [process improvement for all projects]`
+  - **🛠️ SKILL CREATED/UPDATED**: `🛠️ [skill-name]: [what it now knows]`
+  - These indicators MUST appear so users see where learnings went
 - **Interface Contract Verification**: When creating utility functions that return data to be consumed elsewhere, ALWAYS verify the expected interface/shape at the call site BEFORE implementing the producer function. Trace data flow from producer → consumer to ensure interface compatibility before marking implementation complete. This prevents "undefined" errors from mismatched return types.
 - **Always Execute Post-Task Learning**: After EVERY task completion (user says "looks good" or similar), MUST run Step 10B Post-Task Reflection. This is not optional. Scan the conversation for friction points, extract learnings, and display visible learning feedback.
+- **STEP 10B MUST INVOKE CHILD BRAIN**: Post-Task Reflection is NOT done inline by Mother Brain. Step 10B MUST invoke Child Brain skill to handle all learning analysis. Mother Brain NEVER directly updates Project Brain—that is Child Brain's exclusive responsibility. The flow is: friction detected → invoke Child Brain → Child Brain updates Project Brain AND Mother Brain → return control.
+- **MANDATORY LEARNING PAIRING**: Every Project Brain update MUST have a corresponding Mother Brain entry (even if "🧠 MOTHER BRAIN: No meta changes needed"). This ensures the user sees that both levels were considered. Child Brain enforces this pairing.
 - **BLOCKING WORKFLOW GATE**: The flow after task validation is: Step 10 (user confirms) → Step 10B (Post-Task Reflection - MANDATORY) → Step 11 (Next Action Menu). You CANNOT skip Step 10B. Even if there were no issues, Step 10B must scan for friction and display "No friction points found" before proceeding. If you find yourself about to show the "What would you like to do?" menu without having run Step 10B, STOP and run it first.
+- **RESEARCH DEPTH PRINCIPLE (MANDATORY)**: Every new project MUST receive deep research before any implementation. "Deep research" means:
+  - **Market Analysis**: Research existing competitors, what they do well/poorly, market gaps
+  - **User Research**: What do users in this domain actually want? Pain points? Unmet needs?
+  - **Branding/Positioning**: How should this project differentiate? What's the voice, personality, positioning?
+  - **Design Deep-Dive**: Not just color palettes—typography rationale, imagery style, UI patterns for the domain, mobile-first considerations
+  - All research must be saved to `.mother-brain/docs/research/` folder with separate files for each research area
+  - Research is NOT optional even for "simple" or "quick" projects—AI has no time constraints
+- **RESEARCH BEFORE IMPLEMENTATION (BLOCKING)**: Do NOT proceed to roadmap or task execution until ALL research phases (Step 5, 5A, 6A) are complete. If you find yourself about to create tasks or write code without having competitor analysis, user research, and brand positioning documented, STOP and go back to research.
+- **TASK VALIDATION IS MANDATORY**: NEVER mark a task complete without explicit user confirmation. After completing task deliverables:
+  1. Show the user what was created
+  2. Use `ask_user` to get explicit validation: "Does this meet expectations?"
+  3. Only mark complete after user says yes
+  4. If user doesn't respond about validation, prompt them—don't assume success
+- **CHILD BRAIN AUTO-TRIGGER**: When user provides freeform feedback (selects "other" or writes custom response) that challenges, corrects, or questions agent behavior, IMMEDIATELY invoke Child Brain before responding. Do NOT attempt to fix inline—Child Brain handles analysis and routing. Freeform feedback = friction signal = Child Brain required.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -1115,16 +1132,44 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - Web app, mobile app, desktop software, CLI tool, library/framework
        - Gaming, SaaS, ecommerce, content platform, developer tooling, etc.
      
-     **Step 5.2: Research Best Practices**
+     **Step 5.2: Market & Competitor Analysis (MANDATORY)**
      - Use `web_search` to research:
-       1. "best practices for [project type] development 2026"
+       1. "[project domain] competitor analysis [current year]"
+       2. "top [project type] apps/platforms comparison"
+       3. "[project domain] market landscape and gaps"
+       4. "what makes successful [project type] stand out"
+     - Save findings to `.mother-brain/docs/research/market-analysis.md`
+     - Document:
+       - **Direct Competitors**: Who else solves this problem? What are they?
+       - **Strengths**: What do competitors do well?
+       - **Weaknesses**: Where do competitors fall short?
+       - **Market Gaps**: Unmet needs, underserved segments
+       - **Differentiation Opportunities**: How can this project stand out?
+     
+     **Step 5.3: User Research (MANDATORY)**
+     - Use `web_search` to research:
+       1. "what [target users] want in [project domain]"
+       2. "[target user] pain points and frustrations with [existing solutions]"
+       3. "[project domain] user research findings"
+       4. "why users leave/switch [competitor type] apps"
+     - Save findings to `.mother-brain/docs/research/user-research.md`
+     - Document:
+       - **Target Users**: Who exactly are they? Demographics, behaviors
+       - **Pain Points**: What frustrates users with existing solutions?
+       - **Unmet Needs**: What do users wish they had?
+       - **Must-Have Features**: Non-negotiables for this user base
+       - **Delighters**: Features that would surprise and delight
+     
+     **Step 5.4: Technical Best Practices Research**
+     - Use `web_search` to research:
+       1. "best practices for [project type] development [current year]"
        2. "team roles needed for [project type] projects"
        3. "common technical patterns in [project type]"
        4. "project management methodology for [project type]"
        5. "documentation standards for [project type]"
        6. "quality assurance approach for [project type]"
      
-     **Step 5.3: Extract Insights from Research**
+     **Step 5.5: Extract Technical Insights from Research**
      - Parse research results to identify:
        - **Roles/Disciplines**: (e.g., designer, architect, QA, DevOps, DBA)
        - **Methodologies**: (e.g., Agile, TDD, definition of done, sprint planning)
@@ -1133,10 +1178,20 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - **Tools & Libraries**: (e.g., testing frameworks, design systems, CI/CD)
        - **Quality Standards**: (e.g., accessibility, performance, security)
      
-     **Step 5.4: Synthesize & Log Findings** (No User Confirmation Required)
+     **Step 5.6: Synthesize & Log Findings** (No User Confirmation Required)
+     - Save to `.mother-brain/docs/research/technical-analysis.md`
      - Display findings organized by category (for transparency, not approval):
        ```
        🔍 Research-Based Analysis for [Project Type]:
+       
+       Market Position:
+       - Competitors analyzed: [list]
+       - Key differentiation: [how this project is unique]
+       
+       User Insights:
+       - Target users: [who]
+       - Top pain points: [list]
+       - Must-have features: [list]
        
        Technology Stack:
        - [Recommendations based on research + vision]
@@ -1162,59 +1217,90 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Do NOT ask user to validate or approve research findings - Mother Brain is the expert
    - **After displaying findings**: Proceed to Step 5A (check for visual requirements) or Step 6 (Skill Identification)
 
-### 5A. **Design System Discovery** (For Projects with Visual Requirements)
+### 5A. **Design System & Brand Discovery** (For Projects with Visual Requirements)
    - **Automatic Detection**: Scan vision document for visual requirement keywords
      
      **Trigger Keywords** (if any found in vision/success criteria/MVP):
      - "visual", "beautiful", "design", "aesthetic", "UI", "UX"
      - "look and feel", "brand", "style", "appearance", "polish"
      - "attractive", "professional-looking", "modern design"
+     - "warm", "cozy", "friendly", "elegant", "premium" (mood words)
    
    - **If visual requirements detected, run this step. If not, skip to Step 6.**
    
-   **Step 5A.1: Research Visual Best Practices**
+   **Step 5A.1: Brand Strategy Research (MANDATORY for visual projects)**
    - Use `web_search` to research:
-     1. "[project type from Step 5] design best practices 2026"
+     1. "[project domain] brand positioning strategies"
+     2. "successful [project type] brand identity examples"
+     3. "[target audience] brand preferences and expectations"
+     4. "how to differentiate in [project domain] market"
+   - Save findings to `.mother-brain/docs/research/brand-strategy.md`
+   - Document:
+     - **Brand Positioning**: Where does this fit in the market? Premium, accessible, niche?
+     - **Brand Voice**: How should it communicate? Friendly, authoritative, playful, sophisticated?
+     - **Brand Personality**: 3-5 adjectives that define the brand (e.g., "warm, authentic, community-driven")
+     - **Competitive Visual Landscape**: How do competitors look? What's overdone vs fresh?
+     - **Differentiation Strategy**: How will this LOOK different from competitors?
+   
+   **Step 5A.2: Deep Visual Research**
+   - Use `web_search` to research:
+     1. "[project type from Step 5] design best practices [current year]"
      2. "[project type] color palette guidelines"
      3. "[project type] typography and spacing standards"
      4. "beautiful [project type] visual examples"
      5. "[project type] UI/UX patterns and conventions"
+     6. "[mood words from vision] design inspiration" (e.g., "warm cozy coffee app design")
+   - Save findings to `.mother-brain/docs/research/design-system.md`
    
-   **Step 5A.2: Extract Design Principles**
+   **Step 5A.3: Extract Design Principles**
    - Parse research to identify:
-     - **Color Palette Standards**: (e.g., primary, secondary, accent colors, contrast requirements)
-     - **Typography Guidelines**: (e.g., font pairings, hierarchy, readability)
-     - **Spacing Systems**: (e.g., 8px grid, consistent margins/padding)
-     - **Visual Patterns**: (e.g., card designs, button styles, common layouts)
-     - **Brand Personality**: (e.g., playful vs professional, minimal vs rich)
+     - **Color Palette Standards**: Primary, secondary, accent colors with HEX codes; contrast requirements; mood alignment
+     - **Typography Guidelines**: Font pairings, hierarchy, readability; WHY these fonts fit the brand
+     - **Spacing Systems**: Grid system (e.g., 8px), consistent margins/padding
+     - **Imagery Style**: Photo style, illustrations, icons - what FEEL should images convey?
+     - **Visual Patterns**: Card designs, button styles, common layouts for this domain
+     - **Brand Personality Expression**: How design choices express brand adjectives
    
-   **Step 5A.3: Present Design Foundations**
+   **Step 5A.4: Present Design Foundations**
    - Display findings:
      ```
-     🎨 Design System Discovery - Visual Requirements Detected
+     🎨 Design System & Brand Discovery
      
-     Research Findings for [Project Type]:
+     Brand Strategy:
+     - Positioning: [where in market - premium, accessible, etc.]
+     - Voice: [how it communicates]
+     - Personality: [3-5 adjectives]
+     - Differentiation: [how it looks different from competitors]
      
-     Color Palette Best Practices:
-     - [Palette guidelines from research]
-     - [Contrast/accessibility requirements]
+     Visual System:
      
-     Typography Standards:
-     - [Font recommendations from research]
-     - [Hierarchy patterns]
+     Color Palette (with rationale):
+     - Primary: [color + HEX] - [why this fits brand]
+     - Secondary: [color + HEX] - [why this fits brand]
+     - Accent: [color + HEX] - [usage context]
+     - [Full palette with contrast notes]
+     
+     Typography (with rationale):
+     - Headings: [font] - [why it expresses brand personality]
+     - Body: [font] - [readability + brand fit]
+     - [Size scale and hierarchy]
      
      Spacing & Layout:
-     - [Spacing system from research]
-     - [Common layout patterns]
+     - Grid: [8px or other]
+     - Component patterns for [project type]
      
-     Visual Style Examples:
-     - [References to beautiful examples of this project type]
+     Imagery Direction:
+     - Photo style: [e.g., warm, natural lighting, authentic vs polished]
+     - Icon style: [e.g., line, filled, rounded]
+     - Overall mood: [how visuals should feel]
      
-     Brand Personality Options:
-     - [Research-based personality archetypes for this type]
+     Competitor Visual Analysis:
+     - [Competitor 1]: [their visual approach]
+     - [Competitor 2]: [their visual approach]
+     - Opportunity: [visual white space in market]
      ```
    
-   **Step 5A.4: Flag Design System as Essential Skill**
+   **Step 5A.5: Flag Design System as Essential Skill**
    - Mark "design-system-enforcer" skill as **essential** for Step 6 skill creation
    - This skill will:
      - Store design guidelines from research
@@ -1642,15 +1728,74 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Proceed based on selection
 
 ### 9. **Task Execution**
-   - **Pre-Task Analysis**:
+
+   **⛔ MANDATORY TASK START GATE - DO NOT SKIP**
+   
+   Before implementing ANY task, you MUST complete this gate:
+   
+   **Step 9.0: Task Start Assessment**
+   
+   1. **Load Project Brain** (if exists):
+      - Read `.mother-brain/project-brain.md`
+      - Review "Validation Checks" section
+      - Check "Style & Tone" preferences for relevant categories
+      - Note any skills created for this project
+   
+   2. **Analyze Task Requirements**:
+      - What creative/visual/narrative elements does this task involve?
+      - What domain knowledge is required?
+      - What style/tone preferences apply?
+   
+   3. **Skill Sufficiency Check** (CRITICAL):
+      - List existing skills in `.github/skills/`
+      - For EACH creative/specialized element in this task, ask:
+        - "Is there a skill that covers this?"
+        - "Does that skill have the domain knowledge needed?"
+        - "Does that skill know this project's style preferences?"
+      - If ANY answer is "No" → STOP and address before implementing
+   
+   4. **User Discovery Questions** (if gaps found):
+      - Before creating missing skills, ask user about preferences:
+        - "What style/tone do you want for [element]?"
+        - "Any examples or references I should look at?"
+        - "Any specific conventions or requirements?"
+      - Store answers in Project Brain AND use them for skill creation
+   
+   5. **Skill Creation/Enhancement** (if needed):
+      - Research the domain (web_search for best practices)
+      - Invoke skill-creator with user preferences + research
+      - Validate skill was created successfully
+      - Log in Project Brain: "Skills Created for This Project"
+   
+   6. **Proceed to Implementation**:
+      - Only after gate passes, begin actual implementation
+      - Use appropriate skills for execution
+   
+   Display at task start:
+   ```
+   🎯 Task [Number] Start Assessment
+   
+   📘 Project Brain:
+   - Style preferences: [found/not found]
+   - Validation checks: [X] checks to run
+   
+   🛠️ Skill Coverage:
+   - [element 1]: [skill-name] ✅ or [MISSING] ❌
+   - [element 2]: [skill-name] ✅ or [MISSING] ❌
+   
+   [If all covered]: Proceeding to implementation...
+   [If gaps]: Need to address gaps before implementing...
+   ```
+   
+   ---
+   
+   - **Pre-Task Analysis** (after gate passes):
      - Load current task document
      - Look ahead at next 3-5 tasks in current phase
      - Identify patterns across these tasks that might warrant new skills
      - If patterns found:
-       - Use `ask_user` with choices:
-         - "Create [skill-name] for [pattern] now"
-         - "Skip for now, handle manually"
-       - If user agrees, invoke skill-creator
+       - Invoke skill-creator to create skills proactively
+       - Do NOT ask user for approval (Expert Autonomy)
    
    - **MANDATORY Skill Check for Creative/Visual/Narrative Tasks**:
      - Before implementing ANY task that involves:
@@ -1866,276 +2011,105 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    3. Apply any learnings (if friction found)
    4. Only AFTER Step 10B completes → proceed to Step 11
 
-### 10A. **Three-Layered Learning from Feedback**
+### 10A. **Friction Analysis via Child Brain**
    - When user provides negative/adjustment feedback in task validation:
    
-   **Layer 1: Fix the Project (Immediate)**
-   - Ask what needs changing (detailed feedback)
-   - Apply fixes to current deliverables
-   - Re-validate with user
-   - Continue until user approves
+   **⚠️ INVOKE CHILD BRAIN - DO NOT ANALYZE INLINE**
    
-   **Layer 2: Heal the Skill (Skill-Level Learning)**
-   - Identify which skill was used during task execution (check task document)
-   - If a skill was used, analyze user feedback for skill-level lessons:
-     - What did the skill miss? (domain rules, UI patterns, technical details)
-     - What assumptions were wrong?
-     - What domain knowledge was insufficient?
-     - What validation checks were missing?
+   Mother Brain does NOT handle learning analysis directly. Instead:
    
-   - Invoke skill-creator in "heal" mode:
-     - Provide user feedback as context
-     - Update skill's domain knowledge and references
-     - Enhance skill's research/reference gathering steps
-     - Add validation checks to skill's workflow
-     - Improve skill's examples with correct approach
+   1. **Capture Friction Context**:
+      - Task number and name
+      - What was implemented
+      - User's exact feedback
+      - Skills that were used (if any)
    
-   - Log skill healing in `docs/learning-log.md`:
-     ```markdown
-     ## [Date] - Skill Healed: [Skill Name]
-     **Task**: [Task number and name]
-     **User Feedback**: [What user said was wrong]
-     **Skill Issue**: [What the skill missed or got wrong]
-     **Healing Applied**: [How skill was updated]
-     **Skill Improvement**: [What skill can now do better]
-     ```
+   2. **Invoke Child Brain Skill**:
+      ```
+      Invoke: skill child-brain
+      Context: [Friction details from step 1]
+      ```
    
-   **Layer 3: Meta-Level Mother Brain Learning (Most Important)**
-   - **Abstract the lesson** beyond project-specific details:
-     - ❌ Bad: "Snakes and Ladders UI was wrong"
-     - ✅ Good: "Insufficient research into domain-specific rules and established conventions"
-     - ❌ Bad: "Game board rendering had issues"
-     - ✅ Good: "Skills created without sufficient reference materials from domain experts"
+   3. **Child Brain Handles**:
+      - Asks user deeper questions to understand root cause
+      - Determines what goes to Project Brain (project-specific learnings)
+      - Determines what goes to Mother Brain (meta-level process improvements)
+      - Creates/enhances skills if needed
+      - Applies fixes to deliverables
    
-   - **Identify which Mother Brain process failed**:
-     - Was research too shallow? (Step 5 - Technology & Pattern Analysis)
-     - Were skills created without enough domain context? (Step 6 - Skill Identification)
-     - Was task definition unclear about domain correctness? (Step 8 - Task Document Creation)
-     - Were success criteria only technical, not domain-aware? (Step 10 - Task Validation)
+   4. **Child Brain Returns**:
+      - Learning has been routed to correct locations
+      - Fixes have been applied
+      - Visible feedback has been displayed:
+        - `📘 PROJECT BRAIN updated: [what was learned]`
+        - `🧠 MOTHER BRAIN updated: [process improvement]` (if any)
+        - `🛠️ SKILL: [what was created/updated]` (if any)
    
-   - **Extract meta-principle** (general rule for all future projects):
-     - Example: "For domain-specific projects (games, finance, healthcare), research must include established rules, conventions, and visual standards"
-     - Example: "Skills need reference materials and domain examples, not just technical patterns"
-     - Example: "Validation criteria should include domain correctness, not just technical functionality"
-     - Example: "MVP definition should specify domain accuracy requirements"
+   5. **Continue Validation**:
+      - Present fixed deliverable to user
+      - Get approval
+      - Mark task complete when user confirms
    
-   - **Update Mother Brain SKILL.md**:
-     - Use edit tool to enhance relevant step with learned principle
-     - If broadly applicable, add to Operating Principles section
-     - Update validation checklists to include new check
-     - Show user what was changed in Mother Brain
-   
-   - Log meta-learning in `docs/learning-log.md`:
-     ```markdown
-     ## [Date] - Mother Brain Meta-Learning
-     **Project Type**: [e.g., Game, SaaS, CLI tool]
-     **User Feedback**: [What went wrong]
-     **Abstract Lesson**: [Meta-principle extracted]
-     **Mother Brain Process Failed**: [Which step/principle was insufficient]
-     **SKILL.md Update**: [What was changed in Mother Brain]
-     **Impact**: [How this prevents future issues across ALL project types]
-     ```
-   
-   **Layer 4: Improve Skill-Creator (If Applicable)**
-   - Determine if lesson applies to **how skills are created** in general:
-     - Does this reveal a gap in skill-creator's templates?
-     - Should all future skills include something this skill lacked?
-     - Example: "All skills should gather reference materials during creation"
-     - Example: "Skills should validate domain correctness, not just code execution"
-   
-   - If applicable, suggest updating skill-creator:
-     - Use `ask_user` with choices:
-       - "Yes, update skill-creator with this lesson"
-       - "No, this was specific to this skill type"
-     
-     - If yes, update `.github/skills/skill-creator/SKILL.md`:
-       - Enhance skill generation templates
-       - Add new validation requirements to skill creation wizard
-       - Improve example generation process
-       - Update skill quality checklist
-   
-   - Log skill-creator improvement in `docs/learning-log.md`:
-     ```markdown
-     ## [Date] - Skill-Creator Enhanced
-     **Root Issue**: [What skills lacked that caused user feedback]
-     **Skill-Creator Gap**: [What skill-creator didn't ensure]
-     **Enhancement Applied**: [How skill-creator now generates better skills]
-     **Future Impact**: [How all future skills will be better]
-     ```
-   
-   **Complete Execution Flow**:
-   1. User feedback received → Layer 1: Fix project immediately
-   2. Identify skill used → Layer 2: Heal that specific skill with feedback
-   3. Abstract meta-lesson → Layer 3: Update Mother Brain for all future projects
-   4. Check if applies to skill creation → Layer 4: Enhance skill-creator (if relevant)
-   5. Log all learning layers in `docs/learning-log.md`
-   6. Return to Step 10 validation (user confirms fix works)
-   7. Mark task complete once approved
-   
-   **Key Principle**: Every user adjustment cascades through all layers, making the entire framework smarter for all future projects.
+   **Key Principle**: Mother Brain orchestrates; Child Brain analyzes and routes. This separation keeps Mother Brain clean.
 
-### 10B. **Post-Task Reflection & Learning** (Proactive Improvement)
+### 10B. **Post-Task Reflection via Child Brain** (Proactive Improvement)
    - **When to run**: ALWAYS after task is marked complete by user - this is mandatory, not optional
    - **Trigger**: Step 10 task completion → Step 10B runs automatically → then Step 11
    - **Purpose**: Learn from friction points *before* user reports them as issues
-   - **Scope**: 3-layer learning at task level (fix task → heal skills → update Mother Brain)
    
-   **Step 10B.1: Scan Conversation for All Friction Points**
-   - Identify ALL types of issues during task execution:
-     - **"Works but needs adjustment"** selections
-     - **"Doesn't meet expectations, needs rework"** selections
-     - **Build/test failures** that occurred
-     - **Errors** encountered (console errors, crashes, exceptions)
-     - **User selecting "Other" or freeform complaints**
-     - **Multiple validation cycles** (had to present output >1 time)
-   - If 0 friction points: Skip this step, proceed to Step 11
-   - If 1+ friction points: Proceed with reflection
+   **Step 10B.1: Scan Conversation for Friction Points**
+   - Identify ALL friction during task execution:
+     - Adjustments requested
+     - Rework cycles
+     - Build/test failures
+     - Errors encountered
+     - Multiple validation attempts
    
-   **Step 10B.2: Extract Friction Patterns**
-   - For each friction point (adjustment, rework, error, failure), identify:
-     1. **What the agent did**: What was implemented/created
-     2. **What went wrong**: The specific issue (user complaint, error message, failure)
-     3. **What the fix was**: The adjustment/rework that resolved it
-     4. **Why it occurred**: Root cause analysis
+   - If 0 friction points:
+     - Display: "🔍 Post-Task Reflection - No friction points found"
+     - Proceed to Step 11
    
-   - Example friction points:
-     ```
-     Adjustment Cycle (Type: "Works but needs adjustment"):
-     - Agent did: Put speech bubble in message box
-     - What went wrong: User said "Wanted speech bubble as overlay"
-     - Fix was: Created overlay with centered position
-     - Why it occurred: Misunderstood "speech bubble" as location vs presentation style
-     
-     Rework (Type: "Doesn't meet expectations"):
-     - Agent did: Generated database schema without indexes
-     - What went wrong: User said performance was too slow
-     - Fix was: Added indexes on foreign keys
-     - Why it occurred: Skill didn't include performance optimization step
-     
-     Build Error (Type: Technical failure):
-     - Agent did: Created React component with TypeScript
-     - What went wrong: Build failed with type errors
-     - Fix was: Fixed type definitions for props
-     - Why it occurred: Skill generated code without type validation
-     
-     Validation Failure (Type: Multiple presentation cycles):
-     - Agent did: Opened HTML in browser
-     - What went wrong: Browser showed directory listing instead of game
-     - Fix was: Corrected file URL escaping for spaces in path
-     - Why it occurred: Didn't handle Windows paths with spaces properly
-     ```
+   - If 1+ friction points:
+     - Proceed to Step 10B.2
    
-   **Step 10B.3: Root Cause Analysis**
-   - Ask: "Why did these issues happen?"
-   - Categories to consider:
-     - **Ambiguity**: User's initial request was unclear or open to interpretation
-     - **Assumption**: Agent made assumption without asking clarifying question
-     - **Domain Knowledge**: Agent lacked context about conventions (e.g., speech bubbles in games)
-     - **Spatial/Visual**: Agent struggled with layout/positioning instructions
-     - **Technical Implementation**: Agent chose wrong technical approach
-     - **Reference Missing**: Agent didn't research examples before implementing
-     - **Error Handling**: Agent didn't validate before executing (paths, types, syntax)
-     - **Environment**: Agent didn't account for OS differences (Windows vs Linux paths)
-     - **Performance**: Agent didn't consider optimization requirements
+   **Step 10B.2: Invoke Child Brain for Analysis**
    
-   **Step 10B.4: Generate Two Types of Improvements**
+   **⚠️ INVOKE CHILD BRAIN - DO NOT ANALYZE INLINE**
    
-   **Type 1: Project-Specific Skill Updates**
-   - If a skill was used (check task document), identify how to improve it:
-     - Add domain knowledge section
-     - Add reference gathering step (research examples before implementing)
-     - Add clarifying questions to skill's wizard
-     - Add visual/spatial positioning validation
-   - Update the project skill's SKILL.md
-   - Example: game-ai-engine could add:
-     - "Before implementing UI elements, ask user for specific positioning relative to existing elements"
-     - "Research existing game UI patterns for speech bubbles, health bars, etc."
+   ```
+   Invoke: skill child-brain
+   Context: 
+   - Task: [number and name]
+   - Friction points found: [list]
+   - Skills used: [list]
+   ```
    
-   **Type 2: Meta-Level Mother Brain / Skill-Creator Updates**
-   - Identify project-agnostic principles that apply to ALL future projects:
-     - Example: "When user requests UI element, always clarify exact positioning before implementing"
-     - Example: "For visual/spatial requests, ask user to describe relative to existing elements"
-     - Example: "Skills should include research step for domain conventions before generating code"
+   Child Brain will:
+   1. Analyze each friction point for root cause
+   2. Route project-specific learnings → Project Brain
+   3. Route meta-level process learnings → Mother Brain (via edit)
+   4. Create/update skills if patterns detected
+   5. Display visible learning feedback
    
-   - Determine which Mother Brain step or Operating Principle to update:
-     - Step 6 (Skill Identification): Should skills be created with more clarifying questions?
-     - Step 9 (Task Execution): Should agent ask positioning questions before implementing UI?
-     - skill-creator templates: Should all skills include research/reference steps?
+   **Step 10B.3: Confirm Learning Applied**
    
-   **Step 10B.5: Auto-Apply Improvements & Display Visible Learning Feedback**
-   - **CRITICAL**: Learning feedback MUST be visible to user in chat output
-   - Display findings with mandatory learning indicators:
-     ```
-     🔍 Post-Task Reflection - Task [Number]
-     
-     Friction points identified: [X]
-     
-     **What Happened**:
-     1. [Type]: [Description of issue/adjustment/error 1]
-     2. [Type]: [Description of issue/adjustment/error 2]
-     
-     **Learning Applied**:
-     ```
+   After Child Brain returns, display summary:
+   ```
+   🔍 Post-Task Reflection - Task [Number]
    
-   - **For EACH skill-level improvement** (project-specific skill updated):
-     - Display in chat: `🔧 [skill-name] will remember this for next time: [1-sentence description of what was learned]`
-     - Example: `🔧 arcade-game-engine will remember this for next time: Always use percentage-based positioning for responsive layouts`
+   Friction points analyzed: [X]
    
-   - **For EACH Mother Brain improvement** (meta-level process update):
-     - Display in chat: `🧠 MOTHER BRAIN will remember this: [1-sentence description of process improvement]`
-     - Example: `🧠 MOTHER BRAIN will remember this: When user requests UI changes, ask for specific element references before implementing`
+   📘 PROJECT BRAIN: [What was learned for this project]
+   🧠 MOTHER BRAIN: [Process improvement applied - or "No meta changes needed"]
+   🛠️ SKILLS: [Created/updated - or "No skill changes"]
+   ```
    
-   - These indicators are MANDATORY - they prove learning is happening in real-time
-   - Mother Brain learns PROCESS improvements (not domain knowledge)
+   Proceed to Step 11 (Next Action Menu)
    
-   - **Automatically proceed to Step 10B.6** (no user approval needed)
-   - This enables true self-learning without approval gates
-   
-   **Step 10B.6: Apply Approved Improvements**
-   - If project-specific approved:
-     - Update skill's SKILL.md with learned patterns
-     - Log in task document's "Notes & Decisions"
-   
-   - If universal approved:
-     - Update Mother Brain SKILL.md (this file)
-     - OR update skill-creator SKILL.md
-     - Log in `docs/learning-log.md`
-   
-   - Example universal update:
-     ```markdown
-     **Operating Principle Added**:
-     - **Spatial Clarification Required**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to specific existing elements before implementing. Don't assume "near X" or "at corner" without clarifying which corner of which element.
-     ```
-   
-   **Step 10B.7: Log Reflection**
-   - Add entry to `docs/learning-log.md`:
-     ```markdown
-     ## [Date] - Post-Task Reflection: Task [Number]
-     **Total Friction Points**: [Count of all issues: adjustments + reworks + errors]
-     **Breakdown**:
-     - Adjustments: [Count of "Works but needs adjustment"]
-     - Reworks: [Count of "Doesn't meet expectations"]
-     - Build/Test Failures: [Count]
-     - Errors: [Count of technical errors]
-     - Other Issues: [Count of freeform complaints]
-     **Friction Details**: [List of all issues with types]
-     **Root Causes**: [Analysis by category]
-     **Project Improvements**: [What was updated in project skill]
-     **Universal Improvements**: [What was updated in Mother Brain/skill-creator]
-     **Lesson**: [Key takeaway for future projects]
-     ```
-   
-   **Why This Matters**:
-   - Learns from ALL friction *proactively* (adjustments, reworks, errors, failures)
-   - Doesn't wait for user to report issue
-   - Captures real-world correction patterns across all problem types
-   - Distinguishes between project-specific vs universal lessons
-   - Compounds learning: each task makes framework smarter
-   - Project-agnostic: improves ALL future projects, not just this one
-   
-   **After Step 10B completes**: Proceed to Step 11 (Next Action Menu)
+   **Key Principle**: Child Brain handles ALL learning analysis. Mother Brain only orchestrates when to invoke it.
 
 ### 11. **Next Action Menu**
+   - After task completion, use `ask_user` with choices:
    - After task completion, use `ask_user` with choices:
      - "Start next task automatically"
      - "Review roadmap and choose task"
@@ -2363,11 +2337,13 @@ project-root/
 │   │       ├── 001-task-name.md      # Individual task documents
 │   │       ├── 002-task-name.md
 │   │       └── ...
+│   ├── project-brain.md              # Project-specific learnings (managed by Child Brain)
 │   ├── session-state.json            # Current session state (tracks skillsCreated)
 │   └── README.md                     # Mother Brain directory info
 ├── .github/
 │   └── skills/                       # ALL skills (framework + project-specific)
 │       ├── mother-brain/             # Core framework (never delete)
+│       ├── child-brain/              # Core framework - learning orchestrator (never delete)
 │       ├── skill-creator/            # Core framework (never delete)
 │       ├── skill-trigger-detector/   # Core framework (never delete)
 │       ├── [project-skill-1]/        # Project-specific (tracked in session-state.json)
@@ -2384,6 +2360,7 @@ project-root/
 - **Easy Ejection**: Delete skills listed in `skillsCreated`, keep core framework skills
 - **Isolated Docs**: Project documentation in `.mother-brain/docs/` (separate from project code)
 - **Learning Preservation**: `learning-log.md` is preserved on eject for continuous improvement
+- **Learning Separation**: Project Brain stores project-specific learnings; Mother Brain stores only meta-level process improvements
 
 ## Validation Checklist
 

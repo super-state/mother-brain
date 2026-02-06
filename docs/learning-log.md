@@ -447,3 +447,44 @@
 - Other issue types skip directly to freeform
 
 **Sections Updated**: Step 2A (new Step 2A.0 added before Step 2A.1)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: ASCII Art Alignment Fix
+
+**Issue Type**: Something broke or didn't work
+**User Report**: The ASCII art top row is corrupted/pulled left while the rest is normal. Needs to start from a fresh line.
+
+**Root Cause**: 
+- ASCII art was starting immediately after previous content
+- Terminal rendering could corrupt the first row if it appeared on same line as spinner/output
+
+**Mother Brain Change**:
+- Updated both ASCII art instances in Step 2 (project exists + new project)
+- Changed instruction to "ALWAYS start with TWO blank lines"
+- Added extra blank line before ASCII art in code fence examples
+
+**Sections Updated**: Step 2 (both ASCII art banner sections)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: One-Click Release
+
+**Issue Type**: Suggestion for improvement
+**User Report**: Don't want to be asked about version number or commit confirmation. Mother Brain should auto-determine release size and make it a one-click release button.
+
+**Root Cause**: 
+- Step 2D had multiple confirmation menus (view diff, proceed to commit, choose version)
+- User had to make 3+ selections for a simple release
+- Version could be auto-determined from learning-log content
+
+**Mother Brain Change**:
+- Completely rewrote Step 2D as "ONE-CLICK RELEASE FLOW"
+- Auto-determine version:
+  - "breaking" or "major" in entries → major bump
+  - "feature", "new", "add" in entries → minor bump
+  - Otherwise → patch bump
+- No confirmation menus - execute all steps automatically
+- Single confirmation at the end showing what was released
+
+**Sections Updated**: Step 2D (complete rewrite)

@@ -338,9 +338,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
-   - **MANDATORY: Output this exact ASCII art banner first (copy verbatim, starting with a newline):**
+   - **MANDATORY: Output ASCII art banner first. ALWAYS start with TWO blank lines** to prevent corruption from previous terminal content:
    
    ```
+
 
 ┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓
 ┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃
@@ -392,9 +393,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
    
    **If new project (empty directory or user chose fresh start):**
-   - **MANDATORY: Output this exact ASCII art banner first (copy verbatim, starting with a newline):**
+   - **MANDATORY: Output ASCII art banner first. ALWAYS start with TWO blank lines** to prevent corruption from previous terminal content:
    
    ```
+
 
 ┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓
 ┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃
@@ -1131,93 +1133,42 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 ### 2D. **Release Mother Brain** (Framework Versioning)
    - When user selects "Release Mother Brain" from menu or after eject:
    
-   **Purpose**: Commit framework improvements and open a PR on the mother-brain repository.
+   **Purpose**: One-click release - commit, version bump, push, tag, and publish.
    
    **Prerequisite**: Must be in the mother-brain folder (not a project folder)
    
-   **Step 2D.1: Verify Location**
-   - Check current folder is the mother-brain framework folder
+   **⚡ ONE-CLICK RELEASE FLOW (No prompts, no menus)**
+   
+   When user selects "Release Mother Brain", execute ALL of the following automatically:
+   
+   **Step 2D.1: Verify & Analyze**
+   - Check current folder is mother-brain framework folder
    - If in a project folder: Display error and offer to return to framework
+   - Run `git status` to verify there are changes to release
+   - If no changes: Display "Nothing to release" and return to menu
    
-   **Step 2D.2: Show Changes**
-   - Display git status and diff summary:
-     ```powershell
-     git --no-pager status
-     git --no-pager diff --stat
-     ```
-   
-   - Display:
-     ```
-     🧠 Mother Brain - Release Preparation
-     
-     Changes since last commit:
-     - [file1]: [X] additions, [Y] deletions
-     - [file2]: [X] additions, [Y] deletions
-     ...
-     
-     Total: [N] files changed
-     ```
-   
-   - Use `ask_user` with choices:
-     - "View detailed diff"
-     - "Proceed to commit"
-     - "Cancel release"
-   
-   - If "View detailed diff": Show full diff, then return to this menu
-   
-   **Step 2D.3: Create Commit**
-   - **Auto-generate commit message** from learning-log.md:
-     - Scan most recent entries since last commit
-     - Format: "[Type]: [brief summary of changes]"
-     - Example: "Mother Brain: project-brain creation, skill copy fix"
-   
-   - Do NOT ask user for commit message - generate from learnings automatically
-   
-   - Stage and commit:
-     ```powershell
-     git add .
-     git commit -m "[auto-generated message]"
-     ```
-   
-   **Step 2D.4: Determine Version**
+   **Step 2D.2: Auto-Determine Version**
    - Read current version from `package.json`
-   - Suggest next version (patch increment):
-     ```
-     Current version: 1.0.0
-     Suggested next: 1.0.1
-     ```
+   - Scan learning-log.md entries since last release tag
+   - **Auto-determine version bump**:
+     - If any entry contains "breaking" or "major" → **major** bump (X.0.0)
+     - If any entry contains "feature", "new", "add" → **minor** bump (0.X.0)
+     - Otherwise → **patch** bump (0.0.X)
+   - Do NOT ask user - auto-decide based on content
    
-   - Use `ask_user` with choices:
-     - "1.0.1 (patch - bug fixes)"
-     - "1.1.0 (minor - new features)"
-     - "2.0.0 (major - breaking changes)"
-     - "Skip version bump"
+   **Step 2D.3: Execute Release (all at once)**
+   - Stage all changes: `git add .`
+   - Auto-generate commit message from learning-log entries
+   - Commit: `git commit -m "[auto-generated message]"`
+   - Update `package.json` with new version
+   - Update README.md version badge (find `version-X.X.X-blue` and replace)
+   - Commit version bump: `git commit -am "chore: bump version to [version]"`
+   - Push to main: `git push super-state main`
+   - Create tag: `git tag -a "v[version]" -m "Release v[version]: [summary]"`
+   - Push tag: `git push super-state "v[version]"`
+   - Create GitHub Release: `gh release create "v[version]" ...`
    
-   - If version selected:
-     1. Update `package.json` with new version
-     2. **Update README.md version badge** (find `version-X.X.X-blue` and replace with new version)
-     3. Commit version bump: `git commit -am "chore: bump version to [version]"`
-   
-   **Step 2D.5: Push, Create Tag, and Create Release**
-   - Push directly to main (or create branch for PR):
-     ```powershell
-     git push super-state main
-     ```
-   
-   - Create git tag for the version:
-     ```powershell
-     git tag -a "v[version]" -m "Release v[version]: [commit message summary]"
-     git push super-state "v[version]"
-     ```
-   
-   - Create GitHub Release using gh CLI (if available):
-     ```powershell
-     gh release create "v[version]" --title "v[version]" --notes "[Auto-generated from learning-log recent entries]" --repo super-state/mother-brain
-     ```
-   
-   - If gh CLI not available: Display instructions for manual release creation
-   
-   **Step 2D.6: Confirmation**
+   **Step 2D.4: Confirmation**
    - Display:
      ```
      ✅ Release v[version] Published!
@@ -1225,8 +1176,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      Tag: v[version]
      Release: https://github.com/super-state/mother-brain/releases/tag/v[version]
      
+     Changes:
+     - [Brief summary from learning-log]
+     
      The framework update is now live!
-     Users can pull the latest to get your improvements.
      ```
    
    - Use `ask_user` with choices:

@@ -1131,15 +1131,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - If "View detailed diff": Show full diff, then return to this menu
    
    **Step 2D.3: Create Commit**
-   - Use `ask_user` freeform to get commit message:
-     - "Describe the improvements in this release:"
+   - **Auto-generate commit message** from learning-log.md:
+     - Scan most recent entries since last commit
+     - Format: "[Type]: [brief summary of changes]"
+     - Example: "Mother Brain: project-brain creation, skill copy fix"
    
-   - Auto-suggest based on learning-log.md recent entries
+   - Do NOT ask user for commit message - generate from learnings automatically
    
    - Stage and commit:
      ```powershell
      git add .
-     git commit -m "[user's message]"
+     git commit -m "[auto-generated message]"
      ```
    
    **Step 2D.4: Determine Version**

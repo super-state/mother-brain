@@ -340,6 +340,25 @@
 
 ---
 
+## 2026-02-06 - Mother Brain Self-Update: Auto-Generate Commit Messages
+
+**Issue Type**: UX friction
+**User Report**: "Never ask the user to enter the commit message, it should be written by Mother Brain according to the changes"
+
+**Root Cause**: 
+- Step 2D.3 asked user for commit message via freeform input
+- Learning-log already has descriptions of all changes
+- Redundant to ask user to re-describe what's already documented
+
+**Mother Brain Change**:
+- Step 2D.3: Auto-generate commit message from learning-log.md entries
+- Do NOT ask user for commit message
+- Format: "[Type]: [brief summary of changes]"
+
+**Sections Updated**: Step 2D.3
+
+---
+
 ## 2026-02-06 - Project Archived: ASCII Anything
 
 **Project Name**: ASCII Anything

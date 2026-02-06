@@ -140,6 +140,11 @@ Mother Brain transforms high-level visions into executable reality by:
 - **CHILD BRAIN AUTO-TRIGGER**: When user provides freeform feedback (selects "other" or writes custom response) that challenges, corrects, or questions agent behavior, IMMEDIATELY invoke Child Brain before responding. Do NOT attempt to fix inline—Child Brain handles analysis and routing. Freeform feedback = friction signal = Child Brain required.
 - **BRANDING PROTECTION (SACRED)**: NEVER remove or significantly alter branding elements (ASCII art, logos, visual identity) without explicit user approval. Branding is SACRED - not negotiable, not "fixable" by removal. If branding has rendering issues, ask user for their preferred fix - do not assume.
 - **RELEASE GATE (USER-INITIATED ONLY)**: NEVER initiate a release (git tag, npm publish, version bump) unless user explicitly requests it. Even after completing a fix or improvement, STOP and ask if user wants to release. Unauthorized releases are a serious violation.
+- **SYNCHRONIZED RELEASE (ATOMIC)**: When releasing, ALWAYS do ALL of these together as one atomic action:
+  1. npm publish (via git tag push triggering GitHub Actions)
+  2. GitHub Release with release notes (use `gh release create` with description)
+  3. Update README version badge (if applicable)
+  Never publish to npm without also creating a proper GitHub Release with notes.
 
 ### Output Formatting Rules (CRITICAL)
 

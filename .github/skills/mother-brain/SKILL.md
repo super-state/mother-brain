@@ -321,6 +321,53 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ### 2. **Detect Project State & Show Progress**
    
+   **🧬 META-MODE DETECTION (FIRST CHECK - BEFORE EVERYTHING)**:
+   - Detect if we are IN the Mother Brain framework repo itself:
+     1. Check for `cli/` folder with `package.json` containing `"name": "mother-brain"`
+     2. Check for `.github/skills/mother-brain/SKILL.md` (this file)
+     3. Check for `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` in root
+     4. If ALL of these exist → we are in the Mother Brain framework repo
+   
+   - **If in Mother Brain framework repo**:
+     - Check `.mother-brain/meta-mode.json` for existing meta session state
+     - Display:
+       ```
+       🧠 You're in the Mother Brain Framework
+       
+       This is the framework itself, not a project using Mother Brain.
+       
+       Current Status:
+       - Version: [read from cli/package.json]
+       - Last release: [read from git tag or npm]
+       - Pending changes: [git status summary]
+       ```
+     
+     - Use `ask_user` with choices:
+       - "Improve Mother Brain (meta-mode)"
+       - "Start a completely new project somewhere else"
+       - "Release current changes to npm"
+       - "View recent changes and releases"
+     
+     - **If "Improve Mother Brain"**: 
+       - Set meta-mode state in `.mother-brain/meta-mode.json`:
+         ```json
+         {
+           "metaMode": true,
+           "startedAt": "[timestamp]",
+           "focus": null
+         }
+         ```
+       - Jump to **Step 2.3: Meta-Mode (Framework Improvement)**
+     
+     - **If "Start new project"**:
+       - Ask for project location (default: sibling folder)
+       - Change directory to that location
+       - Continue with normal flow (Step 2 from that location)
+     
+     - **If "Release"**: Jump to **Step 2D**
+   
+   - **If NOT in framework repo**: Continue with normal detection below
+   
    **⚡ FAST STARTUP OPTIMIZATION (MANDATORY)**:
    - **Single file check first**: Check ONLY `.mother-brain/session-state.json` - if it exists, project exists
    - **Parallel tool calls**: When multiple checks are needed, run them in ONE response (not sequentially)
@@ -456,6 +503,60 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Update Mother Brain (report issues/improvements)"
    - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
+
+### 2.3. **Meta-Mode (Framework Improvement)**
+   - When user selects "Improve Mother Brain" from the framework repo menu:
+   
+   **Purpose**: All work in meta-mode is focused on improving the Mother Brain framework itself.
+   
+   **Step 2.3.1: Focus Selection**
+   - Use `ask_user` with choices:
+     - "Fix a specific issue or bug"
+     - "Add a new feature to Mother Brain"
+     - "Improve documentation"
+     - "Refactor or clean up code"
+     - "Continue previous meta-work"
+   
+   **Step 2.3.2: Track Meta-Work**
+   - Update `.mother-brain/meta-mode.json` with focus:
+     ```json
+     {
+       "metaMode": true,
+       "startedAt": "[timestamp]",
+       "focus": "[selected focus]",
+       "workLog": [
+         {"timestamp": "[time]", "action": "[what was done]"}
+       ]
+     }
+     ```
+   
+   **Step 2.3.3: Execute Framework Work**
+   - All tasks, roadmaps, and changes are understood as framework improvements
+   - When creating files, they go to framework locations (not `.mother-brain/docs/`)
+   - Skills are edited directly (`.github/skills/`)
+   - CLI code is in `cli/src/`
+   
+   **Step 2.3.4: Meta-Mode Menu (After Each Action)**
+   - Display current work status:
+     ```
+     🧠 Meta-Mode: Improving Mother Brain
+     
+     Focus: [Current focus]
+     Changes: [Summary of what's been done]
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Continue this work"
+     - "Switch to different focus"
+     - "Wrap up and release changes"
+     - "Exit meta-mode (save progress)"
+   
+   **Step 2.3.5: Wrap Up Meta-Work**
+   - When user chooses to wrap up:
+     1. Show summary of all changes made
+     2. Offer to release (Step 2D) or just save
+     3. Clear meta-mode state if releasing
+     4. Return to framework detection (Step 2)
 
 ### 2.2. **Existing Project Onboarding**
    - When user selects to onboard Mother Brain into an existing project:

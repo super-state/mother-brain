@@ -1,13 +1,14 @@
 # 🧠 Mother Brain
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.0.4-blue)](https://github.com/super-state/mother-brain/releases)
+[![npm version](https://img.shields.io/npm/v/mother-brain.svg)](https://www.npmjs.com/package/mother-brain)
+[![Version](https://img.shields.io/badge/version-0.0.8-blue)](https://github.com/super-state/mother-brain/releases)
 
 **Open Source AI Project Management Framework for GitHub Copilot CLI**
 
 Transform your vision into reality with Mother Brain—an intelligent meta-framework that guides AI assistants through vision-driven project execution. Built for developers who want to ship faster with AI-powered automation, research-driven roadmaps, and automatic skill generation.
 
-**Version**: 0.0.4 | **License**: MIT | **Status**: Alpha
+**Version**: 0.0.8 | **License**: MIT | **Status**: Production Ready
 
 ## Why Mother Brain?
 
@@ -19,20 +20,42 @@ Transform your vision into reality with Mother Brain—an intelligent meta-frame
 
 ## Quick Start
 
-```bash
-# Clone the framework
-git clone https://github.com/super-state/mother-brain.git
-cd mother-brain
+### 1. Install Mother Brain in Your Project
 
-# Invoke Mother Brain in Copilot CLI
-gh copilot explain "Use the mother-brain skill"
+```bash
+# In your project directory
+npx mother-brain init
 ```
 
-Then select "Yes, start vision discovery" and Mother Brain will guide you through the rest.
+This adds the Mother Brain skills to your project's `.github/skills/` folder.
 
-**2-Minute Onboarding**:
-- Quick start guide: `docs/quick-start.md`
-- Example project walkthrough: `docs/example-project.md`
+### 2. Start Mother Brain with GitHub Copilot CLI
+
+```bash
+# Using GitHub Copilot CLI
+ghcs "/mother-brain"
+```
+
+### 3. Follow the Wizard
+
+Mother Brain will guide you through:
+- **Vision Discovery**: 8-12 questions to clarify your project's purpose
+- **Roadmap Generation**: Research-driven phased plan
+- **Skill Creation**: Automated patterns for your project type
+- **Task Execution**: Step-by-step implementation
+
+## CLI Commands
+
+```bash
+npx mother-brain init       # Add Mother Brain to your project
+npx mother-brain update     # Update to the latest version
+npx mother-brain status     # Check installed version
+npx mother-brain analyze    # Analyze skills and suggest improvements
+npx mother-brain upgrade    # Apply improvements to skills
+npx mother-brain uninstall  # Remove Mother Brain from project
+npx mother-brain docs       # Open documentation
+npx mother-brain quickstart # Show quick start guide
+```
 
 ## Features
 
@@ -55,24 +78,22 @@ Mother Brain isn't just a tool—it's a **thinking partner** for your AI develop
 
 ## Project Structure
 
+After running `npx mother-brain init`, your project will have:
+
 ```
-mother-brain/
-├── .github/skills/         # Framework skills
+your-project/
+├── .github/skills/         # Mother Brain skills
 │   ├── mother-brain/       # Core orchestrator
-│   ├── skill-creator/      # Generates new skills
-│   └── skill-trigger-detector/ # Auto-matches skills to tasks
-├── .mother-brain/          # Your project docs (created on first use)
+│   ├── child-brain/        # Learning & feedback
+│   └── skill-creator/      # Generates new skills
+├── .mother-brain/          # Project docs (created when you use it)
 │   ├── docs/
 │   │   ├── vision.md       # Project vision
 │   │   ├── roadmap.md      # Phased execution plan
-│   │   ├── tasks/          # Individual task documents
-│   │   └── learning-log.md # Self-improvement tracking
+│   │   └── tasks/          # Individual task documents
+│   ├── version.json        # Installed version tracking
 │   └── session-state.json  # Session continuity
-├── docs/                   # Framework docs
-│   ├── quick-start.md
-│   ├── example-project.md
-│   └── brand-guidelines.md
-└── README.md               # This file
+└── ... your project files
 ```
 
 ## Use Cases
@@ -85,7 +106,25 @@ mother-brain/
 ## Requirements
 
 - [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) installed and configured
+- Node.js 18+ (for npm/npx)
 - Git for version control
+
+## Updating Mother Brain
+
+When a new version is available, Mother Brain will notify you on startup. Update with:
+
+```bash
+npx mother-brain update
+```
+
+## Removing Mother Brain
+
+To remove Mother Brain from your project:
+
+```bash
+npx mother-brain uninstall        # Remove core skills, keep docs
+npx mother-brain uninstall --all  # Remove everything including docs
+```
 
 ## License
 

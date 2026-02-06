@@ -414,14 +414,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
-   - **MANDATORY: Output ASCII art banner using PowerShell** (not as markdown text - that causes rendering corruption):
-     ```powershell
-     Write-Host ""
-     Write-Host ""
-     Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"
-     Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"
-     Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"
-     ```
+   - **MANDATORY: Use the `powershell` tool to output ASCII art banner**:
+     - Call the `powershell` tool with this exact command (single string):
+       `Write-Host ""; Write-Host ""; Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"; Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"; Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"`
+     - Do NOT output the ASCII art as markdown text - it corrupts in rendering
    
    - Then display welcome back message:
      ```
@@ -471,14 +467,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
    
    **If new project (empty directory or user chose fresh start):**
-   - **MANDATORY: Output ASCII art banner using PowerShell** (not as markdown text - that causes rendering corruption):
-     ```powershell
-     Write-Host ""
-     Write-Host ""
-     Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"
-     Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"
-     Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"
-     ```
+   - **MANDATORY: Use the `powershell` tool to output ASCII art banner**:
+     - Call the `powershell` tool with this exact command (single string):
+       `Write-Host ""; Write-Host ""; Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"; Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"; Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"`
+     - Do NOT output the ASCII art as markdown text - it corrupts in rendering
    
    - Then display:
      ```

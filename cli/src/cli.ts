@@ -7,11 +7,12 @@ import { update } from './commands/update.js';
 import { status } from './commands/status.js';
 import { analyzeCommand } from './commands/analyze.js';
 import { upgradeCommand } from './commands/upgrade.js';
+import { uninstall } from './commands/uninstall.js';
 import { exec } from 'child_process';
 
 const program = new Command();
 
-const VERSION = '0.0.7';
+const VERSION = '0.0.8';
 
 program
   .name('mother-brain')
@@ -87,6 +88,14 @@ program
     console.log(chalk.dim('For more info: mother-brain docs'));
   });
 
+// Uninstall command
+program
+  .command('uninstall')
+  .description('Remove Mother Brain core skills from project')
+  .option('-f, --force', 'Skip confirmation prompt')
+  .option('-a, --all', 'Also remove .mother-brain/ docs folder')
+  .action(uninstall);
+
 // Default action when no command is provided
 program
   .action(() => {
@@ -108,6 +117,7 @@ program
     console.log(chalk.green('  status     ') + 'Check installed version');
     console.log(chalk.green('  analyze    ') + 'Analyze skills and suggest improvements');
     console.log(chalk.green('  upgrade    ') + 'Apply improvements to skills');
+    console.log(chalk.green('  uninstall  ') + 'Remove Mother Brain from project');
     console.log(chalk.green('  docs       ') + 'Open documentation in browser');
     console.log(chalk.green('  quickstart ') + 'Show quick start guide\n');
     

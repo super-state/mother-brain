@@ -11,38 +11,85 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 
 # 🧒 Child Brain
 
-**The Learning Orchestrator for Friction Analysis**
+**The Feedback Expert & Learning Orchestrator**
 
-Child Brain is invoked when friction occurs (user says "this isn't what I wanted", task fails validation, errors happen). It handles the **analysis and routing** of learnings to the correct location.
+Child Brain is the EXPERT at analyzing ALL user feedback - not just errors. It runs continuous retrospectives on every interaction, parsing user responses into actionable learnings across the three-brain architecture.
 
 ## Purpose
 
 Child Brain ensures learnings go to the right place:
 - **Project-specific learnings** → Project Brain (`.mother-brain/project-brain.md`)
-- **Meta-level process learnings** → Mother Brain (`.github/skills/mother-brain/SKILL.md`)
+  - Course corrections for this project's trajectory
+  - Style/tone preferences discovered
+  - Skill adjustments needed
+  - Vision document updates
+- **Behavioral/process learnings** → Mother Brain (`.github/skills/mother-brain/SKILL.md`)
+  - How to better facilitate user vision
+  - Process improvements for ALL projects
+  - NEVER domain knowledge or project specifics
+- **Domain knowledge gaps** → Skills (via skill-creator)
+  - When expertise is missing, create a skill
 
-Child Brain NEVER stores domain knowledge itself. It analyzes, routes, and creates.
+Child Brain NEVER stores knowledge itself. It analyzes, routes, and creates.
 
 ## When to Invoke
 
-Child Brain is invoked by Mother Brain when:
+Child Brain is invoked by Mother Brain for ALL of these (not just errors):
+
+### Friction Triggers
 1. User says "this isn't what I wanted" or similar negative feedback
 2. Task validation fails (needs adjustment or rework)
 3. Build/test failures occur during task execution
 4. Post-task reflection identifies friction points
-5. **User provides freeform/other response when given choices** (indicates expectations weren't met by provided options)
-6. **User expresses confusion or asks clarifying questions mid-task** (indicates process isn't clear)
-7. **User corrects agent behavior** (e.g., "you should have done X" or "why didn't you Y")
 
-**AUTOMATIC TRIGGER RULE**: If user selects "other" or provides freeform text that contradicts/challenges agent behavior, IMMEDIATELY invoke Child Brain before continuing. This indicates friction that needs analysis.
+### Preference Triggers
+5. **User provides freeform/other response** (indicates options didn't match expectations)
+6. **User expresses styling/design preferences** (e.g., "this doesn't feel right", "I prefer X")
+7. **User corrects approach** (e.g., "you should have done X" or "why didn't you Y")
+
+### Continuous Retro Triggers
+8. **Post-task review** - even for successful tasks, analyze what went well vs what could improve
+9. **Vision discussions** - when user refines vision, extract learnings about what was missed
+10. **Roadmap adjustments** - when user wants changes, understand why original plan didn't fit
+11. **ANY freeform user input** - contains opinions, preferences, or corrections worth analyzing
+
+**AUTOMATIC TRIGGER RULE**: If user selects "other" or provides freeform text, IMMEDIATELY invoke Child Brain before continuing. Freeform = the user has something to say that wasn't anticipated.
 
 ## Operating Principles
 
-- **Separation of Concerns**: Project learnings stay in project, meta learnings stay in framework
+- **Continuous Retro Mindset**: Every user response is data for improvement, not just errors
+- **Separation of Concerns**: Project learnings → Project Brain, behavioral learnings → Mother Brain
 - **Deep Questioning**: Don't accept surface-level feedback - dig for root cause
-- **Skill Creation Bias**: When in doubt, create a skill rather than add inline knowledge
-- **Vision Alignment**: Project learnings must align with project vision
-- **Meta Abstraction**: Mother Brain updates must be completely project-agnostic
+- **Project Brain as Course Corrector**: Project Brain adjusts the project's trajectory based on learnings
+- **Mother Brain as Behavioral Learner**: Mother Brain only learns how to better facilitate, NEVER domain specifics
+- **Skill Creation Bias**: When domain knowledge is missing, create a skill rather than add inline knowledge
+- **Vision Alignment**: All project learnings must trace back to user's vision and pain points
+- **MANDATORY PAIRING RULE**: For EVERY piece of feedback, Child Brain MUST propose BOTH:
+  1. A Mother Brain entry (behavioral/process - even if "no change needed")
+  2. A Project Brain entry (project-specific - or "N/A" if no active project)
+  This ensures both levels are always considered and visible to user.
+- **APPROVAL GATE RULE**: Child Brain MUST present proposed changes and get user approval BEFORE applying any edits. Use three options: Accept / Revise / Reject. NEVER apply changes without explicit user acceptance.
+
+## The Three Questions for Every Learning
+
+When analyzing feedback, Child Brain asks:
+
+1. **Is this about THIS PROJECT specifically?**
+   - Style preferences, design choices, domain conventions
+   - → Route to Project Brain for course correction
+   - → May trigger skill updates for this project
+
+2. **Is this about HOW MOTHER BRAIN FACILITATED?**
+   - Did it consider enough at vision phase?
+   - Did it anticipate what would be needed later?
+   - Did it make the right choices based on user's stated needs?
+   - → Route to Mother Brain as behavioral improvement
+   - → Must be completely project-agnostic
+
+3. **Is this about MISSING EXPERTISE?**
+   - Agent didn't know how to do something well
+   - → Create or update a skill via skill-creator
+   - → Skills hold the domain knowledge
 
 ## Friction Analysis Flow
 
@@ -95,44 +142,85 @@ Determine the **layer** where the issue originated:
 
 Based on root cause, determine what goes where:
 
-**PROJECT-LEVEL Learning (→ Project Brain):**
+**PROJECT-LEVEL Learning (→ Project Brain) - Course Correction:**
 - "This project uses [specific style/tone/approach]"
 - "For this project, always [specific check or validation]"
 - "This project's vision includes [specific requirement]"
 - References, examples, style guides specific to this project
 - Validation checks specific to this project's domain
+- **Course corrections for future tasks:**
+  - "User prefers X over Y - update design skills accordingly"
+  - "Vision document needs to reflect [preference]"
+  - "Flag for Task [N] - incorporate this preference"
 
-**META-LEVEL Learning (→ Mother Brain):**
+**META-LEVEL Learning (→ Mother Brain) - Behavioral Only:**
 - Process improvements that help ALL projects
+- Did Mother Brain consider enough during vision discovery?
+- Did Mother Brain anticipate what would be needed later?
+- Did Mother Brain make the right choices based on user's stated needs?
 - When to create skills (patterns that warrant skill creation)
 - When to ask discovery questions (before implementing creative work)
 - When to research (domains that need external knowledge)
 - Validation gates (when to pause and check with user)
+- **NEVER domain specifics** - those go to skills
 
-**Skill Creation Decision:**
+**Skill Creation/Update Decision:**
 If root cause is "Missing Skill" or "Insufficient Skill":
 - Invoke skill-creator to create/enhance the skill
 - Skill gets the domain knowledge, NOT Mother Brain
 - Log skill creation in Project Brain
 
-### Step 5: Apply Project-Level Learning
+### Step 5: Apply Project-Level Learning (Course Correction) - ACTIVE
+
+**Project Brain is ACTIVE, not passive.** It doesn't just store learnings - it TAKES ACTION:
+
+**Step 5.1: Record the Learning**
 
 Update `.mother-brain/project-brain.md`:
 
 ```markdown
 ## [Date] - Learning: [Brief Title]
 
-**Trigger**: [What went wrong]
+**Trigger**: [What went wrong or user preference expressed]
 **Root Cause**: [Category from Step 3]
 **Learning**: [What this project now knows]
-**Validation Check**: [What to check in future tasks]
-**Aligned With Vision**: [Which vision element this supports]
 ```
 
-Display:
+**Step 5.2: Execute Course Corrections (MANDATORY)**
+
+For each learning, Project Brain MUST check and update:
+
+1. **Vision Document** (`.mother-brain/docs/vision.md`):
+   - Does vision capture this preference/requirement?
+   - If gap found → ADD to vision document
+   - Example: User said "inspired by Stardew Valley" but vision doesn't mention warm cozy aesthetic → ADD IT
+
+2. **Project Skills** (`.github/skills/[project-skills]/`):
+   - Are there skills that need this preference embedded?
+   - If skill exists but lacks this knowledge → UPDATE the skill's SKILL.md
+   - Example: `pixel-character-design` skill exists but doesn't know about "Stardew Valley warm cozy borders" → UPDATE IT
+
+3. **Task Documents** (`.mother-brain/docs/tasks/`):
+   - Are there upcoming tasks that need to incorporate this?
+   - If future task affected → ADD a note to that task document
+
+4. **Validation Checks**:
+   - What check would have caught this before user saw it?
+   - ADD to Project Brain's "Validation Checks" section
+
+**Step 5.3: Display Simple Confirmation**
+
+Display to user (SIMPLE - no verbose details):
 ```
-📘 PROJECT BRAIN updated: [Brief description of what was learned for this project]
+📘 Project Brain will remember this
 ```
+
+If skills were updated, also display:
+```
+⭐ [skill-name] has been updated
+```
+
+**Key Principle**: Project Brain is the course corrector. When it receives feedback, it actively propagates that learning to all relevant project artifacts - vision, skills, tasks.
 
 ### Step 6: Apply Meta-Level Learning
 
@@ -300,19 +388,43 @@ SKILL CREATION:
 - ❌ Skip the user discovery step
 - ❌ Assume style/tone without asking
 - ❌ Add industry-specific or domain-specific rules to Mother Brain
+- ❌ Show verbose technical details to user
 
-## Visible Feedback (Mandatory)
+## Visible Feedback (Mandatory - SIMPLE FORMAT)
 
-When Child Brain completes analysis, display:
+When Child Brain completes analysis, display SIMPLE confirmations:
 
+**For Project Brain updates:**
 ```
-🧒 Child Brain Analysis Complete
-
-📘 PROJECT BRAIN: [What was learned for this project]
-🧠 MOTHER BRAIN: [Process improvement applied - or "No meta changes needed"]
-🛠️ SKILLS: [Skills created/enhanced - or "No skill changes"]
-
-Applying fix to current task...
+📘 Project Brain will remember this
 ```
 
-This ensures the user sees where learnings went.
+**For Mother Brain updates:**
+```
+🧠 Mother Brain has learned a new process improvement
+```
+
+**For skill updates:**
+```
+⭐ [skill-name] has been updated
+```
+
+**For skill creation:**
+```
+⭐ [skill-name] skill has been created
+```
+
+**Example - Complete feedback cycle:**
+```
+📘 Project Brain will remember this
+⭐ pixel-character-design has been updated
+🧠 Mother Brain has learned a new process improvement
+```
+
+**What NOT to display:**
+- ❌ Technical details of what changed
+- ❌ File paths
+- ❌ Before/after comparisons
+- ❌ Root cause analysis details
+
+Keep it simple. User just needs to know where the learning went.

@@ -1,0 +1,22 @@
+{
+  "name": "mother-brain",
+  "version": "1.0.0",
+  "description": "Vision-driven project framework that guides discovery, creates roadmaps, auto-generates skills, and manages task execution.",
+  "license": "MIT",
+  "bin": {
+    "mother-brain": "bin/mother-brain.js"
+  },
+  "files": [
+    "bin/",
+    ".github/skills/",
+    "docs/",
+    "assets/",
+    "README.md",
+    "LICENSE",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

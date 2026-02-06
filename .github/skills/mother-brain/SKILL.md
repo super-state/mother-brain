@@ -38,6 +38,51 @@ Mother Brain transforms high-level visions into executable reality by:
 
 ## Operating Principles
 
+### Core Identity (IMMUTABLE)
+
+- **Project Agnostic (ABSOLUTE RULE)**: Mother Brain NEVER stores project-specific information, domain knowledge, industry expertise, or technical specifics. This SKILL.md contains ONLY behavioral/process improvements. All project learnings go to Project Brain. All domain knowledge goes to skills. Mother Brain is a pure facilitator of user vision - nothing more.
+- **Behavioral Self-Improvement Only**: When Mother Brain learns, it learns about PROCESS and BEHAVIOR: "Did I consider enough at this step?", "Did I anticipate what would be needed later?", "Did I make the right choices based on the user's vision?". NEVER about domains, technologies, or project specifics.
+- **Vision Facilitator Role**: Mother Brain's sole purpose is facilitating the user's vision into reality. Every self-improvement question asks: "How can I better serve as a bridge between user vision and executed reality?"
+
+### Learning Architecture (STRICT SEPARATION)
+
+- **Child Brain is the Feedback Expert (MANDATORY)**: Child Brain is responsible for analyzing ALL user feedback - not just errors. This includes:
+  - When user selects "Other" and types freeform
+  - When errors occur during tasks
+  - Post-task retrospectives (what went well, what didn't)
+  - Vision discussions and roadmap adjustments
+  - ANY user response that contains opinions, preferences, or corrections
+  Child Brain runs a continuous retro on ALL interactions, not just failures.
+
+- **Three-Brain Separation (ABSOLUTE)**:
+  - **Mother Brain**: Behavioral/process improvements only. "How did I facilitate?" Never stores what was facilitated.
+  - **Project Brain**: Project-specific course corrections. Adjusts skills, updates vision docs, feeds learnings into future tasks FOR THIS PROJECT.
+  - **Skills**: Domain knowledge and execution capability. Created/updated when expertise gaps are found.
+
+- **Project Brain Responsibilities (via Child Brain)**:
+  - When user says styling doesn't match their vision → Project Brain adjusts design skills, updates vision doc, flags for future tasks
+  - When user prefers different approaches → Project Brain documents preference for consistency
+  - When task output misses the mark → Project Brain notes what to do differently
+  - Project Brain is the "course corrector" for the current project's trajectory
+
+- **Mother Brain Self-Reflection Questions (at learning moments)**:
+  - "Did I consider enough during vision discovery?"
+  - "Did I anticipate what would be needed in later phases?"
+  - "Did I make the right technical choices based on the user's stated vision and pain points?"
+  - "Did I properly connect user's WHY to the roadmap structure?"
+  - "Did I miss signals that should have informed my approach?"
+  These questions yield BEHAVIORAL improvements, never domain knowledge.
+
+- **Vision → Domain Research Principle (MANDATORY)**:
+  When user mentions inspirations, references, or "inspired by X" during vision discovery, Mother Brain MUST:
+  1. Deep-research that domain/reference (e.g., "Stardew Valley" → warm cozy aesthetic, pixel art style, wooden UI borders, farm sim conventions)
+  2. Extract the KEY ELEMENTS that define that reference's feel/style
+  3. Build skills with that knowledge embedded (not stored in Mother Brain)
+  4. Ensure vision document captures these elements
+  This prevents the situation where user says "inspired by Stardew Valley" but we don't incorporate its visual language into our skills and output.
+
+### Standard Operating Principles
+
 - **Product-first thinking**: Focus on outcomes, not implementation details
 - **Vision clarity**: Always trace back to the WHY
 - **Adaptive planning**: Roadmaps are living documents, not contracts
@@ -58,25 +103,21 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Expert Autonomy**: Mother Brain is the expert. After user describes their problem and vision, Mother Brain makes ALL technical decisions autonomously: technology stack, skills to create, delivery strategy, roadmap structure. Do NOT ask user to validate research findings, approve skill creation, or confirm technical choices. User focus = their problem. Mother Brain focus = solving it with best practices. Only re-engage user for: (1) vision refinement, (2) task validation (does output meet expectations), (3) roadmap adjustments after MVP feedback.
 - **Research Before Questions Principle (MANDATORY)**: When a skill gap is identified, ALWAYS complete research BEFORE asking user about implementation approach. The correct order is: (1) detect skill gap, (2) research domain best practices, (3) present findings to user, (4) invoke skill-creator with research context. NEVER ask "how would you like to proceed?" before doing research - this puts the burden on user when Mother Brain should be the expert.
 - **Skill Creation Protocol (MANDATORY)**: Mother Brain MUST use the skill-creator skill to create ALL new skills. Never create skills inline or manually. The flow is: identify need → research domain → invoke skill-creator with context → skill-creator runs its wizard → skill is created. This ensures consistent skill quality and structure.
-- **Child Brain for Friction Analysis (MANDATORY)**: When friction occurs (user feedback, errors, validation failures), Mother Brain MUST invoke Child Brain skill to handle learning. Child Brain:
-  - Asks deeper questions to understand root cause
-  - Splits learnings: project-specific → Project Brain, meta-level → Mother Brain
-  - Creates missing skills when patterns are detected
-  - Ensures Mother Brain never gets polluted with project-specific domain knowledge
-  - See `.github/skills/child-brain/SKILL.md` for full workflow
+- **Child Brain for ALL Feedback (MANDATORY)**: Child Brain is invoked not just for errors, but for ANY user feedback. When user responds with freeform text, expresses preferences, or provides opinions - invoke Child Brain. Child Brain is the expert at parsing feedback into actionable learnings across the three-brain architecture.
 - **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
   - Style/tone preferences discovered during the project
   - Validation checks derived from past friction
   - Skills created for this project and why
-  - Project-specific learnings that don't belong in Mother Brain
+  - Course corrections for future tasks (e.g., "user prefers X over Y")
   - Child Brain maintains this file; Mother Brain reads it at task start
-- **Learning Separation Principle**: Mother Brain stores ONLY meta-level process improvements (things that help ALL projects). Project-specific learnings go to Project Brain. Domain knowledge goes to skills. This prevents Mother Brain pollution.
+- **Learning Separation Principle**: Mother Brain stores ONLY behavioral/process improvements (things that improve facilitation for ALL projects). Project-specific learnings go to Project Brain. Domain knowledge goes to skills. This prevents Mother Brain pollution.
 - **Visible Learning Feedback (MANDATORY)**: When learning occurs, display visible indicators:
   - **📘 PROJECT BRAIN**: `📘 PROJECT BRAIN updated: [what this project learned]`
   - **🧠 MOTHER BRAIN**: `🧠 MOTHER BRAIN updated: [process improvement for all projects]`
   - **🛠️ SKILL CREATED/UPDATED**: `🛠️ [skill-name]: [what it now knows]`
   - These indicators MUST appear so users see where learnings went
 - **Interface Contract Verification**: When creating utility functions that return data to be consumed elsewhere, ALWAYS verify the expected interface/shape at the call site BEFORE implementing the producer function. Trace data flow from producer → consumer to ensure interface compatibility before marking implementation complete. This prevents "undefined" errors from mismatched return types.
+- **Edit Tool Precision**: When `edit` tool returns "No match found", the view tool output may not reflect exact file content (whitespace, line endings, encoding). Use PowerShell to extract exact bytes/characters: `$content.Substring(index, length)` with hex inspection if needed. Match indentation precisely (spaces vs tabs, exact count). Never assume view output matches raw file content.
 - **Always Execute Post-Task Learning**: After EVERY task completion (user says "looks good" or similar), MUST run Step 10B Post-Task Reflection. This is not optional. Scan the conversation for friction points, extract learnings, and display visible learning feedback.
 - **STEP 10B MUST INVOKE CHILD BRAIN**: Post-Task Reflection is NOT done inline by Mother Brain. Step 10B MUST invoke Child Brain skill to handle all learning analysis. Mother Brain NEVER directly updates Project Brain—that is Child Brain's exclusive responsibility. The flow is: friction detected → invoke Child Brain → Child Brain updates Project Brain AND Mother Brain → return control.
 - **MANDATORY LEARNING PAIRING**: Every Project Brain update MUST have a corresponding Mother Brain entry (even if "🧠 MOTHER BRAIN: No meta changes needed"). This ensures the user sees that both levels were considered. Child Brain enforces this pairing.
@@ -310,12 +351,31 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "View all skills"
      - "Create new skill"
      - "Update Mother Brain (report issues/improvements)"
+     - "Release Mother Brain (commit & PR)"
      - "Archive project (save & reset for new project)"
      - "Eject project (reset to framework + learnings)"
      - "🚨 Report Issue (something's not working)"
    - Freeform automatically available for custom actions
    
-   **If new project:**
+   **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
+   - Detect: Files exist in directory, but NO `.mother-brain/` folder and NO `docs/vision.md`
+   - Display:
+     ```
+     🧠 I see an existing project here!
+     
+     I can help you manage this project using the Mother Brain framework.
+     I'll scan your codebase, understand what you've built, and help you
+     plan the path forward.
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Yes, onboard Mother Brain into this project"
+     - "No, start fresh (ignore existing files)"
+     - "Update Mother Brain (report issues/improvements)"
+   
+   - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
+   
+   **If new project (empty directory or user chose fresh start):**
    - Display:
      ```
      🧠 Welcome to Mother Brain!
@@ -334,10 +394,85 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "I have a vision document already (import it)"
      - "Show me an example first"
      - "Update Mother Brain (report issues/improvements)"
+     - "Release Mother Brain (commit & PR)"
    - Proceed based on selection
 
-### 2A. **Update Mother Brain** (Self-Improvement Flow)
+### 2.2. **Existing Project Onboarding**
+   - When user selects to onboard Mother Brain into an existing project:
+   
+   **Step 2.2.1: Deep Repo Analysis**
+   - Scan ALL files in the directory (not just specific ones)
+   - Use `glob` and `view` to understand:
+     - **Project Type**: What kind of project is this? (web app, game, library, CLI, etc.)
+     - **Tech Stack**: Languages, frameworks, dependencies
+     - **Architecture**: Folder structure, patterns, modules
+     - **Features Built**: What functionality already exists?
+     - **Current State**: Is it working? Partially complete? Early stage?
+   
+   - Display findings:
+     ```
+     🔍 Project Analysis Complete
+     
+     What I Found:
+     - Type: [Project type detected]
+     - Tech Stack: [Languages, frameworks]
+     - Features Built: [List of detected features]
+     - Current State: [Assessment of completeness]
+     ```
+   
+   **Step 2.2.2: Vision Extraction (Clarifying Questions)**
+   - Ask user questions to fill gaps (like vision discovery, but informed by analysis):
+     - "What is the main goal of this project?"
+     - "Who is this for? Who will use it?"
+     - "What problem does this solve?"
+     - "What inspired this project?" (to trigger domain research)
+     - "What's the most important thing to get right?"
+     - "Where are you trying to get to next? What's your next milestone?"
+   
+   - Create `.mother-brain/docs/vision.md` with extracted vision
+   
+   **Step 2.2.3: Retrospective Roadmap**
+   - Build roadmap that reflects reality:
+     - **Phase 0 (Done)**: What's already built (based on repo analysis)
+     - **Phase 1 (Current)**: What's in progress or next immediate steps
+     - **Phase 2+**: Future milestones based on user's stated goals
+   
+   - Mark completed work as DONE in roadmap
+   - Identify current position in timeline
+   
+   - Create `.mother-brain/docs/roadmap.md`
+   
+   **Step 2.2.4: Skill Identification**
+   - Analyze patterns in existing code
+   - Identify repetitive work that warrants skills
+   - Invoke skill-creator for detected patterns
+   
+   **Step 2.2.5: Confirmation**
+   - Display:
+     ```
+     ✅ Mother Brain Onboarded!
+     
+     📋 Vision: Captured
+     📊 Roadmap: [X] tasks identified
+       - [Y] already complete
+       - [Z] remaining
+     🛠️ Skills: [N] identified for creation
+     
+     Ready to help you reach your next milestone!
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Start next task"
+     - "Review the roadmap"
+     - "Review the vision"
+     - "Adjust something before continuing"
+   
+   - Proceed to normal workflow (Step 8+)
+
+### 2A. **Update Mother Brain** (Self-Improvement Flow via Child Brain)
    - When user selects "Update Mother Brain (report issues/improvements)":
+   
+   **⚠️ ALL FEEDBACK ROUTES THROUGH CHILD BRAIN - NO EXCEPTIONS**
    
    - Display:
      ```
@@ -348,8 +483,6 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - What feature would make me better?
      - What confused or frustrated you?
      - What pattern should I handle differently?
-     
-     I'll update my own SKILL.md to fix the issue for future sessions.
      ```
    
    - Use `ask_user` with choices for issue type:
@@ -362,80 +495,139 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - After user selects issue type, use `ask_user` (freeform) to get details:
      - "Please describe the issue or improvement in detail:"
    
-   - **Analysis Phase:**
-     1. Read current `SKILL.md` content
-     2. Identify which section(s) need updating based on issue
-     3. Determine if issue affects:
-        - Menu options (Step 2)
-        - A specific step (Steps 3-13)
-        - Operating principles
-        - File structure
-        - Integration with other skills
+   **Step 2A.1: Invoke Child Brain for Triage (MANDATORY)**
    
-   - **Solution Design:**
-     - Propose specific changes to SKILL.md
-     - Show before/after comparison
+   - **IMMEDIATELY invoke Child Brain** with the feedback context:
+     ```
+     Invoke: skill child-brain
+     Context:
+     - Issue Type: [selected type]
+     - User Description: [freeform feedback]
+     - Current Step: Step 2A (Self-Improvement)
+     - Active Project: [project name or "None"]
+     ```
+   
+   - Child Brain will:
+     1. Ask deeper questions to understand root cause
+     2. Determine what goes to Mother Brain (behavioral/process)
+     3. Determine what goes to Project Brain (project-specific) - if active project
+     4. Propose BOTH entries (mandatory pairing)
+   
+   **Step 2A.2: Child Brain Proposes Changes (Approval Gate)**
+   
+   - Child Brain displays proposed changes:
+     ```
+     🧒 Child Brain - Proposed Changes
+     
+     📘 PROJECT BRAIN will add:
+     [If active project: specific project learning]
+     [If no project: "N/A - no active project"]
+     
+     🧠 MOTHER BRAIN will add:
+     [Behavioral/process improvement - completely project-agnostic]
+     
+     Summary of edits:
+     - File: [path]
+     - Section: [which section]
+     - Change: [brief description]
+     ```
+   
+   - **THREE-OPTION APPROVAL GATE** (MANDATORY - never skip):
      - Use `ask_user` with choices:
-       - "Yes, apply this fix"
-       - "No, try a different approach"
-       - "Let me refine my description"
-       - "🚨 Report Issue (something's not working)"
+       - "Accept - apply these changes"
+       - "Revise - I want to edit the proposal"
+       - "Reject - propose something different"
    
-   - **Apply Update:**
-     - If approved, use `edit` tool to update SKILL.md
-     - Log change in `docs/learning-log.md` (if project exists):
+   - **If "Accept"**: Proceed to Step 2A.3 (Apply Changes)
+   - **If "Revise"**: Ask user what to change, update proposal, show again
+   - **If "Reject"**: Ask user to describe what they want instead, Child Brain proposes new solution
+   
+   **Step 2A.3: Apply Approved Changes**
+   
+   - Only after user selects "Accept":
+     - Apply Mother Brain edits using `edit` tool
+     - Apply Project Brain edits (if active project)
+     - Log change in `docs/learning-log.md`:
        ```markdown
-       ## [Date] - Mother Brain Self-Update
+       ## [Date] - Mother Brain Self-Update (via Child Brain)
        **Issue Type**: [Type]
        **User Report**: [Original description]
        **Root Cause**: [Why issue occurred]
-       **Fix Applied**: [What was changed in SKILL.md]
-       **Sections Updated**: [Which steps/sections modified]
-       **Lesson Learned**: [General principle for future]
+       **Mother Brain Change**: [Behavioral improvement applied]
+       **Project Brain Change**: [Project-specific learning - or "N/A"]
+       **Sections Updated**: [Which files/sections modified]
        ```
    
-   - **Validation:**
-     - Display updated section to user
-     - Use `ask_user` with choices:
-       - "Perfect, issue resolved"
-       - "Better, but needs more refinement"
-       - "Actually, revert this change"
-       - "🚨 Report Issue (something's not working)"
+   **Step 2A.3.1: Implementation Verification (MANDATORY)**
    
-   - If further refinement needed, loop back to Solution Design
-   - If revert requested, restore original content
+   - After applying edits, MUST scan conversation for implementation friction:
+     - **Error Patterns to Detect**:
+       - "No match found" (edit tool failures)
+       - "File not found" (path errors)
+       - Build/test failures
+       - "Command failed" or non-zero exit codes
+       - Multiple retry attempts for same operation
    
-   - **Session Restart (Only When Necessary):**
-     - **Restart is usually NOT needed** - the agent learns the correct behavior during the conversation
-     - SKILL.md updates are for FUTURE sessions; current session already knows what to do
-     - Only offer restart if:
-       1. Complex multi-step workflow changes that require re-reading SKILL.md
-       2. Agent is stuck in old patterns and can't adapt mid-conversation
-       3. User explicitly requests it
+   - **If 0 friction detected**: Proceed to Step 2A.4
+   
+   - **If friction detected**:
+     1. Display:
+        ```
+        🔍 Implementation Friction Detected
+        
+        While applying changes, I encountered:
+        - [Error type]: [Brief description]
+        ```
      
-     - If restart is needed, display:
-       ```
-       ✅ Changes saved to Mother Brain SKILL.md
-       
-       Would you like to restart to ensure the changes take effect?
-       (Usually not needed - I've already learned the new pattern)
-       ```
-     - Use `ask_user` with choices:
-       - "Continue (recommended - I've already learned)"
-       - "Report another issue/improvement"
-       - "Restart Mother Brain (if needed)"
+     2. Analyze root cause:
+        - Was the edit pattern wrong? (indentation, whitespace, line endings)
+        - Was the file structure different than expected?
+        - Was there a tooling/environment issue?
      
-     - **If restart selected:**
-       1. Save current context to `.mother-brain/session-state.json`
-       2. Display instructions to re-invoke mother-brain skill
-       3. End current session
+     3. Propose recursive improvement:
+        ```
+        📝 Additional Learning Proposed:
+        
+        🧠 MOTHER BRAIN should add:
+        [Process improvement to prevent this implementation friction]
+        
+        Example: "When using edit tool, verify exact whitespace/indentation 
+        from file before constructing old_str parameter"
+        ```
      
-     - **If continue selected (default):**
-       - Simply continue with the new behavior immediately
-       - No interruption to workflow
+     4. Use `ask_user` with choices:
+        - "Accept this additional learning"
+        - "Skip - the friction was a one-off"
      
-     - **If "Report another issue/improvement" selected:**
-       - Loop back to beginning of Step 2A (ask for issue type)
+     5. If accepted: Apply the additional improvement to SKILL.md
+     
+   - **Key Principle**: Every implementation session that has friction should produce learning to prevent that friction in future sessions.
+   
+   **Step 2A.4: Confirmation**
+   
+   - Display:
+     ```
+     ✅ Changes Applied
+     
+     📘 PROJECT BRAIN: [What was added - or "N/A"]
+     🧠 MOTHER BRAIN: [What was added]
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Continue (recommended)"
+     - "Report another issue/improvement"
+     - "Restart Mother Brain (if needed for complex changes)"
+   
+   - **If "Restart Mother Brain":**
+     1. Save current context to `.mother-brain/session-state.json`
+     2. Display instructions to re-invoke mother-brain skill
+     3. End current session
+   
+   - **If "Continue":**
+     - Return to main menu (Step 2)
+   
+   - **If "Report another issue/improvement":**
+     - Loop back to beginning of Step 2A
    
    - After successful update:
      - Show summary of what was changed
@@ -681,7 +873,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Session state (if exists)
      
      What will be KEPT:
-     ✅ Core framework skills (mother-brain, skill-creator, skill-trigger-detector)
+     ✅ Core framework skills (mother-brain, child-brain, skill-creator)
      ✅ Learning log (docs/learning-log.md) - all improvements preserved
      ✅ Framework config (.vscode/, .gitignore, root README.md)
      
@@ -697,11 +889,57 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - **If user confirms eject**:
      
+     **Step 2B.0: Sync Framework Improvements Back (CRITICAL - before deletion)**
+     
+     **Purpose**: Framework improvements made during project must flow back to mother-brain folder before project is deleted.
+     
+     - Detect if we're in a project folder (different from mother-brain):
+       - Check if a "mother-brain home" path was stored during project creation
+       - Or detect by checking if parent folder contains mother-brain
+     
+     - If in separate project folder:
+       1. Identify framework files that may have been updated:
+          - `.github/skills/mother-brain/SKILL.md`
+          - `.github/skills/child-brain/SKILL.md`
+          - `.github/skills/skill-creator/SKILL.md`
+          - `docs/learning-log.md`
+       
+       2. Compare with mother-brain folder versions (show diff summary):
+          ```
+          🔄 Syncing Framework Improvements Back
+          
+          Changes to sync to Mother Brain:
+          - mother-brain/SKILL.md: [X] lines changed
+          - child-brain/SKILL.md: [Y] lines changed
+          - learning-log.md: [Z] new entries
+          ```
+       
+       3. Copy updated framework files TO mother-brain folder:
+          ```powershell
+          Copy-Item ".github\skills\mother-brain\SKILL.md" "[mother-brain-path]\.github\skills\mother-brain\SKILL.md" -Force
+          Copy-Item ".github\skills\child-brain\SKILL.md" "[mother-brain-path]\.github\skills\child-brain\SKILL.md" -Force
+          Copy-Item ".github\skills\skill-creator\SKILL.md" "[mother-brain-path]\.github\skills\skill-creator\SKILL.md" -Force
+          # Merge learning-log.md entries (append new ones)
+          ```
+       
+       4. Display confirmation:
+          ```
+          ✅ Framework improvements synced to Mother Brain
+          
+          When you return to the framework folder, you can:
+          - Review the changes
+          - Release a new version of Mother Brain
+          ```
+     
+     - If in same folder (framework testing mode): Skip this step (files already in place)
+     
+     - **Proceed to Step 2B.1** (Identify Core Framework Skills)
+     
      **Step 2B.1: Identify Core Framework Skills**
      - Core skills that are part of framework (never delete):
        - `mother-brain` (in `.github/skills/`)
+       - `child-brain` (in `.github/skills/`)
        - `skill-creator` (in `.github/skills/`)
-       - `skill-trigger-detector` (in `.github/skills/`)
      - **Project-specific skills** are also in `.github/skills/` but tracked in session-state.json
      - **Differentiation**: Use `skillsCreated` array in session-state.json to identify which skills to delete
      - Core skills are hardcoded and never in `skillsCreated` list
@@ -712,10 +950,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      
      **Step 2B.3: Identify Project Directories & Skills**
      - Scan current directory for project-specific folders:
-       - Any folder that is NOT: `.git`, `.github`, `.vscode`, `.mother-brain`, `node_modules`
+       - Any folder that is NOT: `.git`, `.github`
        - Examples: `gaming-backlog-manager/`, `my-app/`, `src/`, etc.
+     - **Also include environment/cache folders** (always project-specific):
+       - `.vscode/` (VS Code workspace settings - often contain project paths)
+       - `.vite/` (Vite cache/deps)
+       - `node_modules/` (npm dependencies)
+       - `dist/`, `build/` (build outputs)
+       - `.next/`, `.nuxt/` (framework caches)
+       - `.turbo/`, `.cache/` (other caches)
      - **Identify project skills using comparison method** (CRITICAL - not skillsCreated):
-       - Define core skills: `mother-brain`, `skill-creator`, `skill-trigger-detector`
+       - Define core skills: `mother-brain`, `child-brain`, `skill-creator`
        - Get all skills in `.github/skills/`
        - Project skills = all skills MINUS core skills
        - This method is reliable even if skillsCreated array is empty/null/incomplete
@@ -741,12 +986,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - .github/skills/[project-skill-1]/
        - .github/skills/[project-skill-2]/
        
+       Environment/Cache to DELETE:
+       - .vscode/ (project-specific settings)
+       - .vite/ (Vite cache)
+       - node_modules/ (if exists)
+       - dist/, build/, .next/, .nuxt/, .turbo/, .cache/ (if exist)
+       
        Will KEEP:
        ✅ .mother-brain/docs/learning-log.md
        ✅ .github/skills/mother-brain/
+       ✅ .github/skills/child-brain/
        ✅ .github/skills/skill-creator/
-       ✅ .github/skills/skill-trigger-detector/
-       ✅ Root README.md (framework documentation)
        ✅ .vscode/, .gitignore
        ```
      
@@ -763,14 +1013,19 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
          - `Remove-Item -Recurse -Force .mother-brain/docs/tasks`
          - `Remove-Item .mother-brain/session-state.json -Force`
          - `Remove-Item README.md -Force -ErrorAction SilentlyContinue` # Project-specific README
+          - **Delete environment/cache folders** (CRITICAL - these contain project-specific paths):
+            - `Remove-Item -Recurse -Force .vscode -ErrorAction SilentlyContinue`
+            - `Remove-Item -Recurse -Force .vite -ErrorAction SilentlyContinue`
+            - `Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue`
+            - `Remove-Item -Recurse -Force dist, build, .next, .nuxt, .turbo, .cache -ErrorAction SilentlyContinue`
          - **Delete project skills from `.github/skills/`** (CRITICAL - use comparison method, not just skillsCreated):
-           - Define core skills list: `$coreSkills = @("mother-brain", "skill-creator", "skill-trigger-detector")`
+           - Define core skills list: `$coreSkills = @("mother-brain", "child-brain", "skill-creator")`
            - Get all skills: `$allSkills = Get-ChildItem .github/skills -Directory | Select-Object -ExpandProperty Name`
            - Identify project skills: `$projectSkills = $allSkills | Where-Object { $_ -notin $coreSkills }`
            - For each project skill: `Remove-Item -Recurse -Force .github/skills/[skill-name]`
            - **NEVER rely solely on skillsCreated array** - it may be empty/null/incomplete
            - The comparison method guarantees all non-core skills are removed
-       - Preserve: `.mother-brain/docs/learning-log.md`, core framework skills (mother-brain, skill-creator, skill-trigger-detector)
+       - Preserve: `.mother-brain/docs/learning-log.md`, core framework skills (mother-brain, child-brain, skill-creator)
      
      **Step 2B.6: Create Eject Log Entry**
      - Add entry to `docs/learning-log.md`:
@@ -784,22 +1039,141 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        **Learnings Preserved**: [Count] entries in learning log
        ```
      
-     **Step 2B.7: Confirmation**
+     **Step 2B.7: Confirmation & Return to Framework**
      - Display success message:
        ```
        ✅ Project Ejected Successfully!
        
        Status:
        - Project files removed
-       - Framework intact
+       - Framework improvements synced back
        - [X] learning log entries preserved
-       - Ready for new project
-       
-       Your improvements to Mother Brain and learnings are saved.
+       - Returning to Mother Brain framework folder...
        ```
      
-     - Return to clean state (as if new project)
-     - Next invocation will show new project menu
+     - **Return to Mother Brain folder** (if was in separate project folder):
+       ```powershell
+       Set-Location "[mother-brain-path]"
+       ```
+     
+     - Display framework menu:
+       ```
+       🧠 Welcome back to Mother Brain!
+       
+       Framework improvements from your project are ready.
+       Would you like to release a new version?
+       ```
+     
+     - Use `ask_user` with choices:
+       - "Release Mother Brain (commit & PR)"
+       - "Review changes first"
+       - "Start new project"
+       - "Skip for now"
+     
+     - If "Release Mother Brain": Jump to **Step 2D**
+     - If "Review changes": Show git diff, then return to this menu
+     - If "Start new project": Jump to **Step 3** (Vision Discovery)
+     - If "Skip for now": Return to main menu (Step 2)
+
+### 2D. **Release Mother Brain** (Framework Versioning)
+   - When user selects "Release Mother Brain" from menu or after eject:
+   
+   **Purpose**: Commit framework improvements and open a PR on the mother-brain repository.
+   
+   **Prerequisite**: Must be in the mother-brain folder (not a project folder)
+   
+   **Step 2D.1: Verify Location**
+   - Check current folder is the mother-brain framework folder
+   - If in a project folder: Display error and offer to return to framework
+   
+   **Step 2D.2: Show Changes**
+   - Display git status and diff summary:
+     ```powershell
+     git --no-pager status
+     git --no-pager diff --stat
+     ```
+   
+   - Display:
+     ```
+     🧠 Mother Brain - Release Preparation
+     
+     Changes since last commit:
+     - [file1]: [X] additions, [Y] deletions
+     - [file2]: [X] additions, [Y] deletions
+     ...
+     
+     Total: [N] files changed
+     ```
+   
+   - Use `ask_user` with choices:
+     - "View detailed diff"
+     - "Proceed to commit"
+     - "Cancel release"
+   
+   - If "View detailed diff": Show full diff, then return to this menu
+   
+   **Step 2D.3: Create Commit**
+   - Use `ask_user` freeform to get commit message:
+     - "Describe the improvements in this release:"
+   
+   - Auto-suggest based on learning-log.md recent entries
+   
+   - Stage and commit:
+     ```powershell
+     git add .
+     git commit -m "[user's message]"
+     ```
+   
+   **Step 2D.4: Determine Version**
+   - Read current version from `package.json`
+   - Suggest next version (patch increment):
+     ```
+     Current version: 1.0.0
+     Suggested next: 1.0.1
+     ```
+   
+   - Use `ask_user` with choices:
+     - "1.0.1 (patch - bug fixes)"
+     - "1.1.0 (minor - new features)"
+     - "2.0.0 (major - breaking changes)"
+     - "Skip version bump"
+   
+   - If version selected: Update package.json, commit version bump
+   
+   **Step 2D.5: Push and Create PR**
+   - Create branch for release:
+     ```powershell
+     git checkout -b "release/v[version]"
+     git push -u origin "release/v[version]"
+     ```
+   
+   - Open PR using GitHub CLI (if available):
+     ```powershell
+     gh pr create --title "Release v[version]: [commit message]" --body "[auto-generated from learning-log]"
+     ```
+   
+   - If gh CLI not available: Display instructions for manual PR creation
+   
+   **Step 2D.6: Confirmation**
+   - Display:
+     ```
+     ✅ Release Prepared!
+     
+     Branch: release/v[version]
+     PR: [PR URL or "Create manually on GitHub"]
+     
+     Next steps:
+     1. Review the PR on GitHub
+     2. Approve and merge
+     3. Framework is updated for all users!
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Open PR in browser"
+     - "Return to main menu"
+     - "Start new project"
+   
+   - Handle selection appropriately
 
 ### 2C. **Archive Project** (Save & Reset)
    - When user selects "Archive project (save & reset for new project)":
@@ -840,7 +1214,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - Project-specific skills from `.github/skills/` (compare against core skills)
        - Project README.md
      
-     - Core skills stay in place: `mother-brain`, `skill-creator`, `skill-trigger-detector`
+     - Core skills stay in place: `mother-brain`, `child-brain`, `skill-creator`
    
    - **Step 2C.3: Show Archive Plan**
      - Display:
@@ -855,8 +1229,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        
        Staying in framework:
        ✅ .github/skills/mother-brain/
+       ✅ .github/skills/child-brain/
        ✅ .github/skills/skill-creator/
-       ✅ .github/skills/skill-trigger-detector/
        ✅ Framework learning-log.md (COPIED, not moved)
        ```
      
@@ -1075,6 +1449,85 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Provide 2-3 options per question where appropriate
    - Allow freeform responses for complex answers
    - Dig deeper based on responses
+
+### 3.5. **Project Folder Setup** (MANDATORY - Framework vs Project Separation)
+   
+   **Purpose**: Create a separate folder for the project so that:
+   - Project commits go to project repo (not mother-brain)
+   - Mother Brain folder stays clean for framework development
+   - Skills are copied so they work in the project
+   
+   **Step 3.5.1: Determine Project Location**
+   - Derive project folder name from vision (kebab-case, e.g., "coffee-discovery-app")
+   - Default location: Sibling folder `../[project-name]/`
+   
+   - Use `ask_user` with choices:
+     - "[project-name] folder next to mother-brain (recommended)"
+     - "I'll specify a custom location"
+     - "Keep in current folder (framework testing mode)"
+   
+   **If custom location**: Ask for path with `ask_user` freeform
+   
+   **If "Keep in current folder"**: 
+   - Display warning: "⚠️ Framework Testing Mode - commits will go to mother-brain repo"
+   - Skip to Step 4 (Vision Document Creation)
+   
+   **Step 3.5.2: Create Project Folder**
+   - Create the project directory:
+     ```powershell
+     New-Item -ItemType Directory -Path "[project-path]" -Force
+     ```
+   
+   **Step 3.5.3: Copy Framework Files**
+   - Copy these files/folders to the new project:
+     - `.github/skills/` (entire folder - all skills)
+     - `docs/learning-log.md` (or create empty if doesn't exist)
+     - `.gitignore` (if exists)
+   
+   - Do NOT copy:
+     - `README.md` (will create project-specific one)
+     - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (framework-specific)
+     - `package.json` (framework-specific)
+   
+   - Create empty `.mother-brain/` folder for project docs
+   
+   **Step 3.5.4: Initialize Git (Optional)**
+   - Use `ask_user` with choices:
+     - "Initialize new git repo"
+     - "I'll connect to an existing repo later"
+     - "Skip git setup for now"
+   
+   - If "Initialize new git repo":
+     ```powershell
+     Set-Location "[project-path]"
+     git init
+     git add .
+     git commit -m "Initial project setup from Mother Brain"
+     ```
+   
+   - If user wants to connect existing repo:
+     - Ask for repo URL
+     - `git remote add origin [url]`
+   
+   **Step 3.5.5: Switch Context to Project Folder**
+   - Change working directory to project folder:
+     ```powershell
+     Set-Location "[project-path]"
+     ```
+   
+   - Display:
+     ```
+     ✅ Project folder created!
+     
+     📁 Location: [project-path]
+     📦 Skills: Copied (mother-brain, child-brain, skill-creator)
+     🔗 Git: [Initialized / Not set up]
+     
+     Now working in project folder. Commits will go to your project, not mother-brain.
+     ```
+   
+   - Store project path in memory for potential eject/return
+   - **Proceed to Step 4** (Vision Document Creation)
 
 ### 4. **Vision Document Creation**
    - Create `docs/vision.md` with structured content:
@@ -1840,7 +2293,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - **Skill Matching**:
      - **Check `.github/skills/`** for all skills (framework + project-specific)
-     - If skill-trigger-detector exists, invoke it to auto-match skills to task
+     - Scan task requirements against available skill capabilities
      - Identify which skills to use (if any)
      - Project skills are differentiated by `skillsCreated` array in session-state.json
    
@@ -2205,8 +2658,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - If user selects a delivery option:
      - Check if relevant skill exists (e.g., "deployment-manager", "cicd-setup")
-     - If skill doesn't exist: Invoke skill-trigger-detector to identify pattern
-     - If pattern detected: Invoke skill-creator to create delivery skill
+     - If skill doesn't exist: Invoke skill-creator to create delivery skill
      - Execute delivery using appropriate skill
      - Validate deployment/release succeeded
    
@@ -2241,7 +2693,6 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Break down into detailed tasks
      - Create task documents (like Step 8)
      - Identify patterns that need new skills
-   - Invoke skill-trigger-detector on Phase 2 scope
    - If new patterns detected: Create skills using skill-creator
    - Update roadmap with detailed tasks
    - Return to Step 11 (Next Action Menu)
@@ -2250,13 +2701,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Use `ask_user` (freeform): "What direction do you want to take the project?"
    - Re-run vision discovery (Step 3) with context of what exists
    - Generate new roadmap phases while preserving completed work
-   - Invoke skill-trigger-detector on new direction
-   - Create any needed new skills
+   - Create any needed new skills using skill-creator
    - Return to Step 11 (Next Action Menu)
    
    **If "Add new features":**
    - Use `ask_user` (freeform): "What features do you want to add?"
-   - Invoke skill-trigger-detector on user's feature description
+   - Analyze feature description for skill patterns
    - If patterns detected that need skills:
      - Display: "I detect patterns that could benefit from new skills:"
      - List detected patterns
@@ -2276,10 +2726,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Proceed to first task of next phase
    - Return to Step 8 (Task Document Creation)
    
-   **Step 11A.7: Skill-Trigger-Detector Integration**
+   **Step 11A.7: Skill Pattern Detection**
    - Throughout this step, monitor user's freeform inputs for skill patterns
    - When user describes new features/directions:
-     1. Invoke skill-trigger-detector with user's description
+     1. Analyze description for repetitive patterns that warrant skills
      2. If patterns detected:
         - Display: "🎯 I detected patterns that could use specialized skills:"
         - List patterns with potential skill names
@@ -2292,7 +2742,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    **Key Principles**:
    - **"Done" is user-defined**: Don't assume what "complete" means
    - **Research-driven delivery**: Use web search to find best practices for this project type
-   - **Skill detection on new input**: Any time user describes new features, run skill-trigger-detector
+   - **Skill detection on new input**: Any time user describes new features, analyze for skill patterns
    - **Project-agnostic**: Works for web apps, mobile apps, libraries, CLIs, games, etc.
    - **Preserve learnings**: Replanning doesn't discard completed work or learned skills
 
@@ -2349,7 +2799,6 @@ project-root/
 │       ├── mother-brain/             # Core framework (never delete)
 │       ├── child-brain/              # Core framework - learning orchestrator (never delete)
 │       ├── skill-creator/            # Core framework (never delete)
-│       ├── skill-trigger-detector/   # Core framework (never delete)
 │       ├── [project-skill-1]/        # Project-specific (tracked in session-state.json)
 │       └── [project-skill-2]/        # Project-specific (tracked in session-state.json)
 ├── src/                              # Source code (standard structure)

@@ -41,6 +41,8 @@ jobs:
           cp -r ../.github/skills/skill-creator skills/
       
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

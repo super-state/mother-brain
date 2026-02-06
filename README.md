@@ -20,6 +20,8 @@ Transform your vision into reality with Mother Brain—an intelligent meta-frame
 
 ## Quick Start
 
+<img width="1057" height="267" alt="image" src="https://github.com/user-attachments/assets/02119e06-67f8-42b7-9c82-f9c94050243f" />
+
 ### 1. Install Mother Brain in Your Project
 
 ```bash

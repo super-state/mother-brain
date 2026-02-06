@@ -271,3 +271,96 @@
 **Key Principle**: Mother Brain folder = framework dev. Project folder = project dev. Skills copied so they work. Improvements sync back on eject. Release creates PR.
 
 **Sections Updated**: Step 2 (menus), Step 2B.0 (new), Step 2B.7 (updated), Step 2D (new), Step 3.5 (new)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Project Folder IDE Context
+
+**Issue Type**: UX friction
+**User Report**: When creating a project folder, Mother Brain opened a new VS Code window. User expected to stay in the same terminal session with just the file tree switching to the new project folder.
+
+**Root Cause**: 
+- Step 3.5.5 didn't handle IDE context switching properly
+- `code "[path]"` opens a new window, breaking the terminal session
+- User loses their active terminal/session when this happens
+
+**Mother Brain Changes**:
+1. **Step 3.5.5**: Updated to use `code --add "[project-path]"` instead of `code "[project-path]"`
+   - `--add` flag adds the folder to current workspace without opening new window
+   - Terminal session is preserved
+   - User can continue working immediately
+2. **Step 3.5**: Added "CRITICAL ORDERING RULE" - project folder must be created BEFORE any project files (vision.md, roadmap.md)
+   - Prevents project files from being created in framework folder
+   - Correct order: Vision Discovery (questions) → Step 3.5 → Step 4 (create files in project folder)
+
+**Key Principle**: Never break the user's terminal session. Add folders to workspace, don't open new windows.
+
+**Sections Updated**: Step 3.5, Step 3.5.5
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Ensure Project Brain Creation
+
+**Issue Type**: Something broke or didn't work
+**User Report**: After completing Task 007 (Interactive Font Browser) with multiple friction points (one-line preview issue, font preference discovery), learnings weren't captured because project-brain.md didn't exist.
+
+**Root Cause**: 
+- Step 10B (Post-Task Reflection) was marked mandatory but didn't ensure project-brain.md exists
+- Child Brain assumed file existed instead of creating it
+- Friction points identified but not persisted
+
+**Mother Brain Change**:
+- Added critical note to Step 10B.2: Child Brain MUST create project-brain.md if it doesn't exist
+- Learnings cannot be captured without this file
+
+**Sections Updated**: Step 10B.2
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Don't Copy Core Skills to Projects
+
+**Issue Type**: Suggestion for improvement
+**User Report**: During archive, user noticed LetsGO has updated skills but ascii-anything has older copies. Asked "What's the point of duplicated skill files in the project folder?"
+
+**Root Cause**: 
+- Step 3.5.3 copied ALL skills including core framework skills (mother-brain, child-brain, skill-creator)
+- These core skills get updated in framework but project copies become stale
+- Creates sync burden and confusion about which is authoritative
+- Project-specific skills make sense in project folder, core skills do not
+
+**Mother Brain Change**:
+- Step 3.5.3: Now creates empty `.github/skills/` folder for project-specific skills only
+- Core framework skills (mother-brain, child-brain, skill-creator) are NOT copied
+- These stay in framework folder and are invoked from there
+- Only project-specific skills (created in Step 6) go in project folder
+
+**Key Principle**: Core skills = framework. Project skills = project. No duplication.
+
+**Sections Updated**: Step 3.5.3
+
+---
+
+## 2026-02-06 - Project Archived: ASCII Anything
+
+**Project Name**: ASCII Anything
+**Archive Location**: C:\Users\adamden\OneDrive - Kainos Software\Desktop\ascii-anything-archive\
+**Skills Archived**: None (no project-specific skills created)
+
+**Tasks Completed**: 7 of 9
+- Task 001: Project Setup ✅
+- Task 002: Text Banner Generation ✅
+- Task 003: CLI Interface ✅
+- Task 004: AI Description Engine ✅
+- Task 005: Package for npm ✅
+- Task 006: Pattern Generator ✅
+- Task 007: Interactive Font Browser ✅
+- Task 008: Image Conversion (future)
+- Task 009: Color Support (future)
+
+**Key Learnings Preserved**:
+- Prefer Tmplr font for ASCII banners (compact, fast loading)
+- Interactive TUI must show full multi-line previews
+- Raw readline preferred over inquirer for complex TUI displays
+- Don't copy core framework skills to project folders
+
+**Reason**: User archiving to start new project or take a break

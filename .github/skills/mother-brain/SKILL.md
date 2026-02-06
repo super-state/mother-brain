@@ -331,7 +331,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
-   - Display welcome back message:
+   - **MANDATORY: Output this exact ASCII art banner first (copy verbatim, starting with a newline):**
+   
+   ```
+
+┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓
+┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃
+┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗
+   ```
+   
+   - Then display welcome back message:
      ```
      🧠 Welcome back to [Project Name]!
      
@@ -376,7 +385,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
    
    **If new project (empty directory or user chose fresh start):**
-   - Display:
+   - **MANDATORY: Output this exact ASCII art banner first (copy verbatim, starting with a newline):**
+   
+   ```
+
+┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓
+┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃
+┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗
+   ```
+   
+   - Then display:
      ```
      🧠 Welcome to Mother Brain!
      
@@ -1460,6 +1478,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Mother Brain folder stays clean for framework development
    - Skills are copied so they work in the project
    
+   **CRITICAL ORDERING RULE**: 
+   - Step 3.5 (Project Folder Setup) MUST run BEFORE creating any project files (vision.md, roadmap.md, etc.)
+   - NEVER create `.mother-brain/` folder or project files in the framework folder
+   - The correct order is: Vision Discovery (questions only) → Step 3.5 (create project folder) → Step 4 (create vision.md in project folder)
+   
    **Step 3.5.1: Determine Project Location**
    - Derive project folder name from vision (kebab-case, e.g., "coffee-discovery-app")
    - Default location: Sibling folder `../[project-name]/`
@@ -1481,18 +1504,26 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      New-Item -ItemType Directory -Path "[project-path]" -Force
      ```
    
-   **Step 3.5.3: Copy Framework Files**
+   **Step 3.5.3: Create Project Skill Structure**
+   - Create `.github/skills/` folder in project (for project-specific skills)
+   - **DO NOT copy core framework skills** (mother-brain, child-brain, skill-creator):
+     - These stay in the framework folder only
+     - They are invoked from framework, not duplicated
+     - Avoids sync issues and confusion about authoritative versions
+   
    - Copy these files/folders to the new project:
-     - `.github/skills/` (entire folder - all skills)
      - `docs/learning-log.md` (or create empty if doesn't exist)
      - `.gitignore` (if exists)
    
    - Do NOT copy:
+     - `.github/skills/` core skills (mother-brain, child-brain, skill-creator)
      - `README.md` (will create project-specific one)
      - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (framework-specific)
      - `package.json` (framework-specific)
    
    - Create empty `.mother-brain/` folder for project docs
+   
+   - **Note**: Project-specific skills created during Step 6 go in project's `.github/skills/`. Core skills are accessed from the framework.
    
    **Step 3.5.4: Initialize Git (Optional)**
    - Use `ask_user` with choices:
@@ -1518,6 +1549,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      Set-Location "[project-path]"
      ```
    
+   - **Add project folder to current VS Code workspace** (keeps terminal session active):
+     ```powershell
+     code --add "[project-path]"
+     ```
+   
    - Display:
      ```
      ✅ Project folder created!
@@ -1526,10 +1562,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      📦 Skills: Copied (mother-brain, child-brain, skill-creator)
      🔗 Git: [Initialized / Not set up]
      
-     Now working in project folder. Commits will go to your project, not mother-brain.
+     Project folder added to your workspace. Your file tree now shows the project.
+     Terminal session preserved - continue working here.
      ```
    
    - Store project path in memory for potential eject/return
+   - **CRITICAL**: Do NOT open a new VS Code window. Use `code --add` to add to current workspace, preserving the terminal session.
    - **Proceed to Step 4** (Vision Document Creation)
 
 ### 4. **Vision Document Creation**
@@ -2454,6 +2492,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Update task document with final status
    - Update roadmap checklist
    
+   **⚠️ CRITICAL: After marking task complete, IMMEDIATELY proceed to Step 11 (Next Action Menu) using `ask_user` with proper choices. NEVER provide plain text options like "Continue or do something else?" - always use the structured menu.**
+   
    **⛔ BLOCKING GATE - Step 10B is MANDATORY:**
    ```
    Task marked complete by user
@@ -2550,6 +2590,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    3. Route meta-level process learnings → Mother Brain (via edit)
    4. Create/update skills if patterns detected
    5. Display visible learning feedback
+   
+   **⚠️ CRITICAL**: If `.mother-brain/project-brain.md` does not exist, Child Brain MUST create it. Learnings cannot be captured without this file.
    
    **Step 10B.3: Confirm Learning Applied**
    

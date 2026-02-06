@@ -320,14 +320,21 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - The branded box in Step 2 serves as the visual identity
 
 ### 2. **Detect Project State & Show Progress**
+   
+   **⚡ FAST STARTUP OPTIMIZATION (MANDATORY)**:
+   - **Single file check first**: Check ONLY `.mother-brain/session-state.json` - if it exists, project exists
+   - **Parallel tool calls**: When multiple checks are needed, run them in ONE response (not sequentially)
+   - **Lazy loading**: Only load vision.md, roadmap.md, README.md when actually needed (not at startup)
+   - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
+   - Goal: User sees menu within 1-2 tool calls, not 6+
+   
    - Check current directory for existing Mother Brain artifacts
    - Look for:
-     - `docs/vision.md` - Project vision document
-     - `docs/roadmap.md` - Current roadmap
-     - `docs/tasks/` - Task documentation folder
-     - `docs/session-state.json` - Last session info
+     - `.mother-brain/session-state.json` - **CHECK THIS FIRST** (tells you everything)
+     - `.mother-brain/docs/vision.md` - Project vision document (load only when needed)
+     - `.mother-brain/docs/roadmap.md` - Current roadmap (load only when needed)
+     - `.mother-brain/docs/tasks/` - Task documentation folder
      - `.github/skills/` - Project-specific skills
-     - `README.md` - Project overview
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
@@ -510,7 +517,35 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "I have a suggestion for improvement"
      - "Trigger self-learning loop (simulate project)"
    
-   - After user selects issue type, use `ask_user` (freeform) to get details:
+   **Step 2A.0: Friction Auto-Detection (for "Something broke" only)**
+   
+   - **If user selects "Something broke or didn't work"**:
+     1. **Scan recent conversation** for friction signals:
+        - Error messages: "No match found", "Command failed", "File not found", non-zero exit codes
+        - User complaints: "this isn't what I wanted", "that's wrong", "doesn't work", "not right"
+        - Multiple retries: Same operation attempted 2+ times
+        - Back-and-forth: Adjustment cycles, rework requests
+     
+     2. **If friction detected**:
+        - Display what was found:
+          ```
+          🔍 I detected potential friction in this session:
+          
+          - [Friction 1]: [Brief description]
+          - [Friction 2]: [Brief description - if multiple]
+          ```
+        - Use `ask_user` with choices:
+          - "Yes, fix this issue"
+          - "Something else (I'll describe)"
+        - If "Yes" → Jump to Step 2A.1 with pre-populated context (skip freeform)
+        - If "Something else" → Continue to freeform description
+     
+     3. **If no friction detected**:
+        - Fall through to freeform description as normal
+   
+   - **For all other issue types**: Skip to freeform description directly
+   
+   - After user selects issue type (and optional friction detection), use `ask_user` (freeform) to get details:
      - "Please describe the issue or improvement in detail:"
    
    **Step 2A.1: Invoke Child Brain for Triage (MANDATORY)**
@@ -1158,7 +1193,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "2.0.0 (major - breaking changes)"
      - "Skip version bump"
    
-   - If version selected: Update package.json AND README.md version badge, commit version bump
+   - If version selected:
+     1. Update `package.json` with new version
+     2. **Update README.md version badge** (find `version-X.X.X-blue` and replace with new version)
+     3. Commit version bump: `git commit -am "chore: bump version to [version]"`
    
    **Step 2D.5: Push, Create Tag, and Create Release**
    - Push directly to main (or create branch for PR):

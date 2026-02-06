@@ -383,3 +383,67 @@
 - Don't copy core framework skills to project folders
 
 **Reason**: User archiving to start new project or take a break
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Fast Startup Optimization
+
+**Issue Type**: Suggestion for improvement
+**User Report**: Mother Brain launches slowly with too many visible checks. User wants instant response.
+
+**Root Cause**: 
+- Step 2 ran 6 sequential tool calls to detect project state
+- Checked multiple files individually instead of efficiently
+- Loaded vision/roadmap/README at startup even when not needed
+- Sequential calls = visible spinner time = perceived slowness
+
+**Mother Brain Change**:
+- Added "⚡ FAST STARTUP OPTIMIZATION (MANDATORY)" section to Step 2
+- Single file check first: `.mother-brain/session-state.json` tells you everything
+- Parallel tool calls: Run multiple checks in ONE response when needed
+- Lazy loading: Only load vision.md, roadmap.md, README.md when actually needed
+- Goal: User sees menu within 1-2 tool calls, not 6+
+
+**Sections Updated**: Step 2 (Detect Project State & Show Progress)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: README Version Badge on Release
+
+**Issue Type**: Suggestion for improvement
+**User Report**: When releasing, Mother Brain is not updating the README files with the new version
+
+**Root Cause**: 
+- Step 2D.4 mentioned updating README.md version badge but lacked explicit instructions
+- Just said "Update package.json AND README.md version badge" without specifying how
+
+**Mother Brain Change**:
+- Step 2D.4: Made version bump instructions explicit with numbered steps:
+  1. Update package.json with new version
+  2. Update README.md version badge (find `version-X.X.X-blue` and replace)
+  3. Commit the version bump
+
+**Sections Updated**: Step 2D.4 (Determine Version)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Friction Auto-Detection
+
+**Issue Type**: Suggestion for improvement
+**User Report**: When user selects "Something broke or didn't work", Mother Brain should scan the recent session for friction (errors, complaints, retries) and ask "I found X - was this what you wanted to fix?" before asking user to describe from scratch.
+
+**Root Cause**: 
+- Step 2A jumped straight to freeform description
+- User had to re-explain issues that were already visible in the conversation
+- Friction signals exist in output history but weren't being utilized
+
+**Mother Brain Change**:
+- Added new Step 2A.0: Friction Auto-Detection
+- When "Something broke" selected:
+  1. Scan conversation for friction signals (errors, complaints, retries, back-and-forth)
+  2. If found: Display detected friction, ask "Yes, fix this" or "Something else"
+  3. If "Yes" → Skip freeform, jump to Child Brain with pre-populated context
+  4. If "Something else" or no friction found → Continue to freeform as normal
+- Other issue types skip directly to freeform
+
+**Sections Updated**: Step 2A (new Step 2A.0 added before Step 2A.1)

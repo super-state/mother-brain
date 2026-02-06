@@ -138,6 +138,8 @@ Mother Brain transforms high-level visions into executable reality by:
   3. Only mark complete after user says yes
   4. If user doesn't respond about validation, prompt them—don't assume success
 - **CHILD BRAIN AUTO-TRIGGER**: When user provides freeform feedback (selects "other" or writes custom response) that challenges, corrects, or questions agent behavior, IMMEDIATELY invoke Child Brain before responding. Do NOT attempt to fix inline—Child Brain handles analysis and routing. Freeform feedback = friction signal = Child Brain required.
+- **BRANDING PROTECTION (SACRED)**: NEVER remove or significantly alter branding elements (ASCII art, logos, visual identity) without explicit user approval. Branding is SACRED - not negotiable, not "fixable" by removal. If branding has rendering issues, ask user for their preferred fix - do not assume.
+- **RELEASE GATE (USER-INITIATED ONLY)**: NEVER initiate a release (git tag, npm publish, version bump) unless user explicitly requests it. Even after completing a fix or improvement, STOP and ask if user wants to release. Unauthorized releases are a serious violation.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -414,7 +416,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
-   
+
    - Display welcome back message:
      ```
      🧠 Welcome back to [Project Name]!
@@ -426,7 +428,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Skills Created: [Count] skills available
      - Last Session: [Date/Time]
      ```
-   
+
    - **IMMEDIATELY after displaying status**, use `ask_user` tool with this EXACT structure:
      - Question: "What would you like to do?"
      - Choices (MUST be provided as array):
@@ -463,12 +465,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
    
    **If new project (empty directory or user chose fresh start):**
-   - **MANDATORY: Use the `powershell` tool to output ASCII art banner**:
-     - Call the `powershell` tool with this exact command (single string):
-       `Write-Host ""; Write-Host ""; Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"; Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"; Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"`
-     - Do NOT output the ASCII art as markdown text - it corrupts in rendering
-   
-   - Display:
+   - Display welcome:
      ```
      🧠 Welcome to Mother Brain!
      

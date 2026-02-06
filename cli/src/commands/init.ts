@@ -15,7 +15,13 @@ export async function init(options: InitOptions = {}): Promise<void> {
   const skillsDir = path.join(cwd, '.github', 'skills');
   const motherBrainDir = path.join(cwd, '.mother-brain');
   
-  console.log(chalk.cyan('\n🧠 Initializing Mother Brain...\n'));
+  // Display ASCII art banner
+  console.log('');
+  console.log(chalk.cyan('┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓'));
+  console.log(chalk.cyan('┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃'));
+  console.log(chalk.cyan('┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗'));
+  console.log('');
+  console.log(chalk.cyan('🧠 Initializing Mother Brain...\n'));
 
   // Check if already initialized
   const versionFile = path.join(motherBrainDir, 'version.json');

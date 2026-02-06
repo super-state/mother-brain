@@ -439,22 +439,21 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      ```
      🧠 Welcome to Mother Brain!
      
-     I'll help you transform your vision into reality by:
-     - Discovering your project vision
-     - Creating a phased roadmap
-     - Identifying needed skills
-     - Breaking down tasks
-     - Tracking your progress
+     I'm your AI project companion. Tell me what you want to build,
+     and I'll help you make it real—step by step.
+     
+     No idea is too big or too small. Whether you're building a 
+     weekend prototype or something you've been dreaming about 
+     for years, I'm here to help you ship it.
      ```
    - **IMMEDIATELY after displaying the welcome message**, use `ask_user` tool with this EXACT structure:
      - Question: "What would you like to do?"
      - Choices (MUST be provided as array):
-       - "Yes, start vision discovery"
-       - "Just talk (brainstorm mode)"
+       - "Let's build something! (start vision discovery)"
+       - "I just want to brainstorm an idea"
        - "I have a vision document already (import it)"
-       - "Show me an example first"
+       - "Show me what Mother Brain can do"
        - "Update Mother Brain (report issues/improvements)"
-       - "Release Mother Brain (commit & PR)"
    - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
 

@@ -328,6 +328,35 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
    - Goal: User sees menu within 1-2 tool calls, not 6+
    
+   **📦 SILENT AUTO-UPDATE (on startup, if project exists)**:
+   - If `.mother-brain/version.json` exists:
+     1. Read installed version from file
+     2. Check npm for latest: `npm view mother-brain version --json 2>$null`
+     3. If newer version available, **auto-update silently**:
+        - Run PowerShell to fetch and replace skills in one operation:
+          ```powershell
+          # Create temp dir, download, extract, copy skills, cleanup
+          $temp = "$env:TEMP\mother-brain-update-$(Get-Random)"
+          New-Item -ItemType Directory -Path $temp -Force | Out-Null
+          npm pack mother-brain --pack-destination $temp 2>$null
+          $tgz = Get-ChildItem $temp -Filter "*.tgz" | Select-Object -First 1
+          tar -xzf $tgz.FullName -C $temp 2>$null
+          $skillsSrc = Join-Path $temp "package\skills"
+          if (Test-Path $skillsSrc) {
+            Copy-Item "$skillsSrc\*" ".github\skills\" -Recurse -Force
+          }
+          # Update version.json
+          $latest = npm view mother-brain version
+          @{version=$latest} | ConvertTo-Json | Set-Content ".mother-brain\version.json"
+          Remove-Item $temp -Recurse -Force
+          ```
+        - Display brief confirmation after ASCII art:
+          ```
+          ✅ Auto-updated to Mother Brain v[latest]
+          ```
+     4. If check fails (offline), skip silently - don't block startup
+   - This entire check should complete in under 5 seconds and never block the menu
+   
    - Check current directory for existing Mother Brain artifacts
    - Look for:
      - `.mother-brain/session-state.json` - **CHECK THIS FIRST** (tells you everything)
@@ -360,18 +389,21 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Last Session: [Date/Time]
      ```
    
-   - Use `ask_user` with choices:
-     - "Continue where I left off"
-     - "Start next task"
-     - "Review/update roadmap"
-     - "Realign with vision"
-     - "View all skills"
-     - "Create new skill"
-     - "Update Mother Brain (report issues/improvements)"
-     - "Release Mother Brain (commit & PR)"
-     - "Archive project (save & reset for new project)"
-     - "Eject project (reset to framework + learnings)"
-     - "🚨 Report Issue (something's not working)"
+   - **IMMEDIATELY after displaying status**, use `ask_user` tool with this EXACT structure:
+     - Question: "What would you like to do?"
+     - Choices (MUST be provided as array):
+       - "Continue where I left off"
+       - "Start next task"
+       - "Review/update roadmap"
+       - "Realign with vision"
+       - "View all skills"
+       - "Create new skill"
+       - "Update Mother Brain (report issues/improvements)"
+       - "Release Mother Brain (commit & PR)"
+       - "Archive project (save & reset for new project)"
+       - "Eject project (reset to framework + learnings)"
+       - "🚨 Report Issue (something's not working)"
+   - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
    
    **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
@@ -413,16 +445,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Identifying needed skills
      - Breaking down tasks
      - Tracking your progress
-     
-     Ready to begin?
      ```
-   - Use `ask_user` with choices:
-     - "Yes, start vision discovery"
-     - "Just talk (brainstorm mode)"
-     - "I have a vision document already (import it)"
-     - "Show me an example first"
-     - "Update Mother Brain (report issues/improvements)"
-     - "Release Mother Brain (commit & PR)"
+   - **IMMEDIATELY after displaying the welcome message**, use `ask_user` tool with this EXACT structure:
+     - Question: "What would you like to do?"
+     - Choices (MUST be provided as array):
+       - "Yes, start vision discovery"
+       - "Just talk (brainstorm mode)"
+       - "I have a vision document already (import it)"
+       - "Show me an example first"
+       - "Update Mother Brain (report issues/improvements)"
+       - "Release Mother Brain (commit & PR)"
+   - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
 
 ### 2.2. **Existing Project Onboarding**

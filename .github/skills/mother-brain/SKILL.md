@@ -328,17 +328,34 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
    - Goal: User sees menu within 1-2 tool calls, not 6+
    
-   **📦 VERSION CHECK (on startup, if project exists)**:
+   **📦 SILENT AUTO-UPDATE (on startup, if project exists)**:
    - If `.mother-brain/version.json` exists:
      1. Read installed version from file
-     2. Check npm for latest: `npm view mother-brain version`
-     3. If newer version available, display after ASCII art:
-        ```
-        ⬆️ Mother Brain v[latest] is available! (you have v[installed])
-        Run: npx mother-brain update
-        ```
+     2. Check npm for latest: `npm view mother-brain version --json 2>$null`
+     3. If newer version available, **auto-update silently**:
+        - Run PowerShell to fetch and replace skills in one operation:
+          ```powershell
+          # Create temp dir, download, extract, copy skills, cleanup
+          $temp = "$env:TEMP\mother-brain-update-$(Get-Random)"
+          New-Item -ItemType Directory -Path $temp -Force | Out-Null
+          npm pack mother-brain --pack-destination $temp 2>$null
+          $tgz = Get-ChildItem $temp -Filter "*.tgz" | Select-Object -First 1
+          tar -xzf $tgz.FullName -C $temp 2>$null
+          $skillsSrc = Join-Path $temp "package\skills"
+          if (Test-Path $skillsSrc) {
+            Copy-Item "$skillsSrc\*" ".github\skills\" -Recurse -Force
+          }
+          # Update version.json
+          $latest = npm view mother-brain version
+          @{version=$latest} | ConvertTo-Json | Set-Content ".mother-brain\version.json"
+          Remove-Item $temp -Recurse -Force
+          ```
+        - Display brief confirmation after ASCII art:
+          ```
+          ✅ Auto-updated to Mother Brain v[latest]
+          ```
      4. If check fails (offline), skip silently - don't block startup
-   - This check should be quick and non-blocking
+   - This entire check should complete in under 5 seconds and never block the menu
    
    - Check current directory for existing Mother Brain artifacts
    - Look for:

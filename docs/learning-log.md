@@ -488,3 +488,27 @@
 - Single confirmation at the end showing what was released
 
 **Sections Updated**: Step 2D (complete rewrite)
+
+---
+
+## 2026-02-06 - Mother Brain Self-Update: Brainstorm Mode
+
+**Issue Type**: Feature request
+**User Report**: Need a feature for "just talking" to Mother Brain - discussing ideas, getting thoughts, using its analytical brain on problems. When ideas form into something concrete, can say "let's build this" to trigger project creation.
+
+**Root Cause**: 
+- Mother Brain was purely workflow-driven
+- No mode for freeform exploration and thinking
+- Sometimes users want a thinking partner before committing to a project
+
+**Mother Brain Change**:
+- Added "Just talk (brainstorm mode)" to main menu
+- Created new Step 2E: Brainstorm Mode
+- Features:
+  - Freeform conversation without triggering project workflows
+  - Analytical thinking: clarifying questions, pattern identification, challenging assumptions
+  - Can use web_search for research during discussion
+  - Transition triggers: "let's build this", "start a project", etc.
+  - Carries conversation context into Vision Discovery when ready
+
+**Sections Updated**: Step 2 (menu), Step 2E (new section)

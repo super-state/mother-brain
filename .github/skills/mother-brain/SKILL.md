@@ -414,12 +414,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
-   - **MANDATORY: Use the `powershell` tool to output ASCII art banner**:
-     - Call the `powershell` tool with this exact command (single string):
-       `Write-Host ""; Write-Host ""; Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"; Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"; Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"`
-     - Do NOT output the ASCII art as markdown text - it corrupts in rendering
    
-   - Then display welcome back message:
+   - Display welcome back message:
      ```
      🧠 Welcome back to [Project Name]!
      
@@ -472,7 +468,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        `Write-Host ""; Write-Host ""; Write-Host "┳┳┓┏┓┏┳┓┓┏┏┓┳┓  ┳┓┳┓┏┓┳┳┓"; Write-Host "┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃"; Write-Host "┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗"`
      - Do NOT output the ASCII art as markdown text - it corrupts in rendering
    
-   - Then display:
+   - Display:
      ```
      🧠 Welcome to Mother Brain!
      

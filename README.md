@@ -1,15 +1,13 @@
 # 🧠 Mother Brain
 
-![Mother Brain Banner](assets/brand/mother-brain-banner.svg)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Last Updated](https://img.shields.io/badge/last%20updated-February%202026-blue)](https://github.com/super-state/mother-brain)
+[![Version](https://img.shields.io/badge/version-0.0.1-blue)](https://github.com/super-state/mother-brain/releases)
 
 **Open Source AI Project Management Framework for GitHub Copilot CLI**
 
 Transform your vision into reality with Mother Brain—an intelligent meta-framework that guides AI assistants through vision-driven project execution. Built for developers who want to ship faster with AI-powered automation, research-driven roadmaps, and automatic skill generation.
 
-**Last Updated**: February 2026 | **License**: MIT | **Status**: Production-Ready
+**Version**: 0.0.1 | **License**: MIT | **Status**: Alpha
 
 ## Why Mother Brain?
 

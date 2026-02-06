@@ -1138,38 +1138,41 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "2.0.0 (major - breaking changes)"
      - "Skip version bump"
    
-   - If version selected: Update package.json, commit version bump
+   - If version selected: Update package.json AND README.md version badge, commit version bump
    
-   **Step 2D.5: Push and Create PR**
-   - Create branch for release:
+   **Step 2D.5: Push, Create Tag, and Create Release**
+   - Push directly to main (or create branch for PR):
      ```powershell
-     git checkout -b "release/v[version]"
-     git push -u origin "release/v[version]"
+     git push super-state main
      ```
    
-   - Open PR using GitHub CLI (if available):
+   - Create git tag for the version:
      ```powershell
-     gh pr create --title "Release v[version]: [commit message]" --body "[auto-generated from learning-log]"
+     git tag -a "v[version]" -m "Release v[version]: [commit message summary]"
+     git push super-state "v[version]"
      ```
    
-   - If gh CLI not available: Display instructions for manual PR creation
+   - Create GitHub Release using gh CLI (if available):
+     ```powershell
+     gh release create "v[version]" --title "v[version]" --notes "[Auto-generated from learning-log recent entries]" --repo super-state/mother-brain
+     ```
+   
+   - If gh CLI not available: Display instructions for manual release creation
    
    **Step 2D.6: Confirmation**
    - Display:
      ```
-     ✅ Release Prepared!
+     ✅ Release v[version] Published!
      
-     Branch: release/v[version]
-     PR: [PR URL or "Create manually on GitHub"]
+     Tag: v[version]
+     Release: https://github.com/super-state/mother-brain/releases/tag/v[version]
      
-     Next steps:
-     1. Review the PR on GitHub
-     2. Approve and merge
-     3. Framework is updated for all users!
+     The framework update is now live!
+     Users can pull the latest to get your improvements.
      ```
    
    - Use `ask_user` with choices:
-     - "Open PR in browser"
+     - "Open release on GitHub"
      - "Return to main menu"
      - "Start new project"
    

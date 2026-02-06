@@ -1,6 +1,6 @@
 {
   "name": "mother-brain",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Vision-driven project framework that guides discovery, creates roadmaps, auto-generates skills, and manages task execution.",
   "license": "MIT",
   "bin": {

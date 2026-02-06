@@ -5,6 +5,8 @@ import chalk from 'chalk';
 import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { status } from './commands/status.js';
+import { analyzeCommand } from './commands/analyze.js';
+import { upgradeCommand } from './commands/upgrade.js';
 
 const program = new Command();
 
@@ -29,6 +31,12 @@ program
   .description('Show installed version and available updates')
   .action(status);
 
+// Add analyze command
+analyzeCommand(program);
+
+// Add upgrade command
+upgradeCommand(program);
+
 // Default action when no command is provided
 program
   .action(() => {
@@ -41,7 +49,9 @@ program
     console.log('Commands:');
     console.log(chalk.green('  mother-brain init    ') + 'Add Mother Brain to your project');
     console.log(chalk.green('  mother-brain update  ') + 'Update to the latest version');
-    console.log(chalk.green('  mother-brain status  ') + 'Check installed version\n');
+    console.log(chalk.green('  mother-brain status  ') + 'Check installed version');
+    console.log(chalk.green('  mother-brain analyze ') + 'Analyze skills and suggest improvements');
+    console.log(chalk.green('  mother-brain upgrade ') + 'Apply improvements to skills\n');
     console.log(chalk.dim('Run mother-brain --help for more options'));
   });
 

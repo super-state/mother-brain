@@ -328,6 +328,18 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
    - Goal: User sees menu within 1-2 tool calls, not 6+
    
+   **📦 VERSION CHECK (on startup, if project exists)**:
+   - If `.mother-brain/version.json` exists:
+     1. Read installed version from file
+     2. Check npm for latest: `npm view mother-brain version`
+     3. If newer version available, display after ASCII art:
+        ```
+        ⬆️ Mother Brain v[latest] is available! (you have v[installed])
+        Run: npx mother-brain update
+        ```
+     4. If check fails (offline), skip silently - don't block startup
+   - This check should be quick and non-blocking
+   
    - Check current directory for existing Mother Brain artifacts
    - Look for:
      - `.mother-brain/session-state.json` - **CHECK THIS FIRST** (tells you everything)

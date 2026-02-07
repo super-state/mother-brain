@@ -13,6 +13,20 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 
 **The Meta-Framework for Vision-Driven Project Management**
 
+## ⚠️ CRITICAL EXECUTION INSTRUCTIONS (READ FIRST)
+
+**YOU MUST follow the Steps section EXACTLY as written. Do not improvise, skip steps, or invent your own workflow.**
+
+1. **Start at Step 1** - Always begin with Step 1 (Show Welcome Menu)
+2. **Follow step numbers sequentially** - Step 1 → Step 2 → Step 3, etc.
+3. **Use `ask_user` for ALL choices** - Never ask questions as plain text
+4. **Execute tool calls as specified** - When a step says "use X tool", use that exact tool
+5. **Do not summarize or paraphrase** - Display the exact text templates shown in steps
+
+**If you find yourself doing something NOT described in the Steps section below, STOP and return to the documented workflow.**
+
+---
+
 Use Mother Brain when you want to:
 - Start a new project with a clear vision and roadmap
 - Pick up an existing project and continue progress
@@ -93,7 +107,7 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Transparency**: Document decisions, rationale, and changes
 - **Wizard pattern for all interactions**: Use `ask_user` tool with numbered, selectable choices (2-3 options) for ALL user decisions—never ask freeform yes/no questions in text
 - **No question duplication**: When using `ask_user`, do NOT repeat the question in text output before calling the tool. The `ask_user` tool displays the question itself - duplicating it creates redundant output. Only include context/explanation text, not the question.
-- **User-driven evolution**: Provide "Update Mother Brain" menu option for users to report issues and improvements directly
+- **User-driven evolution**: Provide "Send improvement" option that creates GitHub issues instead of direct changes
 - **Spatial UI Clarification**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to SPECIFIC existing elements before implementing (e.g., "inside player card" vs "above card" vs "overlay"). Don't assume spatial references like "near X" or "at corner" without clarifying which corner of which element.
 - **Visual Quality First**: When vision mentions visual/aesthetic/beauty/UI/design requirements, automatically trigger design system research and enforce consistency through skills. Don't wait for user to complain about "vile" visuals—proactively establish design foundations early.
 - **Branded Menu Styling**: Use simple header format (🧠 **MOTHER BRAIN**) for consistent identity. Avoid ASCII boxes and code fences which cause terminal styling issues.
@@ -321,10 +335,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ## Steps
 
+**⚠️ MANDATORY: Execute these steps in order. Each step has specific actions - follow them exactly.**
+
 ### 1. **Show Welcome Menu**
    
-   - Skip ASCII art - just proceed to Step 2 (Detect Project State)
-   - The branded box in Step 2 serves as the visual identity
+   - Proceed immediately to Step 2 (Detect Project State)
 
 ### 2. **Detect Project State & Show Progress**
    
@@ -443,7 +458,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Realign with vision"
        - "View all skills"
        - "Create new skill"
-       - "Update Mother Brain (report issues/improvements)"
+       - "📤 Send improvement to Mother Brain"
        - "Release Mother Brain (commit & PR)"
        - "Archive project (save & reset for new project)"
        - "Eject project (reset to framework + learnings)"
@@ -465,7 +480,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Use `ask_user` with choices:
      - "Yes, onboard Mother Brain into this project"
      - "No, start fresh (ignore existing files)"
-     - "Update Mother Brain (report issues/improvements)"
+     - "📤 Send improvement to Mother Brain"
    
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
    
@@ -488,7 +503,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "I just want to brainstorm an idea"
        - "I have a vision document already (import it)"
        - "Show me what Mother Brain can do"
-       - "Update Mother Brain (report issues/improvements)"
+       - "📤 Send improvement to Mother Brain"
    - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
 
@@ -618,421 +633,213 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Proceed to normal workflow (Step 8+)
 
-### 2A. **Update Mother Brain** (Self-Improvement Flow via Child Brain)
-   - When user selects "Update Mother Brain (report issues/improvements)":
+### 2A. **Send Improvement to Mother Brain** (GitHub Issue-Based Contribution)
+   - When user selects "📤 Send improvement to Mother Brain":
    
-   **⚠️ ALL FEEDBACK ROUTES THROUGH CHILD BRAIN - NO EXCEPTIONS**
+   **Purpose**: Instead of directly modifying Mother Brain files, improvements are submitted as GitHub issues. This prevents users from overwriting each other's changes and ensures all improvements are reviewed.
    
-   - Display:
-     ```
-     🔧 Update Mother Brain
-     
-     I'm designed to learn and improve. Tell me:
-     - What didn't work as expected?
-     - What feature would make me better?
-     - What confused or frustrated you?
-     - What pattern should I handle differently?
+   **Step 2A.1: Detect Local Changes**
+   
+   - Scan for local changes to Mother Brain core files:
+     ```powershell
+     git diff --name-only HEAD -- ".github/skills/mother-brain/" "cli/"
+     git status --porcelain -- ".github/skills/mother-brain/" "cli/"
      ```
    
-   - Use `ask_user` with choices for issue type:
-     - "Something broke or didn't work"
-     - "A feature is missing"
-     - "The workflow is confusing"
-     - "I have a suggestion for improvement"
-     - "Trigger self-learning loop (simulate project)"
+   - **Core files to check**:
+     - `.github/skills/mother-brain/SKILL.md`
+     - `.github/skills/child-brain/SKILL.md`
+     - `.github/skills/skill-creator/SKILL.md`
+     - `cli/src/**/*`
+     - `cli/package.json`
    
-   **Step 2A.0: Friction Auto-Detection (for "Something broke" only)**
+   - **If no changes detected**:
+     - Display: "No local Mother Brain changes detected."
+     - Ask if user wants to describe an improvement anyway
    
-   - **If user selects "Something broke or didn't work"**:
-     1. **Scan recent conversation** for friction signals:
-        - Error messages: "No match found", "Command failed", "File not found", non-zero exit codes
-        - User complaints: "this isn't what I wanted", "that's wrong", "doesn't work", "not right"
-        - Multiple retries: Same operation attempted 2+ times
-        - Back-and-forth: Adjustment cycles, rework requests
-     
-     2. **If friction detected**:
-        - Display what was found:
-          ```
-          🔍 I detected potential friction in this session:
-          
-          - [Friction 1]: [Brief description]
-          - [Friction 2]: [Brief description - if multiple]
-          ```
-        - Use `ask_user` with choices:
-          - "Yes, fix this issue"
-          - "Something else (I'll describe)"
-        - If "Yes" → Jump to Step 2A.1 with pre-populated context (skip freeform)
-        - If "Something else" → Continue to freeform description
-     
-     3. **If no friction detected**:
-        - Fall through to freeform description as normal
+   **Step 2A.2: Summarize Changes**
    
-   - **For all other issue types**: Skip to freeform description directly
-   
-   - After user selects issue type (and optional friction detection), use `ask_user` (freeform) to get details:
-     - "Please describe the issue or improvement in detail:"
-   
-   **Step 2A.1: Invoke Child Brain for Triage (MANDATORY)**
-   
-   - **IMMEDIATELY invoke Child Brain** with the feedback context:
-     ```
-     Invoke: skill child-brain
-     Context:
-     - Issue Type: [selected type]
-     - User Description: [freeform feedback]
-     - Current Step: Step 2A (Self-Improvement)
-     - Active Project: [project name or "None"]
+   - For each changed file, get the diff:
+     ```powershell
+     git diff HEAD -- [file]
      ```
    
-   - Child Brain will:
-     1. Ask deeper questions to understand root cause
-     2. Determine what goes to Mother Brain (behavioral/process)
-     3. Determine what goes to Project Brain (project-specific) - if active project
-     4. Propose BOTH entries (mandatory pairing)
-   
-   **Step 2A.2: Child Brain Proposes Changes (Approval Gate)**
-   
-   - Child Brain displays proposed changes:
+   - Create a summary of changes in human-readable format:
      ```
-     🧒 Child Brain - Proposed Changes
+     📝 Local Mother Brain Changes Detected
      
-     📘 PROJECT BRAIN will add:
-     [If active project: specific project learning]
-     [If no project: "N/A - no active project"]
+     Files Changed:
+     - [file1]: [brief description of change]
+     - [file2]: [brief description of change]
      
-     🧠 MOTHER BRAIN will add:
-     [Behavioral/process improvement - completely project-agnostic]
-     
-     Summary of edits:
-     - File: [path]
-     - Section: [which section]
-     - Change: [brief description]
+     Summary:
+     [AI-generated summary of what the changes accomplish]
      ```
    
-   - **THREE-OPTION APPROVAL GATE** (MANDATORY - never skip):
-     - Use `ask_user` with choices:
-       - "Accept - apply these changes"
-       - "Revise - I want to edit the proposal"
-       - "Reject - propose something different"
+   **Step 2A.3: Gather Context from Learning Log**
    
-   - **If "Accept"**: Proceed to Step 2A.3 (Apply Changes)
-   - **If "Revise"**: Ask user what to change, update proposal, show again
-   - **If "Reject"**: Ask user to describe what they want instead, Child Brain proposes new solution
-   
-   **Step 2A.3: Apply Approved Changes**
-   
-   - Only after user selects "Accept":
-     - Apply Mother Brain edits using `edit` tool
-     - Apply Project Brain edits (if active project)
-     - Log change in `docs/learning-log.md`:
-       ```markdown
-       ## [Date] - Mother Brain Self-Update (via Child Brain)
-       **Issue Type**: [Type]
-       **User Report**: [Original description]
-       **Root Cause**: [Why issue occurred]
-       **Mother Brain Change**: [Behavioral improvement applied]
-       **Project Brain Change**: [Project-specific learning - or "N/A"]
-       **Sections Updated**: [Which files/sections modified]
-       ```
-   
-   **Step 2A.3.1: Implementation Verification (MANDATORY)**
-   
-   - After applying edits, MUST scan conversation for implementation friction:
-     - **Error Patterns to Detect**:
-       - "No match found" (edit tool failures)
-       - "File not found" (path errors)
-       - Build/test failures
-       - "Command failed" or non-zero exit codes
-       - Multiple retry attempts for same operation
-   
-   - **If 0 friction detected**: Proceed to Step 2A.4
-   
-   - **If friction detected**:
-     1. Display:
-        ```
-        🔍 Implementation Friction Detected
-        
-        While applying changes, I encountered:
-        - [Error type]: [Brief description]
-        ```
-     
-     2. Analyze root cause:
-        - Was the edit pattern wrong? (indentation, whitespace, line endings)
-        - Was the file structure different than expected?
-        - Was there a tooling/environment issue?
-     
-     3. Propose recursive improvement:
-        ```
-        📝 Additional Learning Proposed:
-        
-        🧠 MOTHER BRAIN should add:
-        [Process improvement to prevent this implementation friction]
-        
-        Example: "When using edit tool, verify exact whitespace/indentation 
-        from file before constructing old_str parameter"
-        ```
-     
-     4. Use `ask_user` with choices:
-        - "Accept this additional learning"
-        - "Skip - the friction was a one-off"
-     
-     5. If accepted: Apply the additional improvement to SKILL.md
-     
-   - **Key Principle**: Every implementation session that has friction should produce learning to prevent that friction in future sessions.
-   
-   **Step 2A.4: Confirmation**
-   
-   - Display:
+   - Check `.mother-brain/project-brain.md` for recent learnings that triggered this improvement
+   - Check conversation history for friction that led to the changes
+   - Compile into "Why This Improvement" section:
      ```
-     ✅ Changes Applied
-     
-     📘 PROJECT BRAIN: [What was added - or "N/A"]
-     🧠 MOTHER BRAIN: [What was added]
+     Why This Improvement:
+     - Friction encountered: [description]
+     - Learning from project: [what was learned]
+     - Expected benefit: [how this helps all users]
      ```
    
-   - Use `ask_user` with choices:
-     - "Continue (recommended)"
-     - "Report another issue/improvement"
-     - "Restart Mother Brain (if needed for complex changes)"
+   **Step 2A.4: Create GitHub Issue**
    
-   - **If "Restart Mother Brain":**
-     1. Save current context to `.mother-brain/session-state.json`
-     2. Display instructions to re-invoke mother-brain skill
-     3. End current session
-   
-   - **If "Continue":**
-     - Return to main menu (Step 2)
-   
-   - **If "Report another issue/improvement":**
-     - Loop back to beginning of Step 2A
-   
-   - After successful update:
-     - Show summary of what was changed
-     - Return to main menu (Step 2)
-   
-   **If "Trigger self-learning loop" selected:**
-   - Jump to **Step 2A.1: Self-Learning Loop**
-
-### 2A.1 **Self-Learning Loop** (Real Project Training)
-   - **Purpose**: Mother Brain ACTUALLY builds a test project through the full lifecycle, then analyzes what went wrong
-   - **Outcome**: Real friction discovered from real execution, learnings applied to SKILL.md
-   - **Key Difference**: Not a mental simulation - an actual build with real files, real commands, real failures
-   
-   **Step 2A.1.1: Generate Random Test Project**
-   - Mother Brain invents a test project (different each time):
-     - Choose random project type: [web app, mobile app, CLI tool, library, game, SaaS, API, etc.]
-     - Choose random domain: [healthcare, finance, gaming, education, e-commerce, social, productivity, etc.]
-     - Generate creative project name and vision
-     - Define realistic MVP scope
-   
-   - Display:
-     ```
-     🧪 Self-Learning Loop - Building Real Test Project
-     
-     Test Project:
-     - Name: [Generated Name]
-     - Type: [Project Type]
-     - Domain: [Domain]
-     - Vision: [1-2 sentence vision]
-     - MVP: [Key features]
-     
-     I will now build this project for real, simulating user responses.
-     All steps, commands, and outputs will be tracked for analysis.
-     At the end, the project will be ejected and learnings extracted.
-     
-     Starting build...
-     ```
-   
-   **Step 2A.1.2: Execute Full Project Build (Steps 3-7)**
-   - **Actually run** each step (not simulate):
-     - Step 3: Vision Discovery - Mother Brain generates realistic user answers
-     - Step 4: Vision Document Creation - Create real vision.md
-     - Step 5: Technology & Pattern Analysis - Run real web searches
-     - Step 5A: Design System Discovery - If visual project, run real research
-     - Step 6: Skill Identification & Creation - Create real skills
-     - Step 6A: Delivery Strategy Research - Run real research
-     - Step 7: Roadmap Generation - Create real roadmap.md
-   
-   - **Log EVERYTHING during execution**:
-     - Every command run and its output
-     - Every file created
-     - Every error encountered
-     - Every retry attempt
-     - Every step skipped or missed
-   
-   **Step 2A.1.3: Execute Task Implementation (Steps 8-11)**
-   - For each Phase 1 task (at least first 2-3 tasks):
-     - Step 8: Create real task document
-     - Step 9: Execute task - create real files, run real commands
-     - Step 10: Validation - Mother Brain simulates user approval/rejection
-     - Step 10B: Post-task reflection - Run real reflection
-   
-   - **Continue logging everything**:
-     - Build failures and their error messages
-     - Commands that succeeded vs failed
-     - Files created and their paths
-     - Any unexpected behavior
-   
-   **Step 2A.1.4: Analyze Execution Logs**
-   - After building, scan ALL conversation output for:
-     - **Failures**: Commands that returned errors, builds that failed
-     - **Retries**: Steps that had to be re-run
-     - **Skipped Steps**: Steps in SKILL.md that were not executed
-     - **Missing Handling**: Error types that weren't handled gracefully
-     - **Unexpected Behavior**: Output that didn't match expectations
-     - **Inefficiencies**: Extra steps that could have been avoided
-   
-   - Create structured friction list:
-     ```
-     📋 Execution Analysis:
-     
-     Errors Encountered:
-     - [Error 1]: [Command/Step] → [Error message]
-     - [Error 2]: [Command/Step] → [Error message]
-     
-     Steps Skipped/Missed:
-     - [Step X] was not executed because [reason]
-     
-     Retries Required:
-     - [Step Y] failed first attempt, succeeded on retry
-     
-     Inefficiencies:
-     - [Observation about wasted effort]
-     ```
-   
-   **Step 2A.1.5: Auto-Eject Test Project**
-   - Automatically run the eject process (Step 2B):
-     - Remove all project files created during test
-     - Remove all project-specific skills created
-     - Preserve learning-log.md
-     - Preserve core framework skills
-   - Display: "🗑️ Test project ejected - framework reset"
-   
-   **Step 2A.1.6: Extract Meta-Level Improvements**
-   
-   **CRITICAL PRINCIPLE - Meta-Level Improvements Only:**
-   Mother Brain is NOT a repository of domain knowledge. It is a PROCESS framework that adapts dynamically.
-   
-   - ❌ **WRONG** improvements (project-specific knowledge):
-     - "Add VS Code extension API knowledge to Step 5"
-     - "Include library publishing patterns in Step 6A"
-     - "Add game development conventions to Step 5A"
-     - These embed static domain knowledge that becomes stale and bloated
-   
-   - ✅ **RIGHT** improvements (meta-level process):
-     - "Step 5 should detect project category and trigger category-specific research dynamically"
-     - "Step 6A should use web_search to find delivery patterns for detected project type"
-     - "Step 10 validation should adapt presentation method based on project type"
-     - These improve HOW Mother Brain learns and adapts, not WHAT it knows
-   
-   **The Test:** For every proposed improvement, ask:
-   - "Would this improvement help with ANY future project type, including ones we haven't imagined?"
-   - "Does this add static knowledge, or does it improve dynamic learning capability?"
-   - If it adds static knowledge → REJECT
-   - If it improves dynamic capability → ACCEPT
-   
-   - Display comprehensive report:
-     ```
-     🧪 Self-Learning Loop Complete
-     
-     📋 Test Project Built:
-     - Name: [Project Name]
-     - Type: [Type] | Domain: [Domain]
-     - Tasks Completed: [Count]
-     - Skills Created: [List]
-     
-     🔍 Real Friction Discovered (from execution logs):
-     
-     **Errors/Failures**:
-     1. [What failed] - [Error message] - [Which step]
-     2. [What failed] - [Error message] - [Which step]
-     
-     **Steps Skipped or Incomplete**:
-     1. [Step X] - [Why it was missed]
-     
-     **Inefficiencies**:
-     1. [What could have been done better]
-     
-     📚 Meta-Level Lessons (Process Improvements Only):
-     1. [How Mother Brain's PROCESS could better handle this - NOT domain knowledge]
-     2. [Dynamic capability improvement - NOT static knowledge addition]
-     3. [Adaptive behavior enhancement - NOT project-specific details]
-     
-     🔧 Proposed Mother Brain Improvements (Meta-Level Only):
-     
-     **Improvement 1**:
-     - Step affected: [Step number/name]
-     - Friction observed: [What actually went wrong in the build]
-     - Proposed change: [Process/capability improvement - NOT domain knowledge]
-     - Why meta-level: [Explain how this helps ALL projects dynamically]
-     
-     **Improvement 2**:
-     - Step affected: [Step number/name]
-     - Friction observed: [What actually went wrong in the build]
-     - Proposed change: [Process/capability improvement - NOT domain knowledge]
-     - Why meta-level: [Explain how this helps ALL projects dynamically]
-     
-     [... additional improvements ...]
-     ```
-   
-   **Step 2A.1.7: User Review & Approval**
-   - Use `ask_user` with choices:
-     - "Apply all improvements"
-     - "Review and select which to apply"
-     - "Reject all (no changes)"
-     - "Run another simulation (different project)"
-   
-   **If "Apply all improvements":**
-   - Apply each proposed change to SKILL.md using edit tool
-   - Log all changes in learning-log.md
-   - Display summary of applied changes
-   - Return to main menu
-   
-   **If "Review and select":**
-   - For each improvement, use `ask_user`:
-     - "Apply this improvement"
-     - "Skip this improvement"
-     - "Modify this improvement"
-   - Apply selected improvements
-   - Log in learning-log.md
-   - Return to main menu
-   
-   **If "Reject all":**
-   - Log that simulation was run but no changes applied
-   - Return to main menu
-   
-   **If "Run another simulation":**
-   - Loop back to Step 2A.1.1 with new random project
-   
-   **Step 2A.1.8: Log Simulation**
-   - Add to learning-log.md:
+   - Generate issue title and body:
      ```markdown
-     ## [Date] - Self-Learning Loop (Real Build)
-     **Test Project**: [Name] ([Type] - [Domain])
-     **MVP Scope**: [Features]
-     **Tasks Built**: [Count]
-     **Skills Created**: [List - now ejected]
-     **Errors Encountered**: [Count]
-     **Steps Missed**: [Count]
-     **Improvements Proposed**: [Count]
-     **Improvements Applied**: [Count]
-     **Key Meta-Learnings**:
-     - [Process lesson 1]
-     - [Process lesson 2]
-     **Steps Updated**: [List of steps modified]
+     Title: [Improvement] [Brief description of improvement]
+     
+     ## Summary
+     [AI-generated summary of the improvement]
+     
+     ## Changes Proposed
+     [Detailed diff or description of each change]
+     
+     ## Why This Improvement
+     - **Friction Encountered**: [What problem was faced]
+     - **Context**: [Relevant learnings or examples]
+     - **Expected Benefit**: [How this helps all Mother Brain users]
+     
+     ## Files Affected
+     - [ ] `.github/skills/mother-brain/SKILL.md`
+     - [ ] [other files]
+     
+     ## Testing Notes
+     [Any notes on how to test this improvement]
+     
+     ---
+     *Submitted via Mother Brain "Send Improvement" workflow*
      ```
    
-   **Key Principles**:
-   - **Real execution, not imagination**: Actually build the project, create files, run commands
-   - **Log everything**: Track all outputs, errors, and behavior for post-analysis
-   - **Auto-eject after**: Clean up test project automatically, keep only learnings
-   - **Random diversity**: Each run uses different project type/domain
-   - **Meta-learning ONLY**: Extract PROCESS improvements, never domain-specific knowledge
-     - Mother Brain is a dynamic learning framework, not a knowledge repository
-     - Improvements should enhance HOW Mother Brain adapts, not WHAT it knows about specific domains
-     - Every improvement must pass the test: "Would this help with project types we haven't imagined yet?"
-   - **User control**: User reviews and approves changes before they're applied
-   - **Compounding improvement**: Each simulation makes Mother Brain smarter at LEARNING, not at specific project types
+   - Use GitHub MCP server to create the issue:
+     ```
+     github-mcp-server: create_issue
+     owner: [Mother Brain repo owner]
+     repo: [Mother Brain repo name]
+     title: [Generated title]
+     body: [Generated body]
+     labels: ["improvement", "community-contribution"]
+     ```
+   
+   - Display confirmation:
+     ```
+     ✅ Improvement Submitted!
+     
+     Issue Created: #[number] - [title]
+     URL: [issue URL]
+     
+     The Mother Brain maintainers will review your improvement.
+     Your local changes have been preserved.
+     ```
+   
+   **Step 2A.5: Offer to Revert Local Changes**
+   
+   - Use `ask_user` with choices:
+     - "Keep local changes (for further testing)"
+     - "Revert Mother Brain files (clean slate)"
+   
+   - **If revert selected**:
+     ```powershell
+     git checkout HEAD -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
+     ```
+     - Display: "Local Mother Brain files reverted to last commit."
+   
+   - Return to main menu (Step 2)
+
+### 2A.1 **Review Community Improvements** (Maintainer Workflow)
+   - **Access**: Only shown when meta-mode is active (in Mother Brain framework repo)
+   
+   **Step 2A.1.1: List Open Improvement Issues**
+   
+   - Fetch issues with "improvement" or "community-contribution" labels:
+     ```
+     github-mcp-server: list_issues
+     state: open
+     labels: ["improvement"]
+     ```
+   
+   - Display issue list:
+     ```
+     📥 Community Improvements to Review
+     
+     1. #[number] - [title] (by @[author], [date])
+        Status: [open/in review]
+     2. #[number] - [title] (by @[author], [date])
+        Status: [open/in review]
+     [...]
+     
+     Select an issue to review, or go back.
+     ```
+   
+   - Use `ask_user` with issue numbers as choices + "Back to menu"
+   
+   **Step 2A.1.2: Review Selected Issue**
+   
+   - Fetch full issue details:
+     ```
+     github-mcp-server: get_issue
+     issue_number: [selected]
+     ```
+   
+   - Display issue content with analysis:
+     ```
+     📋 Issue #[number]: [title]
+     
+     Submitted by: @[author]
+     Date: [created_at]
+     
+     [Issue body]
+     
+     ---
+     🔍 Impact Analysis:
+     - Files affected: [list]
+     - Risk level: [low/medium/high]
+     - Dependencies: [any]
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Accept and integrate this improvement"
+     - "Request changes (comment on issue)"
+     - "Reject (close with explanation)"
+     - "Skip for now"
+   
+   **Step 2A.1.3: Integrate Accepted Improvement**
+   
+   - If accepted:
+     1. Apply the proposed changes using `edit` tool
+     2. Run any tests if they exist
+     3. Comment on issue: "Integrated in [version]"
+     4. Close issue with "integrated" label
+   
+   - Display:
+     ```
+     ✅ Improvement Integrated
+     
+     Changes applied from issue #[number].
+     Ready for release when you choose "Release Mother Brain".
+     ```
+   
+   **Step 2A.1.4: Request Changes**
+   
+   - If "Request changes" selected:
+     - Use `ask_user` to get feedback text
+     - Comment on issue with feedback
+     - Display confirmation
+   
+   **Step 2A.1.5: Reject Improvement**
+   
+   - If "Reject" selected:
+     - Use `ask_user` to get rejection reason
+     - Comment on issue with explanation
+     - Close issue with "wontfix" label
+     - Display confirmation
+
+
 
 ### 2B. **Eject Project** (Reset to Framework)
    - When user selects "Eject project (reset to framework + learnings)":

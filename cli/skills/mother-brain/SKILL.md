@@ -482,11 +482,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
    - Goal: User sees menu within 1-2 tool calls, not 6+
    
-   **📦 SILENT AUTO-UPDATE (on startup, if project exists)**:
+   **📦 AUTO-UPDATE CHECK (on startup, if project exists)**:
    - If `.mother-brain/version.json` exists:
      1. Read installed version from file
      2. Check npm for latest: `npm view mother-brain version --json 2>$null`
-     3. If newer version available, **auto-update silently**:
+     3. If newer version available:
         - Run PowerShell to fetch and replace skills in one operation:
           ```powershell
           # Create temp dir, download, extract, copy skills, cleanup
@@ -504,12 +504,18 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
           @{version=$latest} | ConvertTo-Json | Set-Content ".mother-brain\version.json"
           Remove-Item $temp -Recurse -Force
           ```
-        - Display brief confirmation after ASCII art:
+        - **CRITICAL: After updating, STOP and display restart message**:
           ```
-          ✅ Auto-updated to Mother Brain v[latest]
+          ⚠️ Mother Brain Updated to v[latest]
+          
+          Skills have been updated on disk, but I'm still running the old version.
+          
+          👉 Please run /mother-brain again to use the new features.
           ```
+        - **DO NOT continue with the menu** - the user must restart for new features to take effect
+        - STOP execution here
      4. If check fails (offline), skip silently - don't block startup
-   - This entire check should complete in under 5 seconds and never block the menu
+     5. If already on latest version, continue silently
    
    - Check current directory for existing Mother Brain artifacts
    - Look for:

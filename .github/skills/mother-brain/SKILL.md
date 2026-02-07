@@ -557,6 +557,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **If project exists:**
    - Load session state from `docs/session-state.json`
+   
+   - **Git Check (ensure git is available)**:
+     - Check if `.git` folder exists in project root
+     - If NOT exists:
+       ```
+       ⚠️ Git repository not found - initializing...
+       ```
+       - Run: `git init && git add . && git commit -m "Initialize git for Mother Brain"`
+       - Display: "✅ Git repository initialized"
+     - Git is required for improvement submissions and change tracking
 
    - Display welcome back message:
      ```
@@ -1918,22 +1928,37 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - **Note**: Project-specific skills created during Step 6 go in project's `.github/skills/`. Core skills are accessed from the framework.
    
-   **Step 3.6.4: Initialize Git (Optional)**
-   - Use `ask_user` with choices:
-     - "Initialize new git repo"
-     - "I'll connect to an existing repo later"
-     - "Skip git setup for now"
+   **Step 3.6.4: Initialize Git (MANDATORY)**
+   - Git is REQUIRED for Mother Brain to function properly:
+     - Improvement submissions require git diff
+     - Version tracking requires git tags
+     - Change detection requires git status
    
-   - If "Initialize new git repo":
+   - Check if git is already initialized:
      ```powershell
-     Set-Location "[project-path]"
-     git init
-     git add .
-     git commit -m "Initial project setup from Mother Brain"
+     $gitExists = Test-Path (Join-Path "[project-path]" ".git")
      ```
    
+   - If git already exists:
+     - Display: "✅ Git repository detected"
+     - Skip initialization
+   
+   - If git does NOT exist:
+     - Initialize automatically:
+       ```powershell
+       Set-Location "[project-path]"
+       git init
+       git add .
+       git commit -m "Initial project setup from Mother Brain"
+       ```
+     - Display: "✅ Git repository initialized"
+   
+   - Use `ask_user` with choices:
+     - "Continue (git is ready)"
+     - "I want to connect to a remote repository"
+   
    - If user wants to connect existing repo:
-     - Ask for repo URL
+     - Ask for repo URL with `ask_user` freeform
      - `git remote add origin [url]`
    
    **Step 3.6.5: Switch Context to Project Folder**

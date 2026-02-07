@@ -465,6 +465,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "🚨 Report Issue (something's not working)"
    - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
+   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
    
    **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
    - Detect: Files exist in directory, but NO `.mother-brain/` folder and NO `docs/vision.md`
@@ -483,6 +484,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "📤 Send improvement to Mother Brain"
    
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
+   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
    
    **If new project (empty directory or user chose fresh start):**
    - Display welcome:
@@ -506,6 +508,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "📤 Send improvement to Mother Brain"
    - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
+   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
 
 ### 2.3. **Meta-Mode (Framework Improvement)**
    - When user selects "Improve Mother Brain" from the framework repo menu:

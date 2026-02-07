@@ -837,109 +837,121 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - **If "Back to project"**: Return to main menu (Step 2)
 
-### 2A.1 **Send Improvement** (Automatic One-Click Contribution)
+### 2A.1 **Send Improvement** (Automatic Multi-Issue Contribution)
    - When user selects "📤 Send my local improvements":
    
-   **Purpose**: Automatically detect local Mother Brain improvements, gather context from learning logs, and submit a fully-formed GitHub issue in one click. No questions asked - just send.
+   **Purpose**: Automatically detect ALL local Mother Brain improvements, parse learning logs for each distinct improvement, and submit a separate GitHub issue for each one. Handles multiple improvements in one session.
    
    **AUTOMATIC WORKFLOW (No User Prompts)**:
    
-   **Step 2A.1.1: Auto-Detect Local Changes**
+   **Step 2A.1.1: Gather All Improvement Sources**
    
-   - Silently scan for changes to core files:
+   - Collect from THREE sources:
+   
+   **Source 1: Learning Log Entries**
+   - Read `.mother-brain/project-brain.md` or `docs/learning-log.md`
+   - Parse for individual learning entries (marked by `## [Date]` or similar)
+   - Each entry = potential improvement
+   - Extract: date, trigger, learning, resolution
+   
+   **Source 2: Core File Changes**
+   - Get changes to Mother Brain core files:
      ```powershell
-     git diff --name-only HEAD -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
-     git status --porcelain -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
+     git diff HEAD -- ".github/skills/mother-brain/SKILL.md"
+     git diff HEAD -- ".github/skills/child-brain/SKILL.md"  
+     git diff HEAD -- ".github/skills/skill-creator/SKILL.md"
      ```
+   - If files are new/untracked: `git diff /dev/null -- [file]`
    
-   - **Core files checked**:
-     - `.github/skills/mother-brain/SKILL.md`
-     - `.github/skills/child-brain/SKILL.md`
-     - `.github/skills/skill-creator/SKILL.md`
-     - `cli/src/**/*`
-     - `cli/package.json`
+   **Source 3: Conversation Context**
+   - Scan conversation history for:
+     - Friction points discussed
+     - Problems reported
+     - Solutions implemented
+     - Pattern: "this isn't working" → "fixed by..."
    
-   - **If no changes detected**:
-     - Display: "📭 No local Mother Brain changes to send. Make improvements first, then come back here."
+   - **If no improvements found across all sources**:
+     - Display: "📭 No local Mother Brain improvements to send."
      - Return to Step 2A (Improve Mother Brain Menu)
    
-   **Step 2A.1.2: Auto-Generate Diff Summary**
-
-   - For each changed file, get the diff silently
-   - AI generates a human-readable summary:
-     - What was changed
-     - Why it was changed (inferred from diff context)
-     - Expected benefit
+   **Step 2A.1.2: Correlate Learnings with File Changes**
    
-   **Step 2A.1.3: Auto-Extract Learning Context**
+   - For each learning entry found:
+     1. Identify which file(s) were modified for this learning
+     2. Extract the relevant diff sections (not the whole file diff)
+     3. Match learning description to code changes
    
-   - Check `.mother-brain/project-brain.md` for recent learnings:
-     - Extract last 3-5 relevant learning entries
-     - Focus on friction that triggered Mother Brain improvements
+   - Group by improvement type:
+     - **Behavioral improvements** → Mother Brain SKILL.md changes
+     - **Feedback handling** → Child Brain SKILL.md changes
+     - **Skill creation** → Skill Creator SKILL.md changes
    
-   - Check conversation history for:
-     - What friction was encountered
-     - How it was resolved
-     - What insight led to the improvement
+   **Step 2A.1.3: Generate Individual Issues**
    
-   **Step 2A.1.4: Auto-Create GitHub Issue**
+   - For EACH distinct improvement, create a separate issue:
    
-   - Generate complete issue automatically:
-     ```markdown
-     Title: [Improvement] [AI-generated brief title from changes]
-     
-     ## Summary
-     [AI-generated summary explaining the improvement in 2-3 sentences]
-     
-     ## Changes
-     [Collapsible diff for each file]
-     <details>
-     <summary>[filename] - [brief description]</summary>
-     
-     ```diff
-     [actual diff]
+   ```markdown
+   Title: [Improvement] [Brief title describing THIS specific improvement]
+   
+   ## Summary
+   [2-3 sentences explaining what this specific improvement does]
+   
+   ## Problem
+   [What friction was encountered that triggered this improvement]
+   
+   ## Solution
+   [How Mother Brain addressed the friction]
+   
+   ## Changes Made
+   **File**: [filename] (lines ~X-Y)
+   
+   <details>
+   <summary>View diff</summary>
+   
+   ```diff
+   [relevant diff for THIS improvement only - not entire file]
+   ```
+   </details>
+   
+   ## Benefits
+   [How this helps all Mother Brain users]
+   
+   ## Testing
+   [How the improvement was validated]
+   
+   ---
+   *Submitted via Mother Brain v[version]*
+   ```
+   
+   **Step 2A.1.4: Submit Issues (Batch)**
+   
+   - For each generated improvement:
+     1. Create GitHub issue using MCP
+     2. Collect issue numbers and URLs
+     3. Add small delay between submissions (avoid rate limiting)
+   
+   - Target repository: `super-state/mother-brain`
+     - Detected from: git remote (if configured)
+     - Fallback: hardcoded default
+   
+   **Step 2A.1.5: Display Results**
+   
+   - Display summary of ALL submitted issues:
      ```
-     </details>
+     ✅ Improvements Submitted!
      
-     ## Why This Improvement
-     **Friction Encountered:**
-     [Extracted from learning log - what problem was faced]
+     Created [N] issues:
      
-     **Resolution:**
-     [How the improvement addresses the friction]
+     📝 #[1]: [title1]
+        [issue URL]
      
-     **Expected Benefit:**
-     [How this helps all Mother Brain users]
+     📝 #[2]: [title2]
+        [issue URL]
      
-     ## Learning Log Context
-     [Relevant excerpts from project-brain.md that led to this improvement]
+     📝 #[3]: [title3]
+        [issue URL]
      
-     ---
-     *Submitted automatically via Mother Brain v[version]*
-     ```
-   
-   - Create issue using GitHub MCP:
-     ```
-     github-mcp-server: create_issue
-     owner: [Mother Brain repo owner from git remote]
-     repo: [Mother Brain repo name]
-     title: [Generated title]
-     body: [Generated body]
-     labels: ["improvement", "community-contribution"]
-     ```
-   
-   **Step 2A.1.5: Confirm and Offer Revert**
-   
-   - Display success message:
-     ```
-     ✅ Improvement Submitted!
-     
-     Issue #[number]: [title]
-     [issue URL]
-     
-     Changes detected:
-     • [file1] - [brief change description]
-     • [file2] - [brief change description]
+     Your contributions are now visible to maintainers.
      ```
    
    - Use `ask_user` with choices:

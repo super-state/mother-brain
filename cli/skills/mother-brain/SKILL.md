@@ -1875,61 +1875,44 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
    - Proceed to Step 3.6 (Project Folder Setup)
 
-### 3.6. **Project Folder Setup** (MANDATORY - Framework vs Project Separation)
+### 3.6. **Initialize Mother Brain in Current Directory** (MANDATORY)
    
-   **Purpose**: Create a separate folder for the project so that:
-   - Project commits go to project repo (not mother-brain)
-   - Mother Brain folder stays clean for framework development
-   - Skills are copied so they work in the project
+   **Purpose**: Set up Mother Brain in the user's current working directory
+   - Works like `npm init` or `git init` - operates where you are
+   - Creates `.mother-brain/` for project state and documentation
+   - Creates `.github/skills/` for project-specific skills (created as needed)
    
    **CRITICAL ORDERING RULE**: 
-   - Step 3.6 (Project Folder Setup) MUST run BEFORE creating any project files (vision.md, roadmap.md, etc.)
-   - NEVER create `.mother-brain/` folder or project files in the framework folder
-   - The correct order is: Vision Discovery (questions only) → Step 3.6 (create project folder) → Step 4 (create vision.md in project folder)
+   - Step 3.6 MUST run BEFORE creating any project files (vision.md, roadmap.md, etc.)
+   - The correct order is: Vision Discovery (questions only) → Step 3.6 (initialize) → Step 4 (create vision.md)
    
-   **Step 3.6.1: Determine Project Location**
-   - Derive project folder name from vision (kebab-case, e.g., "coffee-discovery-app")
-   - Default location: Sibling folder `../[project-name]/`
-   
+   **Step 3.6.1: Confirm Current Directory**
+   - Display current working directory to user
    - Use `ask_user` with choices:
-     - "[project-name] folder next to mother-brain (recommended)"
-     - "I'll specify a custom location"
-     - "Keep in current folder (framework testing mode)"
+     - "Yes, set up Mother Brain here"
+     - "No, let me change directories first"
    
-   **If custom location**: Ask for path with `ask_user` freeform
+   - If user says no:
+     - Display: "Please `cd` to your desired project directory and run `/mother-brain` again."
+     - STOP execution
    
-   **If "Keep in current folder"**: 
-   - Display warning: "⚠️ Framework Testing Mode - commits will go to mother-brain repo"
-   - Skip to Step 4 (Vision Document Creation)
-   
-   **Step 3.6.2: Create Project Folder**
-   - Create the project directory:
+   **Step 3.6.2: Create Project Structure**
+   - Create Mother Brain folders in current directory:
      ```powershell
-     New-Item -ItemType Directory -Path "[project-path]" -Force
+     New-Item -ItemType Directory -Path ".mother-brain" -Force
+     New-Item -ItemType Directory -Path ".mother-brain/docs" -Force
+     New-Item -ItemType Directory -Path ".mother-brain/docs/tasks" -Force
+     New-Item -ItemType Directory -Path ".mother-brain/docs/research" -Force
+     New-Item -ItemType Directory -Path ".github/skills" -Force
      ```
    
-   **Step 3.6.3: Create Project Skill Structure**
-   - Create `.github/skills/` folder in project (for project-specific skills)
-   - **DO NOT copy core framework skills** (mother-brain, child-brain, skill-creator):
-     - These stay in the framework folder only
-     - They are invoked from framework, not duplicated
-     - Avoids sync issues and confusion about authoritative versions
+   - Create initial version tracking:
+     ```powershell
+     $version = "[current-mother-brain-version]"
+     @{version=$version; initialized=(Get-Date -Format "o")} | ConvertTo-Json | Set-Content ".mother-brain/version.json"
+     ```
    
-   - Copy these files/folders to the new project:
-     - `docs/learning-log.md` (or create empty if doesn't exist)
-     - `.gitignore` (if exists)
-   
-   - Do NOT copy:
-     - `.github/skills/` core skills (mother-brain, child-brain, skill-creator)
-     - `README.md` (will create project-specific one)
-     - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (framework-specific)
-     - `package.json` (framework-specific)
-   
-   - Create empty `.mother-brain/` folder for project docs
-   
-   - **Note**: Project-specific skills created during Step 6 go in project's `.github/skills/`. Core skills are accessed from the framework.
-   
-   **Step 3.6.4: Initialize Git (MANDATORY)**
+   **Step 3.6.3: Initialize Git (MANDATORY)**
    - Git is REQUIRED for Mother Brain to function properly:
      - Improvement submissions require git diff
      - Version tracking requires git tags
@@ -1937,20 +1920,18 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Check if git is already initialized:
      ```powershell
-     $gitExists = Test-Path (Join-Path "[project-path]" ".git")
+     $gitExists = Test-Path ".git"
      ```
    
    - If git already exists:
      - Display: "✅ Git repository detected"
-     - Skip initialization
    
    - If git does NOT exist:
      - Initialize automatically:
        ```powershell
-       Set-Location "[project-path]"
        git init
        git add .
-       git commit -m "Initial project setup from Mother Brain"
+       git commit -m "Initialize Mother Brain"
        ```
      - Display: "✅ Git repository initialized"
    
@@ -1958,35 +1939,22 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Continue (git is ready)"
      - "I want to connect to a remote repository"
    
-   - If user wants to connect existing repo:
+   - If user wants to connect remote:
      - Ask for repo URL with `ask_user` freeform
      - `git remote add origin [url]`
    
-   **Step 3.6.5: Switch Context to Project Folder**
-   - Change working directory to project folder:
-     ```powershell
-     Set-Location "[project-path]"
-     ```
-   
-   - **Add project folder to current VS Code workspace** (keeps terminal session active):
-     ```powershell
-     code --add "[project-path]"
-     ```
-   
+   **Step 3.6.4: Display Confirmation**
    - Display:
      ```
-     ✅ Project folder created!
+     ✅ Mother Brain initialized!
      
-     📁 Location: [project-path]
-     📦 Skills: Copied (mother-brain, child-brain, skill-creator)
-     🔗 Git: [Initialized / Not set up]
+     📁 Location: [current directory]
+     📂 Created: .mother-brain/, .github/skills/
+     🔗 Git: [Initialized / Already existed]
      
-     Project folder added to your workspace. Your file tree now shows the project.
-     Terminal session preserved - continue working here.
+     Ready to create your vision document.
      ```
    
-   - Store project path in memory for potential eject/return
-   - **CRITICAL**: Do NOT open a new VS Code window. Use `code --add` to add to current workspace, preserving the terminal session.
    - **Proceed to Step 4** (Vision Document Creation)
 
 ### 4. **Vision Document Creation**

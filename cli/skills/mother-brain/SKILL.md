@@ -487,6 +487,24 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      1. Read installed version from file
      2. Check npm for latest: `npm view mother-brain version --json 2>$null`
      3. If newer version available:
+        
+        **STEP A: Capture Local Improvements FIRST (before updating)**
+        - Check if user modified Mother Brain skills:
+          - Compare `.github/skills/mother-brain/SKILL.md` to npm version
+          - Use `git diff --stat` if available, or file size/hash comparison
+        - If modifications detected:
+          ```
+          📤 You've made improvements to Mother Brain!
+          
+          Before updating, I'll submit your changes as suggestions.
+          ```
+          - Run Step 2A.1 flow (automatic improvement submission):
+            - Extract diff/changes from local vs npm version
+            - Create GitHub issue on superdenby/MotherBrain
+            - Display: "✅ Improvement submitted as issue #[N]"
+          - Store improvement record in `.mother-brain/improvements-submitted.json`
+        
+        **STEP B: Update to Latest Version**
         - Run PowerShell to fetch and replace skills in one operation:
           ```powershell
           # Create temp dir, download, extract, copy skills, cleanup
@@ -504,11 +522,23 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
           @{version=$latest} | ConvertTo-Json | Set-Content ".mother-brain\version.json"
           Remove-Item $temp -Recurse -Force
           ```
+        
+        **STEP C: Preserve Project-Specific Files (NEVER overwritten)**
+        - These are NEVER touched during update:
+          - `.mother-brain/` folder (all project state)
+          - `.mother-brain/project-brain.md` (project learnings)
+          - `.mother-brain/docs/` (vision, roadmap, tasks)
+          - `.github/skills/` files that are NOT mother-brain/child-brain/skill-creator
+          - Project-specific skills remain untouched
+        
+        **STEP D: Restart Required**
         - **CRITICAL: After updating, STOP and display restart message**:
           ```
           ⚠️ Mother Brain Updated to v[latest]
           
-          Skills have been updated on disk, but I'm still running the old version.
+          ✅ Your improvements have been submitted as suggestions
+          ✅ Your project files are preserved
+          ✅ New Mother Brain skills installed
           
           👉 Please run /mother-brain again to use the new features.
           ```

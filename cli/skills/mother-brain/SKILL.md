@@ -538,20 +538,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Question: "What would you like to do?"
      - Choices (MUST be provided as array):
        - "Continue where I left off"
-       - "Start next task"
        - "Review/update roadmap"
        - "Realign with vision"
-       - "View all skills"
-       - "Create new skill"
-       - "📤 Send improvement to Mother Brain"
-       - "Release Mother Brain (commit & PR)"
+       - "🧠 Improve Mother Brain"
        - "Archive project (save & reset for new project)"
        - "Eject project (reset to framework + learnings)"
-       - "🚨 Report Issue (something's not working)"
    - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
+   - **If "Improve Mother Brain"**: Jump to **Step 2A: Improve Mother Brain Menu**
    - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
-   
+
    **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
    - Detect: Files exist in directory, but NO `.mother-brain/` folder and NO `docs/vision.md`
    - Display:
@@ -566,11 +562,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Use `ask_user` with choices:
      - "Yes, onboard Mother Brain into this project"
      - "No, start fresh (ignore existing files)"
-     - "📤 Send improvement to Mother Brain"
-   
+
    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
-   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
-   
+
    **If new project (empty directory or user chose fresh start):**
    - Display welcome:
      ```
@@ -590,10 +584,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "I just want to brainstorm an idea"
        - "I have a vision document already (import it)"
        - "Show me what Mother Brain can do"
-       - "📤 Send improvement to Mother Brain"
    - **CRITICAL**: Do NOT ask "Ready to begin?" as freeform text. ALWAYS use the `ask_user` tool with the choices above.
    - Proceed based on selection
-   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
 
 ### 2.3. **Meta-Mode (Framework Improvement)**
    - When user selects "Improve Mother Brain" from the framework repo menu:
@@ -609,7 +601,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "📥 Review community improvements"
      - "Continue previous meta-work"
    
-   - **If "Review community improvements"**: Jump to **Step 2A.1: Review Community Improvements**
+   - **If "Review community improvements"**: Jump to **Step 2A.2: Review Community Improvements**
    
    **Step 2.3.2: Track Meta-Work**
    - Update `.mother-brain/meta-mode.json` with focus:
@@ -724,14 +716,89 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Proceed to normal workflow (Step 8+)
 
-### 2A. **Send Improvement to Mother Brain** (Automatic One-Click Contribution)
-   - When user selects "📤 Send improvement to Mother Brain":
+### 2A. **Improve Mother Brain Menu** (From Any Project)
+   - When user selects "🧠 Improve Mother Brain" from the existing project menu:
+   
+   **Purpose**: Entry point for reporting issues, suggesting improvements, or contributing fixes to Mother Brain from within any project.
+   
+   **Step 2A.0: Show Improvement Menu**
+   
+   - Display:
+     ```
+     🧠 Improve Mother Brain
+     
+     Encountered friction or have ideas for improvement?
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Something broke or didn't work"
+     - "A feature is missing"
+     - "The workflow is confusing"
+     - "I have a suggestion for improvement"
+     - "📤 Send my local improvements (auto-detect changes)"
+     - "⬅️ Back to project"
+   
+   **Step 2A.0.1: Friction Auto-Detection (for "Something broke")**
+   
+   - **If user selects "Something broke or didn't work"**:
+     - Scan recent conversation for:
+       - Error messages
+       - User frustration signals ("this doesn't work", "wrong", "broken")
+       - Tool failures
+       - Unexpected behavior
+     - Display detected issues:
+       ```
+       🔍 Analyzing recent session for issues...
+       
+       Found:
+       - [Issue 1]: [description]
+       - [Issue 2]: [description]
+       
+       Would you like me to fix these locally?
+       ```
+     - Use `ask_user` with choices:
+       - "Yes, fix these issues"
+       - "No, let me describe the problem"
+       - "Back to menu"
+     - **If "Yes, fix"**: Work on the fix, then offer to send improvement
+     - **If "No, let me describe"**: Ask user to describe, then work on fix
+   
+   **Step 2A.0.2: Missing Feature (for "A feature is missing")**
+   
+   - **If user selects "A feature is missing"**:
+     - Ask user to describe what's missing
+     - Determine if it can be added locally or needs to be an issue
+     - Work on adding the feature if appropriate
+     - Offer to send improvement when done
+   
+   **Step 2A.0.3: Confusing Workflow (for "The workflow is confusing")**
+   
+   - **If user selects "The workflow is confusing"**:
+     - Ask user to describe what's confusing
+     - Analyze the current workflow for that area
+     - Suggest clarifications or improvements
+     - Work on improving it if appropriate
+   
+   **Step 2A.0.4: Suggestion (for "I have a suggestion")**
+   
+   - **If user selects "I have a suggestion for improvement"**:
+     - Ask user to describe their suggestion
+     - Analyze feasibility
+     - Work on implementing if appropriate
+     - Offer to send improvement when done
+   
+   - **If "Send my local improvements"**: Continue to Step 2A.1 (Auto-Detect)
+   
+   - **If "Back to project"**: Return to main menu (Step 2)
+
+### 2A.1 **Send Improvement** (Automatic One-Click Contribution)
+   - When user selects "📤 Send my local improvements":
    
    **Purpose**: Automatically detect local Mother Brain improvements, gather context from learning logs, and submit a fully-formed GitHub issue in one click. No questions asked - just send.
    
    **AUTOMATIC WORKFLOW (No User Prompts)**:
    
-   **Step 2A.1: Auto-Detect Local Changes**
+   **Step 2A.1.1: Auto-Detect Local Changes**
    
    - Silently scan for changes to core files:
      ```powershell
@@ -748,17 +815,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - **If no changes detected**:
      - Display: "📭 No local Mother Brain changes to send. Make improvements first, then come back here."
-     - Return to main menu (Step 2)
+     - Return to Step 2A (Improve Mother Brain Menu)
    
-   **Step 2A.2: Auto-Generate Diff Summary**
-   
+   **Step 2A.1.2: Auto-Generate Diff Summary**
+
    - For each changed file, get the diff silently
    - AI generates a human-readable summary:
      - What was changed
      - Why it was changed (inferred from diff context)
      - Expected benefit
    
-   **Step 2A.3: Auto-Extract Learning Context**
+   **Step 2A.1.3: Auto-Extract Learning Context**
    
    - Check `.mother-brain/project-brain.md` for recent learnings:
      - Extract last 3-5 relevant learning entries
@@ -769,7 +836,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - How it was resolved
      - What insight led to the improvement
    
-   **Step 2A.4: Auto-Create GitHub Issue**
+   **Step 2A.1.4: Auto-Create GitHub Issue**
    
    - Generate complete issue automatically:
      ```markdown
@@ -815,7 +882,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      labels: ["improvement", "community-contribution"]
      ```
    
-   **Step 2A.5: Confirm and Offer Revert**
+   **Step 2A.1.5: Confirm and Offer Revert**
    
    - Display success message:
      ```
@@ -841,10 +908,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Return to main menu (Step 2)
 
-### 2A.1 **Review Community Improvements** (Maintainer Workflow)
+### 2A.2 **Review Community Improvements** (Maintainer Workflow)
    - **Access**: Only shown when meta-mode is active (in Mother Brain framework repo)
    
-   **Step 2A.1.1: List Open Improvement Issues**
+   **Step 2A.2.1: List Open Improvement Issues**
    
    - Fetch issues with "improvement" or "community-contribution" labels:
      ```
@@ -872,10 +939,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Use `ask_user` with issue numbers as choices + "Back to menu"
    
-   **Step 2A.1.2: Review Selected Issue**
-   
+   **Step 2A.2.2: Review Selected Issue**
+
    - Fetch full issue details
-   
+
    - Display with AI-generated analysis:
      ```
      📋 Issue #[number]: [title]
@@ -909,8 +976,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "💬 Request changes - ask for modifications"
      - "⏭️ Skip - review later"
    
-   **Step 2A.1.3: Accept Improvement**
-   
+   **Step 2A.2.3: Accept Improvement**
+
    - If accepted:
      1. Parse the diffs from the issue body
      2. Apply changes using `edit` tool
@@ -931,7 +998,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Display: "✅ Improvement from #[number] integrated. Ready for release."
    
-   **Step 2A.1.4: Reject Improvement**
+   **Step 2A.2.4: Reject Improvement**
    
    - If rejected:
      1. Use `ask_user` to get brief reason (or offer common reasons):
@@ -957,7 +1024,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Display: "Issue #[number] closed with explanation."
    
-   **Step 2A.1.5: Request Changes**
+   **Step 2A.2.5: Request Changes**
    
    - If "Request changes" selected:
      1. Use `ask_user` to get feedback text

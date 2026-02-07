@@ -639,20 +639,22 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Proceed to normal workflow (Step 8+)
 
-### 2A. **Send Improvement to Mother Brain** (GitHub Issue-Based Contribution)
+### 2A. **Send Improvement to Mother Brain** (Automatic One-Click Contribution)
    - When user selects "📤 Send improvement to Mother Brain":
    
-   **Purpose**: Instead of directly modifying Mother Brain files, improvements are submitted as GitHub issues. This prevents users from overwriting each other's changes and ensures all improvements are reviewed.
+   **Purpose**: Automatically detect local Mother Brain improvements, gather context from learning logs, and submit a fully-formed GitHub issue in one click. No questions asked - just send.
    
-   **Step 2A.1: Detect Local Changes**
+   **AUTOMATIC WORKFLOW (No User Prompts)**:
    
-   - Scan for local changes to Mother Brain core files:
+   **Step 2A.1: Auto-Detect Local Changes**
+   
+   - Silently scan for changes to core files:
      ```powershell
-     git diff --name-only HEAD -- ".github/skills/mother-brain/" "cli/"
-     git status --porcelain -- ".github/skills/mother-brain/" "cli/"
+     git diff --name-only HEAD -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
+     git status --porcelain -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
      ```
    
-   - **Core files to check**:
+   - **Core files checked**:
      - `.github/skills/mother-brain/SKILL.md`
      - `.github/skills/child-brain/SKILL.md`
      - `.github/skills/skill-creator/SKILL.md`
@@ -660,100 +662,97 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - `cli/package.json`
    
    - **If no changes detected**:
-     - Display: "No local Mother Brain changes detected."
-     - Ask if user wants to describe an improvement anyway
+     - Display: "📭 No local Mother Brain changes to send. Make improvements first, then come back here."
+     - Return to main menu (Step 2)
    
-   **Step 2A.2: Summarize Changes**
+   **Step 2A.2: Auto-Generate Diff Summary**
    
-   - For each changed file, get the diff:
-     ```powershell
-     git diff HEAD -- [file]
-     ```
+   - For each changed file, get the diff silently
+   - AI generates a human-readable summary:
+     - What was changed
+     - Why it was changed (inferred from diff context)
+     - Expected benefit
    
-   - Create a summary of changes in human-readable format:
-     ```
-     📝 Local Mother Brain Changes Detected
-     
-     Files Changed:
-     - [file1]: [brief description of change]
-     - [file2]: [brief description of change]
-     
-     Summary:
-     [AI-generated summary of what the changes accomplish]
-     ```
+   **Step 2A.3: Auto-Extract Learning Context**
    
-   **Step 2A.3: Gather Context from Learning Log**
+   - Check `.mother-brain/project-brain.md` for recent learnings:
+     - Extract last 3-5 relevant learning entries
+     - Focus on friction that triggered Mother Brain improvements
    
-   - Check `.mother-brain/project-brain.md` for recent learnings that triggered this improvement
-   - Check conversation history for friction that led to the changes
-   - Compile into "Why This Improvement" section:
-     ```
-     Why This Improvement:
-     - Friction encountered: [description]
-     - Learning from project: [what was learned]
-     - Expected benefit: [how this helps all users]
-     ```
+   - Check conversation history for:
+     - What friction was encountered
+     - How it was resolved
+     - What insight led to the improvement
    
-   **Step 2A.4: Create GitHub Issue**
+   **Step 2A.4: Auto-Create GitHub Issue**
    
-   - Generate issue title and body:
+   - Generate complete issue automatically:
      ```markdown
-     Title: [Improvement] [Brief description of improvement]
+     Title: [Improvement] [AI-generated brief title from changes]
      
      ## Summary
-     [AI-generated summary of the improvement]
+     [AI-generated summary explaining the improvement in 2-3 sentences]
      
-     ## Changes Proposed
-     [Detailed diff or description of each change]
+     ## Changes
+     [Collapsible diff for each file]
+     <details>
+     <summary>[filename] - [brief description]</summary>
+     
+     ```diff
+     [actual diff]
+     ```
+     </details>
      
      ## Why This Improvement
-     - **Friction Encountered**: [What problem was faced]
-     - **Context**: [Relevant learnings or examples]
-     - **Expected Benefit**: [How this helps all Mother Brain users]
+     **Friction Encountered:**
+     [Extracted from learning log - what problem was faced]
      
-     ## Files Affected
-     - [ ] `.github/skills/mother-brain/SKILL.md`
-     - [ ] [other files]
+     **Resolution:**
+     [How the improvement addresses the friction]
      
-     ## Testing Notes
-     [Any notes on how to test this improvement]
+     **Expected Benefit:**
+     [How this helps all Mother Brain users]
+     
+     ## Learning Log Context
+     [Relevant excerpts from project-brain.md that led to this improvement]
      
      ---
-     *Submitted via Mother Brain "Send Improvement" workflow*
+     *Submitted automatically via Mother Brain v[version]*
      ```
    
-   - Use GitHub MCP server to create the issue:
+   - Create issue using GitHub MCP:
      ```
      github-mcp-server: create_issue
-     owner: [Mother Brain repo owner]
+     owner: [Mother Brain repo owner from git remote]
      repo: [Mother Brain repo name]
      title: [Generated title]
      body: [Generated body]
      labels: ["improvement", "community-contribution"]
      ```
    
-   - Display confirmation:
+   **Step 2A.5: Confirm and Offer Revert**
+   
+   - Display success message:
      ```
      ✅ Improvement Submitted!
      
-     Issue Created: #[number] - [title]
-     URL: [issue URL]
+     Issue #[number]: [title]
+     [issue URL]
      
-     The Mother Brain maintainers will review your improvement.
-     Your local changes have been preserved.
+     Changes detected:
+     • [file1] - [brief change description]
+     • [file2] - [brief change description]
      ```
    
-   **Step 2A.5: Offer to Revert Local Changes**
-   
    - Use `ask_user` with choices:
-     - "Keep local changes (for further testing)"
+     - "Keep local changes (for further work)"
      - "Revert Mother Brain files (clean slate)"
    
    - **If revert selected**:
      ```powershell
      git checkout HEAD -- ".github/skills/mother-brain/" ".github/skills/child-brain/" ".github/skills/skill-creator/" "cli/"
      ```
-     - Display: "Local Mother Brain files reverted to last commit."
+     - Display: "✨ Local Mother Brain files reverted to clean slate."
    
    - Return to main menu (Step 2)
 
@@ -769,81 +768,130 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      labels: ["improvement"]
      ```
    
-   - Display issue list:
+   - **If no issues**: Display "📭 No community improvements pending review." → Return to menu
+   
+   - **If issues exist**: Display summarized list:
      ```
-     📥 Community Improvements to Review
+     📥 Community Improvements to Review ([count] pending)
      
-     1. #[number] - [title] (by @[author], [date])
-        Status: [open/in review]
-     2. #[number] - [title] (by @[author], [date])
-        Status: [open/in review]
-     [...]
+     ┌─────────────────────────────────────────────────────────────┐
+     │ #[number] - [title]                                        │
+     │ by @[author] • [time ago]                                   │
+     │                                                             │
+     │ 📝 [AI-generated 1-sentence summary of what this improves] │
+     │ 📁 [files affected count] files • [lines changed] lines    │
+     └─────────────────────────────────────────────────────────────┘
      
-     Select an issue to review, or go back.
+     [Repeat for each issue, max 5 shown]
      ```
    
    - Use `ask_user` with issue numbers as choices + "Back to menu"
    
    **Step 2A.1.2: Review Selected Issue**
    
-   - Fetch full issue details:
-     ```
-     github-mcp-server: get_issue
-     issue_number: [selected]
-     ```
+   - Fetch full issue details
    
-   - Display issue content with analysis:
+   - Display with AI-generated analysis:
      ```
      📋 Issue #[number]: [title]
      
-     Submitted by: @[author]
-     Date: [created_at]
+     Submitted by: @[author] • [created_at]
      
-     [Issue body]
+     ═══════════════════════════════════════════════════════════════
      
-     ---
-     🔍 Impact Analysis:
-     - Files affected: [list]
-     - Risk level: [low/medium/high]
-     - Dependencies: [any]
+     🔍 IMPACT SUMMARY
+     
+     What It Does:
+     [AI-generated 2-3 sentence explanation of the improvement]
+     
+     Why It Was Submitted:
+     [Extract from "Friction Encountered" section of issue]
+     
+     Risk Assessment:
+     • Scope: [Low/Medium/High] - [brief reason]
+     • Breaking Changes: [None/Minor/Major]
+     • Files: [list affected files]
+     
+     ═══════════════════════════════════════════════════════════════
+     
+     📄 FULL DIFF
+     [Collapsible or scrollable diff from issue body]
      ```
    
    - Use `ask_user` with choices:
-     - "Accept and integrate this improvement"
-     - "Request changes (comment on issue)"
-     - "Reject (close with explanation)"
-     - "Skip for now"
+     - "✅ Accept - integrate this improvement"
+     - "❌ Reject - close with explanation"
+     - "💬 Request changes - ask for modifications"
+     - "⏭️ Skip - review later"
    
-   **Step 2A.1.3: Integrate Accepted Improvement**
+   **Step 2A.1.3: Accept Improvement**
    
    - If accepted:
-     1. Apply the proposed changes using `edit` tool
-     2. Run any tests if they exist
-     3. Comment on issue: "Integrated in [version]"
-     4. Close issue with "integrated" label
+     1. Parse the diffs from the issue body
+     2. Apply changes using `edit` tool
+     3. Run validation (npm build if CLI changes)
+     4. **Auto-comment** on issue:
+        ```markdown
+        ✅ **Improvement Integrated**
+        
+        Thank you for this contribution! Your improvement has been integrated 
+        and will be included in the next release.
+        
+        Changes applied:
+        - [list of files modified]
+        
+        🚀 *Integrated by Mother Brain*
+        ```
+     5. Close issue with "integrated" label
    
-   - Display:
-     ```
-     ✅ Improvement Integrated
-     
-     Changes applied from issue #[number].
-     Ready for release when you choose "Release Mother Brain".
-     ```
+   - Display: "✅ Improvement from #[number] integrated. Ready for release."
    
-   **Step 2A.1.4: Request Changes**
+   **Step 2A.1.4: Reject Improvement**
+   
+   - If rejected:
+     1. Use `ask_user` to get brief reason (or offer common reasons):
+        - "Doesn't align with framework direction"
+        - "Implementation approach needs rework"
+        - "Duplicate of existing functionality"
+        - "Custom reason..."
+     2. **Auto-comment** on issue:
+        ```markdown
+        ❌ **Improvement Not Accepted**
+        
+        Thank you for taking the time to submit this improvement. 
+        After review, we've decided not to integrate it at this time.
+        
+        **Reason:** [selected/custom reason]
+        
+        [If appropriate: "Feel free to revise and resubmit if you'd like 
+        to address this feedback."]
+        
+        🙏 *We appreciate your contribution to Mother Brain*
+        ```
+     3. Close issue with "wontfix" label
+   
+   - Display: "Issue #[number] closed with explanation."
+   
+   **Step 2A.1.5: Request Changes**
    
    - If "Request changes" selected:
-     - Use `ask_user` to get feedback text
-     - Comment on issue with feedback
-     - Display confirmation
+     1. Use `ask_user` to get feedback text
+     2. **Auto-comment** on issue:
+        ```markdown
+        💬 **Changes Requested**
+        
+        Thanks for this improvement! Before we can integrate it, 
+        please address the following:
+        
+        [user's feedback]
+        
+        Once updated, we'll review again.
+        
+        🔄 *Feedback from Mother Brain maintainer*
+        ```
+     3. Add "changes-requested" label
    
-   **Step 2A.1.5: Reject Improvement**
-   
-   - If "Reject" selected:
-     - Use `ask_user` to get rejection reason
-     - Comment on issue with explanation
-     - Close issue with "wontfix" label
-     - Display confirmation
+   - Display: "Feedback posted to #[number]."
 
 
 

@@ -1306,7 +1306,23 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **Purpose**: One-click release - commit, version bump, push, tag, and publish.
    
-   **Prerequisite**: Must be in the mother-brain folder (not a project folder)
+   **Prerequisite**: Must be in the mother-brain framework folder (not a project folder)
+   
+   **⚡ MANDATORY RELEASE CHECKLIST (All items MUST be completed)**
+   
+   Every release MUST update ALL of the following:
+   ```
+   [ ] cli/package.json - version field
+   [ ] cli/src/cli.ts - version constant (if exists)
+   [ ] README.md - version badge AND version text
+   [ ] Git commit with changes
+   [ ] Git tag (v0.0.X)
+   [ ] Push to remote (main + tags)
+   [ ] GitHub Release (created automatically by workflow)
+   [ ] npm publish (triggered by tag push via workflow)
+   ```
+   
+   **⛔ BLOCKING RULE**: Do NOT return to menu until ALL items above are completed.
    
    **⚡ ONE-CLICK RELEASE FLOW (No prompts, no menus)**
    
@@ -1319,38 +1335,50 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - If no changes: Display "Nothing to release" and return to menu
    
    **Step 2D.2: Auto-Determine Version**
-   - Read current version from `package.json`
-   - Scan learning-log.md entries since last release tag
+   - Read current version from `cli/package.json`
+   - Scan learning-log.md entries since last release tag (if exists)
    - **Auto-determine version bump**:
      - If any entry contains "breaking" or "major" → **major** bump (X.0.0)
      - If any entry contains "feature", "new", "add" → **minor** bump (0.X.0)
      - Otherwise → **patch** bump (0.0.X)
    - Do NOT ask user - auto-decide based on content
    
-   **Step 2D.3: Execute Release (all at once)**
-   - Stage all changes: `git add .`
-   - Auto-generate commit message from learning-log entries
-   - Commit: `git commit -m "[auto-generated message]"`
-   - Update `package.json` with new version
-   - Update README.md version badge (find `version-X.X.X-blue` and replace)
-   - Commit version bump: `git commit -am "chore: bump version to [version]"`
-   - Push to main: `git push super-state main`
-   - Create tag: `git tag -a "v[version]" -m "Release v[version]: [summary]"`
-   - Push tag: `git push super-state "v[version]"`
-   - Create GitHub Release: `gh release create "v[version]" ...`
+   **Step 2D.3: Update ALL Version References (MANDATORY)**
+   - Update `cli/package.json`: `"version": "[new-version]"`
+   - Update `cli/src/cli.ts`: version constant (search for old version, replace with new)
+   - Update `README.md`:
+     - Find `version-X.X.X-blue` badge and replace with new version
+     - Find `**Version**: X.X.X` text and replace with new version
+   - **Verify all files updated before proceeding**
    
-   **Step 2D.4: Confirmation**
+   **Step 2D.4: Sync Skills to CLI**
+   - Copy `.github/skills/*` to `cli/skills/` (overwrite)
+   
+   **Step 2D.5: Build CLI**
+   - Run `cd cli && npm run build`
+   - If build fails: STOP and display error
+   
+   **Step 2D.6: Execute Git Operations**
+   - Stage all changes: `git add -A`
+   - Commit: `git commit -m "[type]: [description] (v[version])"`
+   - Create tag: `git tag v[version]`
+   - Push to remote: `git push [remote] main --tags`
+   
+   **Step 2D.7: Confirmation**
+   - Wait for workflow to complete (or check status)
    - Display:
      ```
      ✅ Release v[version] Published!
      
+     ✅ cli/package.json updated
+     ✅ cli/src/cli.ts updated
+     ✅ README.md updated
+     ✅ Git tag created and pushed
+     ✅ GitHub Release created (via workflow)
+     ✅ npm publish triggered (via workflow)
+     
      Tag: v[version]
-     Release: https://github.com/super-state/mother-brain/releases/tag/v[version]
-     
-     Changes:
-     - [Brief summary from learning-log]
-     
-     The framework update is now live!
+     Release: https://github.com/superdenby/MotherBrain/releases/tag/v[version]
      ```
    
    - Use `ask_user` with choices:

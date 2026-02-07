@@ -2827,24 +2827,26 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Update task document with final status
    - Update roadmap checklist
    
-   **⚠️ CRITICAL: After marking task complete, IMMEDIATELY proceed to Step 11 (Next Action Menu) using `ask_user` with proper choices. NEVER provide plain text options like "Continue or do something else?" - always use the structured menu.**
+   **⚠️ CRITICAL: After marking task complete, proceed through Steps 10B, 10C, and optionally 10D before reaching Step 11.**
    
-   **⛔ BLOCKING GATE - Step 10B is MANDATORY:**
+   **⛔ BLOCKING GATE - Steps 10B and 10C are MANDATORY:**
    ```
    Task marked complete by user
        ↓
-   [STOP] Run Step 10B (Post-Task Reflection) ← YOU ARE HERE
+   [STOP] Run Step 10B (Post-Task Reflection) ← Friction analysis via Child Brain
        ↓
-   Step 10B complete (friction logged or "none found" displayed)
+   [STOP] Run Step 10C (Project Brain Checkpoint) ← Update living documentation
+       ↓
+   IF last task in phase → Run Step 10D (Phase Feedback Checkpoint)
        ↓
    ONLY THEN proceed to Step 11 (Next Action Menu)
    ```
    
-   **DO NOT skip Step 10B.** Even if the task had no issues, Step 10B must:
-   1. Scan conversation for friction points (adjustments, errors, retries)
-   2. Display findings: "🔍 Post-Task Reflection - [X] friction points found" OR "🔍 Post-Task Reflection - No friction points found"
-   3. Apply any learnings (if friction found)
-   4. Only AFTER Step 10B completes → proceed to Step 11
+   **DO NOT skip Steps 10B or 10C.** Even if the task had no issues:
+   1. Step 10B: Scan for friction, invoke Child Brain if found
+   2. Step 10C: Update project documentation silently
+   3. Step 10D: If phase complete, gather user feedback
+   4. Only AFTER all checkpoints → proceed to Step 11
 
 ### 10A. **Friction Analysis via Child Brain**
    - When user provides negative/adjustment feedback in task validation:
@@ -2941,9 +2943,125 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    🛠️ SKILLS: [Created/updated - or "No skill changes"]
    ```
    
-   Proceed to Step 11 (Next Action Menu)
+   Proceed to Step 10C (Project Brain Checkpoint)
    
    **Key Principle**: Child Brain handles ALL learning analysis. Mother Brain only orchestrates when to invoke it.
+
+### 10C. **Project Brain Checkpoint** (Living Documentation)
+   - **When to run**: After Step 10B (Post-Task Reflection) completes
+   - **Purpose**: Silently update project documentation to ensure project stays on track
+   
+   **Step 10C.1: Check Project Alignment (Silent)**
+   
+   - Compare current progress against vision:
+     1. Load `vision.md` - what user wanted
+     2. Load `roadmap.md` - what's planned
+     3. Check completed tasks - what's been delivered
+     4. Identify gaps or drift
+   
+   **Step 10C.2: Update Living Documentation**
+   
+   Create/update these files in `.mother-brain/docs/` as needed:
+   
+   - **`research/[topic].md`** - Domain research findings
+     - Add research conducted during this task
+     - Note sources, best practices discovered
+     - Flag areas needing more research
+   
+   - **`requirements.md`** - Discovered requirements
+     - Add requirements that emerged during task
+     - Note user preferences revealed
+     - Track implicit requirements from feedback
+   
+   - **`data-models.md`** - Identified data structures
+     - Document data structures used/needed
+     - Track schema evolution
+     - Note relationships discovered
+   
+   - **`user-needs.md`** - User requirements discovered
+     - Track what user actually needs (vs. wants)
+     - Note workflow preferences
+     - Document pain points addressed
+   
+   - **`questions.md`** - Open questions and gaps
+     - What's unclear about the vision?
+     - What decisions need user input?
+     - What technical research is needed?
+   
+   **Step 10C.3: Feed Discoveries into Vision**
+   
+   - If significant new understanding emerged:
+     - Update `vision.md` with new discoveries
+     - Mark section as "Updated after Task [X]"
+     - Keep vision as living document, not static
+   
+   - Display only if updates made:
+     ```
+     📘 Project documentation updated
+     ```
+   
+   **Step 10C.4: Check Phase Completion**
+   
+   - Detect if this was the last task in current phase:
+     - Load roadmap, count remaining tasks in phase
+     - If 0 remaining → trigger **Step 10D (Phase Feedback Checkpoint)**
+   
+   - If more tasks remain in phase:
+     - Proceed to Step 11 (Next Action Menu)
+
+### 10D. **Phase Feedback Checkpoint** (User Reflection)
+   - **When to run**: When last task in a phase is completed
+   - **Purpose**: Gather user feedback before proceeding to next phase
+   
+   **Step 10D.1: Celebrate Phase Completion**
+   
+   - Display:
+     ```
+     🎉 Phase [Name] Complete!
+     
+     What was delivered:
+     - [Task 1] - [Brief description]
+     - [Task 2] - [Brief description]
+     - [Task 3] - [Brief description]
+     
+     Before we move to [Next Phase Name], I'd like your feedback.
+     ```
+   
+   **Step 10D.2: Gather User Feedback**
+   
+   - Use `ask_user` with freeform enabled:
+     ```
+     Now that you've seen Phase [Name] in action:
+     
+     1. What's working well?
+     2. What isn't quite right?
+     3. Any new ideas or changes in direction?
+     
+     (This helps me understand your evolving vision)
+     ```
+   
+   **Step 10D.3: Research Refresh**
+   
+   - Based on user feedback:
+     - Research any new domains/technologies mentioned
+     - Update skill candidates if new needs identified
+     - Store findings in `research/` folder
+   
+   **Step 10D.4: Update Roadmap if Needed**
+   
+   - If user feedback suggests changes:
+     - Offer to adjust roadmap
+     - Add new tasks if needed
+     - Reprioritize based on feedback
+   
+   - Display:
+     ```
+     📘 Feedback incorporated
+     
+     [Summary of what was learned/changed]
+     ```
+   
+   - Proceed to Step 11 (Next Action Menu)
 
 ### 11. **Next Action Menu**
    - After task completion, use `ask_user` with choices:

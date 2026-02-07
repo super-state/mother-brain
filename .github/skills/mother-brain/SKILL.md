@@ -1372,7 +1372,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Stage all changes: `git add -A`
    - Commit: `git commit -m "[type]: [description] (v[version])"`
    - Create tag: `git tag v[version]`
-   - Push to remote: `git push [remote] main --tags`
+   - **Push to origin (super-state) ONLY**: `git push origin main --tags`
+   - **NEVER push to personal fork** - only super-state has npm publish token
    
    **Step 2D.7: Confirmation**
    - Wait for workflow to complete (or check status)

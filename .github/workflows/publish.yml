@@ -17,6 +17,9 @@ jobs:
       run:
         working-directory: cli
     
+    permissions:
+      contents: write
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -46,3 +49,18 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: |
+            ## Mother Brain ${{ github.ref_name }}
+            
+            Install or update:
+            ```bash
+            npx -y mother-brain init
+            ```
+            
+            See commit history for changes in this release.
+          generate_release_notes: true

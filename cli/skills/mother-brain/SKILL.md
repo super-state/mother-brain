@@ -521,7 +521,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Add a new feature to Mother Brain"
      - "Improve documentation"
      - "Refactor or clean up code"
+     - "📥 Review community improvements"
      - "Continue previous meta-work"
+   
+   - **If "Review community improvements"**: Jump to **Step 2A.1: Review Community Improvements**
    
    **Step 2.3.2: Track Meta-Work**
    - Update `.mother-brain/meta-mode.json` with focus:

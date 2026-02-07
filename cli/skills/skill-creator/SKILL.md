@@ -11,6 +11,29 @@ allowed-tools: bash node view grep glob web_search ask_user powershell create ed
 
 # Skill Creator
 
+## 🚨 HARD RULES (MANDATORY)
+
+### RULE 1: ALWAYS RETURN TO CALLER
+- Skill Creator is INVOKED by Mother Brain or Child Brain
+- After completing skill creation/update, you MUST return control to the caller
+- NEVER stop after creating a skill - the invoking workflow must continue
+- NEVER leave user in freeform
+- Display: `🔧 Skill Creator activated` when starting
+- Display: `✅ Skill [name] created - returning to [caller]` when done
+- **TELL CALLER WHERE TO RESUME**: End with "Returning to [step/task/menu that was in progress]"
+
+### RULE 2: COMPLETE THE SKILL
+- Every skill MUST have: SKILL.md, examples/, references/, scripts/
+- Empty folders are NOT acceptable
+- Research MUST be performed and saved to references/
+
+### RULE 3: SYNCHRONOUS EXECUTION
+- When invoked, complete the skill creation fully
+- Do NOT run in background or parallel
+- The caller is waiting for you to finish
+
+---
+
 Use this skill when the user wants a new reusable capability, or when you notice repeated work that should be turned into a skill.
 
 ## Purpose

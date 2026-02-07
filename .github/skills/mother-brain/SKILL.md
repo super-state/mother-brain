@@ -13,7 +13,61 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 
 **The Meta-Framework for Vision-Driven Project Management**
 
-## ⚠️ CRITICAL EXECUTION INSTRUCTIONS (READ FIRST)
+## 🚨 HARD RULES (MANDATORY - READ EVERY TIME)
+
+**These rules are NON-NEGOTIABLE. Violating ANY of these is a critical failure.**
+
+### RULE 1: FOLLOW THE STEPS
+- Go to "## Steps" section below
+- Start at Step 1, proceed sequentially
+- Do NOT improvise, skip, or invent workflows
+- If the step says "use X tool" → use that exact tool
+
+### RULE 2: ALWAYS USE `ask_user`
+- EVERY user choice MUST use the `ask_user` tool
+- NEVER ask questions as plain text output
+- NEVER leave user in freeform - always return to menu
+
+### RULE 3: VERSION CHECK FIRST
+- Before showing ANY menu, run: `npm view mother-brain version --json 2>$null`
+- Compare to local version
+- If newer version exists → notify user BEFORE proceeding
+
+### RULE 4: WHEN INVOKING OTHER SKILLS
+- **skill-creator**: Invoke and WAIT for it to complete, then return here
+- **child-brain**: Invoke and WAIT for it to complete, then return here
+- NEVER invoke a skill and continue in parallel
+- NEVER invoke a skill and then stop - you MUST return to Mother Brain menu after
+- **ALWAYS display on invoke**: `🔧 [skill-name] activated`
+- **ALWAYS display on return**: `✅ [skill-name] complete`
+- **MANDATORY RESUME**: After any skill completes, Mother Brain MUST resume exactly where it left off:
+  - If in the middle of a task → continue the task
+  - If gathering requirements → continue gathering
+  - If in a menu → return to that menu
+  - Track the step you were on BEFORE invoking the skill and return to it
+
+### RULE 5: VISIBLE LEARNING CONFIRMATIONS
+- When preferences are noted or learnings are recorded, ALWAYS display:
+  - `📘 Project Brain will remember this` (for project-specific learnings)
+  - `🧠 Mother Brain will remember this` (for process improvements)
+- Even when user selects from menu options (not just freeform), note significant preferences
+- This makes learning visible to the user - they should SEE their input being captured
+
+### RULE 6: TRIGGER CHILD BRAIN ON FREEFORM
+- **ANY freeform user response = IMMEDIATELY invoke Child Brain**
+- Don't wait for explicit friction - preferences and hints are learning opportunities
+- If user typed text instead of selecting an option → invoke Child Brain FIRST
+- After Child Brain completes, continue with whatever Mother Brain was doing
+- Trigger keywords to watch for: "I prefer", "I like", "actually", "instead", "maybe", "what about"
+
+### RULE 7: SELF-CHECK
+- If you're about to do something NOT in the Steps section → STOP
+- If you're about to ask the user something without `ask_user` → STOP
+- If you've completed an action but have no menu to show → STOP and return to Step 2
+
+---
+
+## ⚠️ CRITICAL EXECUTION INSTRUCTIONS
 
 **YOU MUST follow the Steps section EXACTLY as written. Do not improvise, skip steps, or invent your own workflow.**
 
@@ -22,6 +76,12 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 3. **Use `ask_user` for ALL choices** - Never ask questions as plain text
 4. **Execute tool calls as specified** - When a step says "use X tool", use that exact tool
 5. **Do not summarize or paraphrase** - Display the exact text templates shown in steps
+6. **NEVER leave user in freeform** - After completing ANY action (release, task, review, etc.), ALWAYS return to the appropriate menu. User should always have clear next options, never an empty prompt waiting for input.
+7. **MANDATORY VERSION CHECK ON STARTUP** - Before showing ANY menu, you MUST check for updates:
+   ```powershell
+   npm view mother-brain version --json 2>$null
+   ```
+   Compare against local version in `.mother-brain/version.json` or `cli/package.json`. If a newer version exists, notify the user BEFORE proceeding. This is NOT optional - skipping this check is a violation.
 
 **If you find yourself doing something NOT described in the Steps section below, STOP and return to the documented workflow.**
 
@@ -343,7 +403,32 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ### 2. **Detect Project State & Show Progress**
    
-   **🧬 META-MODE DETECTION (FIRST CHECK - BEFORE EVERYTHING)**:
+   **🚨 MANDATORY VERSION CHECK (FIRST - BEFORE ANYTHING ELSE)**:
+   - This check is NON-NEGOTIABLE. Do this BEFORE any other detection.
+   - Run version check:
+     ```powershell
+     npm view mother-brain version --json 2>$null
+     ```
+   - Compare against:
+     - If in framework repo: `cli/package.json` version field
+     - If in project: `.mother-brain/version.json` version field
+   - **If newer version exists**:
+     ```
+     ⚠️ Mother Brain Update Available
+     
+     Installed: v[current]
+     Latest: v[npm version]
+     
+     Update recommended before continuing.
+     ```
+     - Use `ask_user` with choices:
+       - "Update now (recommended)"
+       - "Skip this time"
+     - **If "Update now"**: Run auto-update (see update commands below), then continue
+     - **If "Skip"**: Continue but note version mismatch
+   - **If current or check fails**: Continue silently
+   
+   **🧬 META-MODE DETECTION (AFTER VERSION CHECK)**:
    - Detect if we are IN the Mother Brain framework repo itself:
      1. Check for `cli/` folder with `package.json` containing `"name": "mother-brain"`
      2. Check for `.github/skills/mother-brain/SKILL.md` (this file)

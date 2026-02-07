@@ -12,7 +12,7 @@ import { exec } from 'child_process';
 
 const program = new Command();
 
-const VERSION = '0.0.18';
+const VERSION = '0.0.19';
 
 program
   .name('mother-brain')
@@ -72,7 +72,7 @@ program
     console.log(chalk.white.bold('🚀 Quick Start Guide\n'));
     
     console.log(chalk.yellow('Step 1:') + ' Initialize Mother Brain in your project');
-    console.log(chalk.dim('  npx mother-brain init\n'));
+    console.log(chalk.dim('  npx -y mother-brain init\n'));
     
     console.log(chalk.yellow('Step 2:') + ' Start using it with GitHub Copilot CLI');
     console.log(chalk.dim('  ghcs "/mother-brain"\n'));
@@ -108,8 +108,8 @@ program
     console.log(chalk.dim(`v${VERSION}\n`));
     
     console.log(chalk.white.bold('Getting Started:'));
-    console.log(chalk.green('  npx mother-brain init       ') + 'Add to your project');
-    console.log(chalk.green('  npx mother-brain quickstart ') + 'Show quick start guide\n');
+    console.log(chalk.green('  npx -y mother-brain init       ') + 'Add to your project');
+    console.log(chalk.green('  npx -y mother-brain quickstart ') + 'Show quick start guide\n');
     
     console.log(chalk.white.bold('Commands:'));
     console.log(chalk.green('  init       ') + 'Add Mother Brain skills to project');

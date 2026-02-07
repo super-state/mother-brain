@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/mother-brain.svg)](https://www.npmjs.com/package/mother-brain)
-[![Version](https://img.shields.io/badge/version-0.0.8-blue)](https://github.com/super-state/mother-brain/releases)
+[![Version](https://img.shields.io/badge/version-0.0.18-blue)](https://github.com/super-state/mother-brain/releases)
 
 **Open Source AI Project Management Framework for GitHub Copilot CLI**
 
 Transform your vision into reality with Mother Brain—an intelligent meta-framework that guides AI assistants through vision-driven project execution. Built for developers who want to ship faster with AI-powered automation, research-driven roadmaps, and automatic skill generation.
 
-**Version**: 0.0.8 | **License**: MIT | **Status**: Production Ready
+**Version**: 0.0.18 | **License**: MIT | **Status**: Production Ready
 
 ## Why Mother Brain?
 
@@ -26,7 +26,7 @@ Transform your vision into reality with Mother Brain—an intelligent meta-frame
 
 ```bash
 # In your project directory
-npx mother-brain init
+npx -y mother-brain init
 ```
 
 This adds the Mother Brain skills to your project's `.github/skills/` folder.
@@ -49,14 +49,14 @@ Mother Brain will guide you through:
 ## CLI Commands
 
 ```bash
-npx mother-brain init       # Add Mother Brain to your project
-npx mother-brain update     # Update to the latest version
-npx mother-brain status     # Check installed version
-npx mother-brain analyze    # Analyze skills and suggest improvements
-npx mother-brain upgrade    # Apply improvements to skills
-npx mother-brain uninstall  # Remove Mother Brain from project
-npx mother-brain docs       # Open documentation
-npx mother-brain quickstart # Show quick start guide
+npx -y mother-brain init       # Add Mother Brain to your project
+npx -y mother-brain update     # Update to the latest version
+npx -y mother-brain status     # Check installed version
+npx -y mother-brain analyze    # Analyze skills and suggest improvements
+npx -y mother-brain upgrade    # Apply improvements to skills
+npx -y mother-brain uninstall  # Remove Mother Brain from project
+npx -y mother-brain docs       # Open documentation
+npx -y mother-brain quickstart # Show quick start guide
 ```
 
 ## Features
@@ -80,7 +80,7 @@ Mother Brain isn't just a tool—it's a **thinking partner** for your AI develop
 
 ## Project Structure
 
-After running `npx mother-brain init`, your project will have:
+After running `npx -y mother-brain init`, your project will have:
 
 ```
 your-project/
@@ -116,7 +116,7 @@ your-project/
 When a new version is available, Mother Brain will notify you on startup. Update with:
 
 ```bash
-npx mother-brain update
+npx -y mother-brain update
 ```
 
 ## Removing Mother Brain
@@ -124,8 +124,8 @@ npx mother-brain update
 To remove Mother Brain from your project:
 
 ```bash
-npx mother-brain uninstall        # Remove core skills, keep docs
-npx mother-brain uninstall --all  # Remove everything including docs
+npx -y mother-brain uninstall        # Remove core skills, keep docs
+npx -y mother-brain uninstall --all  # Remove everything including docs
 ```
 
 ## License

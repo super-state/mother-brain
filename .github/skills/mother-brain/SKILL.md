@@ -253,6 +253,8 @@ Mother Brain transforms high-level visions into executable reality by:
 - **ROADMAP CHECKBOX UPDATE (MANDATORY)**: After EVERY task is marked complete, IMMEDIATELY update roadmap.md to check off that task's checkbox (`[ ]` → `[x]`). This is NOT optional and NOT deferred. Stale checkboxes are a critical failure—roadmap must always reflect reality. Use `edit` tool to update the specific task line in roadmap.md right after user confirms task completion.
 - **END-TO-END WALKTHROUGH FOR NEW INTEGRATIONS**: After implementing a new integration or feature (especially cross-tool like CLI→Codex, API→frontend), proactively walk the user through how to use it end-to-end BEFORE marking the task complete. Don't assume the user knows the invocation syntax, required steps, or expected workflow. Show concrete commands and expected output.
 - **RESEARCH ALL INVOCATION METHODS**: When integrating with a platform (Codex CLI, Copilot CLI, etc.), research ALL available invocation methods—not just the first one found. Platforms often have multiple systems (skills vs prompts vs commands). Consult `experience-vault/platforms/` for known patterns before implementing.
+- **AGENT RUNTIME CONTEXT IN ISSUES**: When documenting friction, bugs, or improvements, always note the agent runtime (e.g., "Copilot CLI + Claude Sonnet", "Codex CLI + GPT-5"). Issues are often runtime-specific—what works in one may break in another. This context is essential for reproducing and scoping fixes.
+- **EMOJI AS ENHANCEMENT, NOT IDENTIFIER**: Emoji rendering varies across agent runtimes and models. Always include text labels alongside emoji markers (e.g., "🧠 Mother Brain" not just "🧠"). Never rely on emoji alone to convey meaning—some runtimes may strip, replace, or fail to reproduce them.
 - **VERIFICATION OVER TRUST**: When user completes a setup/configuration step that CAN be programmatically verified, ALWAYS verify before proceeding. Don't trust "done" when verification is possible. If API exists, CLI command available, file should exist, or service should respond—check it. Verification methods: API calls, CLI commands, file existence checks, service health endpoints, build artifact validation. If verification fails, guide user to fix the specific gap. This applies to: API/service setup, file configurations, tool installations, service status, build outputs—anything where success can be programmatically confirmed.
 
 ### Output Formatting Rules (CRITICAL)
@@ -3270,6 +3272,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
         - "Any examples or references I should look at?"
         - "Any specific conventions or requirements?"
       - Store answers in Project Brain AND use them for skill creation
+      - **Note**: For broader preference discovery beyond skills (layout, interaction patterns, UX choices), see **Step 9.1: Mini Discovery**
    
    5. **Skill Creation/Enhancement** (if needed):
       - Research the domain (web_search for best practices)
@@ -3302,7 +3305,84 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    ```
    
    ---
-   
+
+   **Step 9.1: Mini Discovery (On-Demand Preference Check)**
+
+   Mini Discovery is a lightweight discovery phase that triggers MID-BUILD when Mother Brain identifies it knows the OUTCOME but not the SPECIFICS of how the user wants it delivered. It's like a focused version of Vision Discovery (Step 3) that happens during task execution.
+
+   **When to Trigger (ANY of these):**
+   - Task involves **user-facing output** (UI, content, messaging, branding) and Project Brain has no style preferences for this category
+   - Task has **multiple valid approaches** and user hasn't indicated preference (e.g., modal vs page, tabs vs accordion, dark vs light)
+   - Task involves **creative/aesthetic choices** (color, layout, tone, personality)
+   - Task requires **workflow/interaction design** (how will users actually USE this feature?)
+   - Mother Brain catches itself about to **guess or assume** specifics the user hasn't specified
+
+   **When to SKIP:**
+   - Technical infrastructure (CI/CD, database migrations, dependency installs)
+   - Bug fixes with clear reproduction steps and expected behavior
+   - Tasks where Project Brain already has documented preferences for this category
+   - Tasks where the user explicitly said "just make it work, I'll refine later"
+
+   **Mini Discovery Process:**
+
+   1. **Identify the Unknowns** — List what you DON'T know:
+      ```
+      🔍 Mini Discovery — Task [Number]
+
+      I know the goal: [outcome]
+      But I need to understand:
+      - [Unknown 1: e.g., "How should the settings page be laid out?"]
+      - [Unknown 2: e.g., "What tone should error messages use?"]
+      - [Unknown 3: e.g., "Should this be a modal or a full page?"]
+      ```
+
+   2. **Ask Targeted Questions** — NOT open-ended. Offer concrete options:
+      ```
+      For [unknown], which approach do you prefer?
+      1. [Option A] — [brief description/tradeoff]
+      2. [Option B] — [brief description/tradeoff]
+      3. [Option C] — [brief description/tradeoff]
+      
+      Reply with the number or describe what you have in mind.
+      ```
+      - Ask 1-3 questions max per Mini Discovery (don't overwhelm)
+      - Show visual examples or references when possible
+      - If user says "you decide" → pick the most common/conventional approach and note it in Project Brain
+
+   3. **Research if Needed** — If user references something unfamiliar:
+      - Use `web_search` to find examples, patterns, or best practices
+      - Show user what you found: "Here's what [reference] looks like — is this the direction?"
+
+   4. **Record Discoveries** — Update Project Brain with new preferences:
+      - Add to Style & Tone section
+      - Add to Validation Checks if applicable
+      - Update vision doc if discoveries reveal scope changes
+
+   5. **Expand Roadmap if Needed** — If Mini Discovery reveals:
+      - The task is bigger than estimated → split into sub-tasks
+      - A prerequisite is missing → add it before current task
+      - A new feature emerged from discussion → add to roadmap backlog
+      - Display: "📋 Roadmap updated with [X] new items from Mini Discovery"
+
+   6. **Build/Update Skills** — If discoveries reveal domain knowledge:
+      - Create or update skills with user preferences
+      - These skills now carry the user's specific choices for future tasks
+
+   **Display at Mini Discovery start:**
+   ```
+   🔍 Mini Discovery — before I build this, let me understand what you're looking for...
+   ```
+
+   **Display at Mini Discovery end:**
+   ```
+   ✅ Mini Discovery complete — proceeding with implementation
+   📘 Project Brain updated with [X] new preferences
+   ```
+
+   **KEY PRINCIPLE**: The goal is to understand HOW the user will experience the outcome, not just WHAT the outcome is. A login page can be minimal or elaborate, friendly or corporate, social-login-first or email-first — Mini Discovery captures these specifics so Mother Brain builds what the user actually envisioned.
+
+   ---
+
    - **Pre-Task Analysis** (after gate passes):
      - Load current task document
      - Look ahead at next 3-5 tasks in current phase

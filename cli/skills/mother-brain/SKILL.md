@@ -1492,8 +1492,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Find `**Version**: X.X.X` text and replace with new version
    - **Verify all files updated before proceeding**
    
-   **Step 2D.4: Sync Skills to CLI**
-   - Copy `.github/skills/*` to `cli/skills/` (overwrite)
+   **Step 2D.4: Sync Skills to CLI and Agents**
+   - Copy `.github/skills/*` to `cli/skills/` (overwrite) — for npm package
+   - Verify `.agents/skills/` symlinks point to `.github/skills/` — for Codex CLI in framework repo
    
    **Step 2D.5: Build CLI**
    - Run `cd cli && npm run build`
@@ -2277,17 +2278,18 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Create `.agents/skills/` symlinks for Codex CLI compatibility:
      ```powershell
      # Symlink each core skill so Codex CLI can discover them
-     # Uses 'junction' on Windows (works without admin/dev mode)
+     # Uses relative symlinks (not NTFS junctions) so they survive git clone
+     # Requires core.symlinks=true in git config and Developer Mode on Windows
      $coreSkills = @("mother-brain", "child-brain", "skill-creator")
      foreach ($skill in $coreSkills) {
-       $target = ".github\skills\$skill"
+       $target = "..\..\..\.github\skills\$skill"
        $link = ".agents\skills\$skill"
-       if ((Test-Path $target) -and !(Test-Path $link)) {
-         New-Item -ItemType Junction -Path $link -Target (Resolve-Path $target) -Force
+       if (!(Test-Path $link)) {
+         New-Item -ItemType SymbolicLink -Path $link -Target $target -Force
        }
      }
      ```
-   - **Why symlinks**: Skills live in `.github/skills/` (GitHub Copilot CLI) and are symlinked to `.agents/skills/` (Codex CLI). One source of truth, both CLIs can discover them.
+   - **Why symlinks**: Skills live in `.github/skills/` (source of truth) and are symlinked to `.agents/skills/` (Codex CLI). Relative symlinks survive git clone (unlike NTFS junctions). Falls back to copy if symlinks fail.
    
    - Create initial version tracking:
      ```powershell
@@ -2724,7 +2726,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
          - **Store created skills in `.github/skills/`** (CLI-discoverable location)
          - **Symlink to `.agents/skills/`** for Codex CLI compatibility:
            ```powershell
-           New-Item -ItemType Junction -Path ".agents\skills\[skill-name]" -Target (Resolve-Path ".github\skills\[skill-name]") -Force
+           $relTarget = "..\..\.github\skills\[skill-name]"
+           New-Item -ItemType SymbolicLink -Path ".agents\skills\[skill-name]" -Target $relTarget -Force
            ```
          - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
@@ -4056,9 +4059,9 @@ project-root/
 │       └── [project-skill-2]/        # Project-specific (tracked in session-state.json)
 ├── .agents/
 │   └── skills/                       # Symlinks to .github/skills/ (Codex CLI compatibility)
-│       ├── mother-brain/ → ../.github/skills/mother-brain/
-│       ├── child-brain/  → ../.github/skills/child-brain/
-│       └── skill-creator/ → ../.github/skills/skill-creator/
+│       ├── mother-brain/ → ../../.github/skills/mother-brain/
+│       ├── child-brain/  → ../../.github/skills/child-brain/
+│       └── skill-creator/ → ../../.github/skills/skill-creator/
 ├── src/                              # Source code (standard structure)
 ├── tests/                            # Tests (standard structure)
 ├── README.md                         # Project overview
@@ -4066,7 +4069,7 @@ project-root/
 ```
 
 **Key Principles:**
-- **Dual CLI Compatibility**: Skills live in `.github/skills/` (GitHub Copilot CLI) and are symlinked to `.agents/skills/` (Codex CLI). One source of truth, both CLIs discover them.
+- **Dual CLI Compatibility**: Skills live in `.github/skills/` (GitHub Copilot CLI, source of truth) and are symlinked to `.agents/skills/` (Codex CLI). Relative symlinks survive git clone (unlike NTFS junctions). Falls back to copy if symlinks fail.
 - **Skill Tracking**: `session-state.json` tracks which skills are project-specific via `skillsCreated` array
 - **Easy Ejection**: Delete skills listed in `skillsCreated`, keep core framework skills
 - **Isolated Docs**: Project documentation in `.mother-brain/docs/` (separate from project code)

@@ -12,7 +12,7 @@ import { exec } from 'child_process';
 
 const program = new Command();
 
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 
 program
   .name('mother-brain')

@@ -101,36 +101,33 @@ export async function init(options: InitOptions = {}): Promise<void> {
   console.log(chalk.green('Created .mother-brain/ for project state\n'));
 
   // Create .agents/skills/ symlinks for Codex CLI compatibility
-  await fs.ensureDir(path.join(cwd, '.agents', 'skills'));
-  let symlinkCount = 0;
+  // Uses relative symlinks (not NTFS junctions) so they survive git clone
+  await fs.ensureDir(agentsSkillsDir);
+  let linkedCount = 0;
   for (const skill of coreSkills) {
-    const target = path.join(skillsDir, skill);
+    const source = path.join(skillsDir, skill);
     const link = path.join(agentsSkillsDir, skill);
-    if (await fs.pathExists(target)) {
+    // Relative path from .agents/skills/ to .github/skills/
+    const relTarget = path.join('..', '..', '.github', 'skills', skill);
+    if (await fs.pathExists(source)) {
+      const exists = await fs.pathExists(link);
+      if (exists && !options.force) {
+        continue;
+      }
+      if (exists) {
+        await fs.remove(link);
+      }
       try {
-        // Remove existing symlink or directory before creating
-        if (await fs.pathExists(link)) {
-          const stat = await fs.lstat(link);
-          if (stat.isSymbolicLink()) {
-            await fs.remove(link);
-          } else if (!options.force) {
-            console.log(chalk.yellow(`  ⚠ .agents/skills/${skill} exists (not a symlink, skipping)`));
-            continue;
-          } else {
-            await fs.remove(link);
-          }
-        }
-        await fs.symlink(target, link, 'junction');
-        symlinkCount++;
-      } catch (err: any) {
-        // Symlink may fail on Windows without dev mode; fall back to copy
-        console.log(chalk.yellow(`  ⚠ Symlink failed for ${skill}, copying instead`));
-        await fs.copy(target, link, { overwrite: true });
-        symlinkCount++;
+        await fs.symlink(relTarget, link, 'dir');
+        linkedCount++;
+      } catch {
+        // Symlink failed (Windows without Developer Mode) — fall back to copy
+        await fs.copy(source, link, { overwrite: true });
+        linkedCount++;
       }
     }
   }
-  if (symlinkCount > 0) {
-    console.log(chalk.green(`Linked ${symlinkCount} skill(s) to .agents/skills/ (Codex CLI compatible)`));
+  if (linkedCount > 0) {
+    console.log(chalk.green(`Linked ${linkedCount} skill(s) to .agents/skills/ (Codex CLI compatible)`));
   }
 }

@@ -99,30 +99,22 @@ export async function update(): Promise<void> {
     console.log(chalk.dim('Don\'t forget to commit the updated files.\n'));
 
     // Refresh .agents/skills/ symlinks for Codex CLI compatibility
-    if (await fs.pathExists(agentsSkillsDir)) {
-      for (const skill of coreSkills) {
-        const target = path.join(skillsDir, skill);
-        const link = path.join(agentsSkillsDir, skill);
-        if (await fs.pathExists(target)) {
-          try {
-            if (await fs.pathExists(link)) {
-              const stat = await fs.lstat(link);
-              if (stat.isSymbolicLink()) {
-                // Symlink already points to updated source — nothing to do
-                continue;
-              }
-              // Not a symlink (was a copy fallback) — re-copy
-              await fs.copy(target, link, { overwrite: true });
-            } else {
-              await fs.symlink(target, link, 'junction');
-            }
-          } catch {
-            await fs.copy(target, link, { overwrite: true });
-          }
+    // Symlinks point to .github/skills/ so they auto-update when source changes
+    // Only recreate if missing (symlinks don't need refresh since they're pointers)
+    await fs.ensureDir(agentsSkillsDir);
+    for (const skill of coreSkills) {
+      const source = path.join(skillsDir, skill);
+      const link = path.join(agentsSkillsDir, skill);
+      const relTarget = path.join('..', '..', '.github', 'skills', skill);
+      if (await fs.pathExists(source) && !await fs.pathExists(link)) {
+        try {
+          await fs.symlink(relTarget, link, 'dir');
+        } catch {
+          await fs.copy(source, link, { overwrite: true });
         }
       }
-      console.log(chalk.green('Refreshed .agents/skills/ (Codex CLI compatible)'));
     }
+    console.log(chalk.green('Verified .agents/skills/ (Codex CLI compatible)'));
     
   } catch (error) {
     console.log(chalk.red('Failed to download update.'));

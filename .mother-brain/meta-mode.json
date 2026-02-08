@@ -1,11 +1,7 @@
 {
-  "workLog": [
-    {
-      "action": "Added Codex CLI support via .agents/skills/ symlinks",
-      "timestamp": "2026-02-08T12:32:10.7454664Z"
-    }
-  ],
-  "focus": "Add Codex CLI compatibility",
-  "startedAt": "2026-02-08T12:13:32.1460477Z",
-  "metaMode": true
+  "lastSession": "2026-02-08T12:43:08.7190678+00:00",
+  "lastRelease": "v0.4.0",
+  "metaMode": true,
+  "startedAt": "2026-02-08T12:43:08.7185335+00:00",
+  "focus": null
 }

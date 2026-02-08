@@ -668,9 +668,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Improve documentation"
      - "Refactor or clean up code"
      - "📥 Review community improvements"
+     - "💭 Brainstorm (thinking partner mode)"
      - "Continue previous meta-work"
    
    - **If "Review community improvements"**: Jump to **Step 2A.2: Review Community Improvements**
+   - **If "Brainstorm"**: Jump to **Step 2E: Brainstorm Mode** (framework-focused version)
    
    **Step 2.3.2: Track Meta-Work**
    - Update `.mother-brain/meta-mode.json` with focus:
@@ -2189,19 +2191,33 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      
      **Step 5.4.1: Technology Pitfalls & Gotchas Research (MANDATORY)**
      - For EACH technology/platform/tool identified in vision or research:
+       
+       **First, check Elder Brain (experience-vault/) for existing knowledge:**
+       - Use grep to search: `grep -r "[technology]" experience-vault/`
+       - If gotchas exist in Elder Brain:
+         - Load the relevant .md files
+         - Use this knowledge to inform skill creation
+         - No need to re-research what's already known
+       
+       **If NOT in Elder Brain, research and contribute:**
        - Use `web_search` to research:
-         1. "common [technology] mistakes and pitfalls"
+         1. "common [technology] mistakes and pitfalls [current year]"
          2. "[technology] gotchas first-time users encounter"
          3. "[technology] troubleshooting guide"
          4. "[technology] deployment issues and solutions" (if applicable)
-       - Save findings to `.mother-brain/docs/research/[technology]-gotchas.md`
+       - Save findings to BOTH:
+         1. `.mother-brain/docs/research/[technology]-gotchas.md` (project-specific)
+         2. `experience-vault/[category]/[technology].md` (for all future projects)
        - Document:
          - **Common Mistakes**: What do beginners get wrong?
          - **Setup Traps**: First-time setup issues (permissions, configuration, prerequisites)
          - **Known Failures**: Transient errors vs real failures
          - **Workarounds**: Standard solutions to known problems
+       
+       **Result:**
        - This research gets embedded in skills created for this technology
        - Skills become defensive, anticipating known issues instead of only happy-path
+       - Future projects benefit immediately from Elder Brain knowledge
      
      **Step 5.5: Extract Technical Insights from Research**
      - Parse research results to identify:
@@ -2417,13 +2433,46 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - **Create Initial 3 Skills** (Upfront - minimum viable skill set):
        - Display: "🔨 Creating initial 3 skills for project..."
        - Select 3 most critical skills from essential list (based on immediate MVP needs)
+       
+       - **CHECKPOINT: Consult Elder Brain for Each Skill**
+         - Before invoking skill-creator for each skill:
+           1. Identify domains/technologies this skill will work with
+              - Example: "firebase-deployer" → Firebase, deployment
+           2. Check Elder Brain for related knowledge:
+              ```powershell
+              grep -r "Firebase" experience-vault/
+              grep -r "deployment" experience-vault/
+              ```
+           3. If gotcha files found:
+              - Load content from experience-vault/
+              - Prepare Elder Brain context for skill-creator
+           4. If no gotchas found:
+              - Note this for later research during task execution
+       
        - For each of the 3 initial skills:
          - Show progress: "Creating [skill-name]..."
-         - Invoke skill-creator with context from research findings:
-           - Role/pattern/need from Step 5 analysis
-           - Relevant gotchas research from Step 5.4.1 (if skill involves specific technology)
-           - Example: "firebase-deployer skill should include gotchas about permission propagation, environment config, console prerequisites"
-         - Let skill-creator run its wizard with gotchas knowledge
+         - Invoke skill-creator with THREE knowledge sources:
+           1. **Research findings** from Step 5 analysis (role/pattern/need)
+           2. **Gotchas research** from Step 5.4.1 (project-specific research)
+           3. **Elder Brain knowledge** (cross-project domain wisdom)
+         - Example context for skill-creator:
+           ```
+           Skill: firebase-deployer
+           
+           From Research (Step 5):
+           - Role: DevOps automation
+           - Pattern: Deployment with retry logic
+           
+           From Gotchas Research (Step 5.4.1):
+           - Firebase CLI auth expires after 7 days
+           - Large deployments may timeout
+           
+           From Elder Brain (experience-vault/):
+           - Firebase Auth needs Console click-through first
+           - Environment variables need both dashboard + .env.production
+           - Authorized domains must be configured for production
+           ```
+         - Let skill-creator run its wizard with all three knowledge sources
          - **Store created skills in `.github/skills/`** (CLI-discoverable location)
          - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
@@ -2632,6 +2681,52 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      **Post-MVP Tasks**: [Count - subject to change based on feedback]  
      **Estimated Timeline**: [From vision document]
      ```
+   
+   **Step 7.3.5: CHECKPOINT - Review Roadmap Against Elder Brain**
+   - **Purpose**: Surface known pitfalls for the tech stack BEFORE task execution begins
+   
+   - For EACH technology/platform identified in roadmap tasks:
+     1. Extract tech mentions from task descriptions
+        - Example: "Set up Firebase Auth" → Firebase, Authentication
+        - Example: "Deploy to Vercel" → Vercel, Deployment
+        - Example: "Create React components" → React, UI
+     
+     2. Check Elder Brain for relevant gotchas:
+        ```powershell
+        grep -ri "Firebase" experience-vault/
+        grep -ri "Vercel" experience-vault/
+        grep -ri "React" experience-vault/
+        ```
+     
+     3. For EACH gotcha file found:
+        - Load content from experience-vault/
+        - Identify which roadmap tasks are affected
+        - Add defensive note to those task descriptions
+     
+     4. Example transformation:
+        ```markdown
+        # BEFORE Elder Brain check:
+        - [ ] Task 003: Set up Firebase Authentication
+        
+        # AFTER Elder Brain check:
+        - [ ] Task 003: Set up Firebase Authentication
+             ⚠️ Prerequisites: Enable Auth in Firebase Console first
+             📚 See: experience-vault/platforms/firebase-auth.md
+        ```
+     
+     5. If NO Elder Brain knowledge exists for a technology:
+        - Note this in Project Brain for future contribution
+        - Expect to research during task execution
+   
+   - Display:
+     ```
+     🧙 Elder Brain consulted
+     - [X] technologies checked
+     - [Y] known gotchas surfaced in roadmap
+     ```
+   
+   - Update roadmap.md with Elder Brain references
+   - This makes pitfalls visible BEFORE tasks start, not during failures
    
    **Step 7.4: Display Roadmap Summary** (No Approval Required)
      - Show roadmap structure to user (for transparency, not approval)
@@ -2856,6 +2951,43 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
       - What creative/visual/narrative elements does this task involve?
       - What domain knowledge is required?
       - What style/tone preferences apply?
+      - **What technologies/platforms does this task use?** (for Elder Brain check)
+   
+   2.5. **CHECKPOINT: Consult Elder Brain for This Task**
+      - Extract technology/platform mentions from task:
+        - Task title: "Set up Firebase Auth" → Firebase, Authentication
+        - Task description: "Deploy React app to Vercel" → React, Vercel, Deployment
+        - Task deliverables: "PostgreSQL schema" → PostgreSQL, Database
+      
+      - For EACH technology identified:
+        ```powershell
+        grep -ri "[technology]" experience-vault/
+        ```
+      
+      - If gotcha files found:
+        1. Load content from experience-vault/
+        2. Display relevant gotchas to Mother Brain (for awareness)
+        3. Apply defensive patterns automatically during execution
+        
+        Example:
+        ```
+        🧙 Elder Brain: Firebase Auth
+        
+        Known gotchas for this task:
+        - Firebase Auth requires Console click-through before API works
+        - Environment variables need both dashboard + .env.production
+        - Authorized domains required for production
+        
+        Applying defensive patterns:
+        ✓ Will verify Console setup before implementing
+        ✓ Will check for .env.production file
+        ✓ Will add domain authorization to task checklist
+        ```
+      
+      - If NO gotchas found:
+        - Note: "No Elder Brain knowledge for [technology]"
+        - Expect to research during execution if issues arise
+        - Plan to contribute back to Elder Brain after task
    
    3. **Skill Sufficiency Check** (CRITICAL):
       - List existing skills in `.github/skills/`
@@ -3010,7 +3142,40 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 ### 9A. **Error Detection & Self-Healing**
    - When errors occur during task execution:
    
-   - **Document the Issue**:
+   - **FIRST: Check Elder Brain for Known Solution**:
+     1. Extract technology/error context from error message:
+        - "Firebase permission denied" → Firebase, permissions
+        - "Vercel build failed: env var undefined" → Vercel, environment variables
+        - "PowerShell directory exists error" → PowerShell, Windows
+     
+     2. Search Elder Brain for this pattern:
+        ```powershell
+        grep -ri "[technology]" experience-vault/
+        grep -ri "[error keyword]" experience-vault/
+        ```
+     
+     3. If matching gotcha found:
+        ```
+        🧙 Elder Brain: Known Issue Found
+        
+        Pattern: [gotcha title]
+        Location: experience-vault/[category]/[file].md
+        
+        Known Solution:
+        [Solution from Elder Brain]
+        
+        Applying fix...
+        ```
+        - Apply the documented solution immediately
+        - Skip root cause analysis (already known)
+        - Resume task execution
+        - DONE - no further steps needed
+     
+     4. If NO Elder Brain knowledge:
+        - Continue to root cause analysis below
+        - Plan to contribute solution to Elder Brain after fixing
+   
+   - **Document the Issue** (if NOT in Elder Brain):
      - What broke (error message, unexpected behavior)
      - What was being attempted
      - What the expected outcome was
@@ -3020,6 +3185,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Was it a task definition issue? (unclear instructions)
      - Was it a Mother Brain issue? (missing step, wrong assumption)
      - Was it an environment issue? (dependencies, configuration)
+     - **Was it a known domain gotcha?** (technology-specific pattern)
    
    - **Log & Learn**:
      - Add entry to `docs/learning-log.md`:
@@ -3030,14 +3196,21 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        **Root Cause**: [Why it happened]
        **Fix Applied**: [How it was resolved]
        **Prevention**: [What to update to prevent recurrence]
+       **Elder Brain Contribution**: [If domain gotcha, note for contribution]
        ```
    
    - **Self-Correction**:
      - Use `ask_user` with choices:
+       - "Contribute to Elder Brain (domain gotcha)"
        - "Update [affected skill] to prevent this"
        - "Update Mother Brain process"
        - "Update task definition"
        - "Just fix it this time (one-off issue)"
+     
+     - If "Contribute to Elder Brain":
+       - Invoke Child Brain to route the learning
+       - Child Brain will create Elder Brain entry
+       - Display: `🧙 Elder Brain will remember this`
      
      - If updating skill/Mother Brain:
        - Jump to **Step 2A: Update Mother Brain** (if Mother Brain issue)

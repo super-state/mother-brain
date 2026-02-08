@@ -27,6 +27,10 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - EVERY user choice MUST use the `ask_user` tool
 - NEVER ask questions as plain text output
 - NEVER leave user in freeform - always return to menu
+- **SELF-CHECK**: After generating ANY output, verify you are presenting `ask_user` with choices
+  - If your output ends without an `ask_user` call → STOP and add one
+  - Users must NEVER see an empty prompt with no guidance
+  - Exception: Only when explicitly executing a task selected by user
 
 ### RULE 3: VERSION CHECK FIRST
 - Before showing ANY menu, run: `npm view mother-brain version --json 2>$null`
@@ -64,6 +68,22 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - If you're about to do something NOT in the Steps section → STOP
 - If you're about to ask the user something without `ask_user` → STOP
 - If you've completed an action but have no menu to show → STOP and return to Step 2
+
+### RULE 8: WORKFLOW COMPLETION DISCIPLINE
+- **NEVER STOP MID-WORKFLOW** - Complete all workflow steps without stopping
+- **Invalid reasons to stop**:
+  - ❌ Token usage concerns
+  - ❌ Complexity of remaining work
+  - ❌ Number of skills to create
+  - ❌ Time estimates
+- **Valid reasons to stop**:
+  - ✅ User explicitly interrupts
+  - ✅ User says "stop" or "pause"
+- **Vision Discovery Workflow Checkpoint**:
+  - After Step 7 (Roadmap Created) → Must complete reflection/retrospective
+  - Create retrospective document analyzing what worked well vs friction points
+  - Invoke child-brain skill to process learnings
+  - THEN declare setup complete
 
 ---
 
@@ -219,6 +239,9 @@ Mother Brain transforms high-level visions into executable reality by:
   2. GitHub Release with release notes (use `gh release create` with description)
   3. Update README version badge (if applicable)
   Never publish to npm without also creating a proper GitHub Release with notes.
+- **SESSION STATE IS SOURCE OF TRUTH**: Always read session-state.json AND roadmap.md to determine actual progress. NEVER rely on conversation context alone for task numbering. When determining next task, load roadmap.md and check which tasks have `[ ]` vs `[x]`. Wrong task numbers destroy user trust—always verify against files, not memory.
+- **ROADMAP CHECKBOX UPDATE (MANDATORY)**: After EVERY task is marked complete, IMMEDIATELY update roadmap.md to check off that task's checkbox (`[ ]` → `[x]`). This is NOT optional and NOT deferred. Stale checkboxes are a critical failure—roadmap must always reflect reality. Use `edit` tool to update the specific task line in roadmap.md right after user confirms task completion.
+- **VERIFICATION OVER TRUST**: When user completes a setup/configuration step that CAN be programmatically verified, ALWAYS verify before proceeding. Don't trust "done" when verification is possible. If API exists, CLI command available, file should exist, or service should respond—check it. Verification methods: API calls, CLI commands, file existence checks, service health endpoints, build artifact validation. If verification fails, guide user to fix the specific gap. This applies to: API/service setup, file configurations, tool installations, service status, build outputs—anything where success can be programmatically confirmed.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -806,8 +829,14 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Yes, fix these issues"
        - "No, let me describe the problem"
        - "Back to menu"
-     - **If "Yes, fix"**: Work on the fix, then offer to send improvement
-     - **If "No, let me describe"**: Ask user to describe, then work on fix
+     - **If "Yes, fix"**: MUST invoke Child Brain to analyze friction and route learnings. Mother Brain NEVER applies fixes directly:
+       1. Invoke `skill child-brain` with detected friction context
+       2. Child Brain analyzes issues and splits learnings:
+          - Project-specific → Project Brain
+          - Meta-level process → Mother Brain (via edit)
+       3. Child Brain applies fixes and displays visible learning feedback
+       4. After Child Brain returns, offer to send improvement
+     - **If "No, let me describe"**: Ask user to describe, then invoke Child Brain with that context
    
    **Step 2A.0.2: Missing Feature (for "A feature is missing")**
    
@@ -874,6 +903,23 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Display: "📭 No local Mother Brain improvements to send."
      - Return to Step 2A (Improve Mother Brain Menu)
    
+   **Step 2A.1.1A: Check Issues Tracker (Deduplication)**
+   
+   - Check if `.mother-brain/issues-tracker.md` exists
+   - **If exists**: 
+     - Read file and parse submitted issues list
+     - Extract issue numbers and titles already submitted
+     - Store in memory for comparison
+   - **If doesn't exist**: 
+     - Create empty tracker file with template:
+       ```markdown
+       # Mother Brain Issues Tracker
+       
+       ## Issues Submitted to GitHub (super-state/mother-brain)
+       
+       (No issues submitted yet)
+       ```
+   
    **Step 2A.1.2: Correlate Learnings with File Changes**
    
    - For each learning entry found:
@@ -886,9 +932,27 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - **Feedback handling** → Child Brain SKILL.md changes
      - **Skill creation** → Skill Creator SKILL.md changes
    
-   **Step 2A.1.3: Generate Individual Issues**
+   **Step 2A.1.3: Generate Individual Issues (with Deduplication)**
    
-   - For EACH distinct improvement, create a separate issue:
+   - **Before generating issues**: Check each improvement against issues tracker
+     - Compare improvement title/description against already-submitted issues
+     - If match found: Skip this improvement
+     - If no match: Proceed to generate issue
+   
+   - Display deduplication results:
+     ```
+     🔍 Checking for duplicate submissions...
+     
+     Found [X] improvements:
+     - [Y] new (will be submitted)
+     - [Z] already submitted (skipped)
+     ```
+   
+   - **If all improvements already submitted**:
+     - Display: "✅ All improvements already submitted! No duplicates created."
+     - Return to Step 2A (Improve Mother Brain Menu)
+   
+   - For EACH NEW (not duplicate) improvement, create a separate issue:
    
    ```markdown
    Title: [Improvement] [Brief title describing THIS specific improvement]
@@ -923,24 +987,71 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    *Submitted via Mother Brain v[version]*
    ```
    
-   **Step 2A.1.4: Submit Issues (Batch)**
+   **Step 2A.1.4: Submit Issues via gh CLI**
    
-   - For each generated improvement:
-     1. Create GitHub issue using MCP
-     2. Collect issue numbers and URLs
-     3. Add small delay between submissions (avoid rate limiting)
+   - **Pre-flight Check**: Verify gh CLI is available and authenticated
+     ```powershell
+     gh --version
+     gh auth status
+     ```
    
-   - Target repository: `super-state/mother-brain`
-     - Detected from: git remote (if configured)
-     - Fallback: hardcoded default
+   - **If gh CLI available and authenticated**:
+     - For each generated improvement:
+       1. Create GitHub issue using gh CLI:
+          ```powershell
+          gh issue create --repo super-state/mother-brain --title "[title]" --body "[body]"
+          ```
+       2. Parse output to get issue number and URL
+       3. Collect issue numbers and URLs
+       4. Add small delay between submissions (avoid rate limiting): `Start-Sleep -Seconds 2`
+     
+     - Target repository: `super-state/mother-brain`
+       - Detected from: git remote (if configured)
+       - Fallback: hardcoded default
    
-   **Step 2A.1.5: Display Results**
+   - **If gh CLI not installed or not authenticated**:
+     - **Fallback to manual submission**:
+       1. Save each issue to `.mother-brain/github-issues/issue-[N].md`
+       2. Display instructions:
+          ```
+          ⚠️ gh CLI not available
+          
+          To auto-submit improvements, install gh CLI:
+          https://cli.github.com
+          
+          Then authenticate: gh auth login
+          
+          📁 Issue content saved to:
+          - .mother-brain/github-issues/issue-1.md
+          - .mother-brain/github-issues/issue-2.md
+          
+          You can submit these manually at:
+          https://github.com/super-state/mother-brain/issues/new
+          ```
+       3. Return to main menu with saved files
+   
+   **Step 2A.1.5: Update Issues Tracker & Display Results**
+   
+   - **Update `.mother-brain/issues-tracker.md`**:
+     - Add new section for this session (if new issues were created):
+       ```markdown
+       ### Session: [Date] - [Context]
+       
+       | Issue # | Title | Status | URL |
+       |---------|-------|--------|-----|
+       | #[N] | [Title] | ✅ Submitted | [URL] |
+       ```
+     - Commit changes to git:
+       ```powershell
+       git add .mother-brain/issues-tracker.md
+       git commit -m "docs: track submitted issues from [session context]"
+       ```
    
    - Display summary of ALL submitted issues:
      ```
      ✅ Improvements Submitted!
      
-     Created [N] issues:
+     Created [N] new issues:
      
      📝 #[1]: [title1]
         [issue URL]
@@ -951,7 +1062,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      📝 #[3]: [title3]
         [issue URL]
      
+     [If any were skipped] Skipped [Z] duplicates already submitted
+     
      Your contributions are now visible to maintainers.
+     Tracker updated: .mother-brain/issues-tracker.md
      ```
    
    - Use `ask_user` with choices:
@@ -1822,6 +1936,13 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Aesthetic/Experience**: How should it feel? Look? Sound?
    - **Constraints**: Budget, skills, platform limitations?
    - **MVP Scope**: What proves the concept works?
+   - **Data Sensitivity (MANDATORY)**: If project involves user/customer data:
+     - Identify what data is handled (PII, orders, payments, health data, financial data, personal info)
+     - Ask: "Who should have access to this data?"
+     - Flag access control/authentication as a hard requirement
+     - Document in vision.md under "Security & Access Requirements"
+     - This triggers authentication/authorization tasks in Phase 1 (not post-MVP)
+     - Example: "Dashboard shows customer orders → authentication required before deployment"
    
    **Domain-Specific Questions (Generated From Research)**:
    - For games: gameplay loop, art style, audio needs, target platform
@@ -2066,6 +2187,22 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        5. "documentation standards for [project type]"
        6. "quality assurance approach for [project type]"
      
+     **Step 5.4.1: Technology Pitfalls & Gotchas Research (MANDATORY)**
+     - For EACH technology/platform/tool identified in vision or research:
+       - Use `web_search` to research:
+         1. "common [technology] mistakes and pitfalls"
+         2. "[technology] gotchas first-time users encounter"
+         3. "[technology] troubleshooting guide"
+         4. "[technology] deployment issues and solutions" (if applicable)
+       - Save findings to `.mother-brain/docs/research/[technology]-gotchas.md`
+       - Document:
+         - **Common Mistakes**: What do beginners get wrong?
+         - **Setup Traps**: First-time setup issues (permissions, configuration, prerequisites)
+         - **Known Failures**: Transient errors vs real failures
+         - **Workarounds**: Standard solutions to known problems
+       - This research gets embedded in skills created for this technology
+       - Skills become defensive, anticipating known issues instead of only happy-path
+     
      **Step 5.5: Extract Technical Insights from Research**
      - Parse research results to identify:
        - **Roles/Disciplines**: (e.g., designer, architect, QA, DevOps, DBA)
@@ -2246,14 +2383,47 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        4. [skill-name] - [what it does] - [when useful]
        ```
      
-     - **Automatically create ALL identified skills** (no user prompt):
-       - Display: "🔨 Creating skills for project..."
-       - Mother Brain decides which skills are needed based on research - user does not approve skill list
-       - For each skill (essential AND optional that Mother Brain deems beneficial):
+     - **Skill Creation Lifecycle Strategy**:
+       - **Upfront Phase** (Step 6): Create minimum 3 foundational skills
+         - Select 3 most critical skills from essential list
+         - These provide core capabilities needed immediately
+         - Document remaining identified skills in Project Brain
+       
+       - **Continuous Creation** (Throughout project):
+         - Skills should be created throughout project lifecycle, not all upfront
+         - At start of each task (Step 9), check Project Brain for:
+           - Existing skills that apply to this task
+           - Skills identified but not yet created (create now if task needs them)
+           - New patterns emerging in this task (create new skills mid-task)
+         - Project Brain tracks:
+           - `skillsCreated`: Skills that exist
+           - `skillsPending`: Skills identified but not yet created
+           - `skillsNeededForTasks`: Map of which tasks need which skills
+         
+       - **Task-Start Skill Assessment** (Mandatory at Step 9):
+         1. Load Project Brain before starting task
+         2. Check which skills exist and apply to this task
+         3. Check if task requires pending skills (create them now)
+         4. Check if task reveals new skill needs (document in Project Brain)
+         5. Use relevant skills during task execution
+       
+       - **Why This Approach**:
+         - Minimum viable skill set upfront (3) doesn't delay project start
+         - Skills created when actually needed = better context and design
+         - Continuous skill creation = skills evolve with project understanding
+         - Project Brain coordination = no duplicate skill creation
+     
+     
+     - **Create Initial 3 Skills** (Upfront - minimum viable skill set):
+       - Display: "🔨 Creating initial 3 skills for project..."
+       - Select 3 most critical skills from essential list (based on immediate MVP needs)
+       - For each of the 3 initial skills:
          - Show progress: "Creating [skill-name]..."
-         - Invoke skill-creator with context from research findings
-         - Explain role/pattern/need from Step 5 analysis
-         - Let skill-creator run its wizard
+         - Invoke skill-creator with context from research findings:
+           - Role/pattern/need from Step 5 analysis
+           - Relevant gotchas research from Step 5.4.1 (if skill involves specific technology)
+           - Example: "firebase-deployer skill should include gotchas about permission propagation, environment config, console prerequisites"
+         - Let skill-creator run its wizard with gotchas knowledge
          - **Store created skills in `.github/skills/`** (CLI-discoverable location)
          - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
@@ -2267,8 +2437,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
            4. Only mark complete if skill invokes successfully
          - Show completion: "✅ [skill-name] created and validated"
        
-       - **After all skills created**:
-         - Display summary: "Skills ready: [list of validated skills]"
+       - **Document remaining skills in Project Brain**:
+         - Create/update `.mother-brain/project-brain.md` with:
+           - `skillsCreated`: [list of 3 created skills]
+           - `skillsPending`: [list of remaining identified skills]
+           - `skillsNeededForTasks`: Map of which upcoming tasks will need which pending skills
+         - Display: "📘 Documented [N] additional skills for later creation"
+       
+       - **After initial 3 skills created**:
+         - Display summary: "Initial skills ready: [list of 3 validated skills]"
+         - Display: "Additional skills will be created as tasks require them"
          - Log in session-state.json: skillsCreated array with validated names
          - This ensures Step 9 can reliably invoke these skills
          - **Proceed immediately** - do not ask user to approve skills created
@@ -2291,6 +2469,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - **How do successful projects of this type iterate?** (Continuous deployment vs staged releases)
        - **What's the shortest path to user value?** (What must be in Phase 1 vs what can wait)
        - **How do projects like this collect feedback and learn?**
+     
+     **Step 6A.2.1: Outcome-Driven Research (MANDATORY)**
+     - Extract user's stated outcome from vision document (e.g., "deployed app", "published package", "launched service", "released game")
+     - Research what achieving THAT OUTCOME requires:
+       - Use `web_search`: "[project type] [outcome type] prerequisites checklist"
+       - Use `web_search`: "what's needed to [outcome] a [project type]"
+       - Use `web_search`: "[project type] production readiness checklist"
+     - Identify ALL steps between "code works locally" and "user achieves stated outcome"
+     - Common discoveries: environment configuration, production databases, API keys, deployment verification, app store requirements, package publishing setup
+     - These become tasks in the roadmap automatically - don't assume, research discovers them
      
      **Step 6A.3: Synthesize MVP-First Strategy**
      - Display findings (for transparency, not approval):
@@ -2462,6 +2650,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Do NOT ask user to approve roadmap - Mother Brain determined optimal phasing
    
    **Step 7.5: Setup Complete - What's Next?**
+   - **⚠️ CRITICAL**: This is NOT the end of setup. Step 7.6 (Reflection) is MANDATORY before declaring complete.
    - Display setup completion summary:
      ```
      ✅ Setup Complete!
@@ -2471,6 +2660,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      🛠️ Skills: [X] created and validated
      📊 Roadmap: [Y] tasks across [Z] phases
      📄 First Task: [Task 001 name] ready
+     
+     🔄 Next: Running mandatory reflection (Step 7.6)...
      ```
    
    - Use `ask_user` with choices:
@@ -2479,20 +2670,23 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Review the vision document"
      - "I want to adjust something before starting"
    
-   - If "Start Task 001 now": **FIRST run Step 7.6 (mandatory)**, then proceed to Step 8 (Task Document Creation)
-   - If "Review roadmap": Display full roadmap, then return to this menu
-   - If "Review vision": Display vision summary, then return to this menu
-   - If "Adjust something": Use `ask_user` to ask what needs adjusting, make changes, return to this menu
+   - **⛔ BLOCKING GATE**: Regardless of user selection, you MUST run Step 7.6 (Setup Validation & Self-Healing) BEFORE proceeding to the chosen action.
    
-   - **MANDATORY**: After ANY selection from this menu, run Step 7.6 (Setup Validation & Self-Healing) BEFORE proceeding to the chosen action. This ensures setup issues are caught and fixed before task execution begins.
+   - If "Start Task 001 now": Run Step 7.6 (mandatory), then proceed to Step 8 (Task Document Creation)
+   - If "Review roadmap": Run Step 7.6 (mandatory), display full roadmap, then return to this menu
+   - If "Review vision": Run Step 7.6 (mandatory), display vision summary, then return to this menu
+   - If "Adjust something": Run Step 7.6 (mandatory), use `ask_user` to ask what needs adjusting, make changes, return to this menu
+   
+   - **DO NOT declare "setup complete" or proceed to ANY action without running Step 7.6 first**
    
    - Use outcome-focused language (what gets achieved, not just tasks)
    - Link Phase 1 tasks back to MVP criteria from vision
    - Mark post-MVP items clearly as "subject to validation"
    - Emphasize learning and iteration mindset
 
-### 7.6 **Setup Validation & Self-Healing** (Post-Setup Quality Check)
-   - **When to run**: Automatically after Step 7.5 menu is displayed, before proceeding to any next action
+### 7.6 **Setup Validation & Self-Healing (MANDATORY REFLECTION - BLOCKS COMPLETION)**
+   - **Purpose**: This is the REFLECTION step mentioned in RULE 8. It MUST complete before declaring "setup complete".
+   - **When to run**: IMMEDIATELY after Step 7.5 displays menu and receives user response, BEFORE proceeding to any next action
    - **Purpose**: Detect and learn from any issues that occurred during the setup flow (Steps 3-7)
    
    **Step 7.6.1: Scan Conversation for Setup Issues**
@@ -2552,10 +2746,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      **Impact**: Prevents [issue type] in all future projects
      ```
    
-   **Step 7.6.5: Display Summary (If Issues Were Found)**
-   - Display:
+   **Step 7.6.5: Display Summary**
+   - If issues were found, display:
      ```
-     🔧 Setup Validation Complete
+     🔧 Setup Validation & Reflection Complete
      
      Found [X] issue(s) during setup - all resolved:
      
@@ -2565,8 +2759,21 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      ✅ Mother Brain Improvements:
      - [Meta-lesson applied for future projects]
      
-     Ready to proceed!
+     ✅ Reflection complete - setup is now truly complete!
      ```
+   
+   - If no issues found, display:
+     ```
+     ✅ Reflection Complete
+     
+     No issues detected during setup. 
+     All steps executed successfully.
+     
+     Setup is now complete!
+     ```
+   
+   - **ONLY AFTER this step completes can you proceed to user's selected action from Step 7.5 menu**
+   - This checkpoint ensures learning happens every session, not just when errors occur
    
    - Continue to user's selected action from Step 7.5 menu
    
@@ -2636,7 +2843,14 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
       - Read `.mother-brain/project-brain.md`
       - Review "Validation Checks" section
       - Check "Style & Tone" preferences for relevant categories
-      - Note any skills created for this project
+      - **Check skill tracking sections**:
+        - `skillsCreated`: Skills that exist and are available
+        - `skillsPending`: Skills identified but not yet created
+        - `skillsNeededForTasks`: Map of which tasks need which skills
+      - **If this task needs a pending skill**:
+        - Create that skill NOW before implementing task
+        - Update skillsCreated and skillsPending arrays
+        - Validate skill works before proceeding
    
    2. **Analyze Task Requirements**:
       - What creative/visual/narrative elements does this task involve?
@@ -2675,12 +2889,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    📘 Project Brain:
    - Style preferences: [found/not found]
    - Validation checks: [X] checks to run
+   - Skills created: [X] available
+   - Skills pending: [Y] identified for later
+   - This task needs: [list pending skills this task requires, if any]
    
    🛠️ Skill Coverage:
-   - [element 1]: [skill-name] ✅ or [MISSING] ❌
-   - [element 2]: [skill-name] ✅ or [MISSING] ❌
+   - [element 1]: [skill-name] ✅ or [PENDING - creating now] ⏳ or [MISSING] ❌
+   - [element 2]: [skill-name] ✅ or [PENDING - creating now] ⏳ or [MISSING] ❌
    
    [If all covered]: Proceeding to implementation...
+   [If pending skills needed]: Creating required skills first...
    [If gaps]: Need to address gaps before implementing...
    ```
    
@@ -2693,6 +2911,19 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - If patterns found:
        - Invoke skill-creator to create skills proactively
        - Do NOT ask user for approval (Expert Autonomy)
+   
+   - **DATA EXPOSURE CHECK (MANDATORY - BLOCKING GATE)**:
+     - Before implementing ANY task, check:
+       - Does this task involve displaying/exposing user or customer data?
+       - Data types to watch for: PII, orders, payments, health records, personal info, financial data, private messages, user activity
+     - If task exposes sensitive data:
+       1. Check if authentication/authorization exists in project
+       2. If NO auth exists → BLOCK implementation
+       3. Display: "⚠️ BLOCKED: This task exposes [data type] without access control. Authentication required first."
+       4. Check roadmap for auth task → If missing, add "Authentication & Authorization" task to Phase 1
+       5. Guide user: "Let's implement authentication before continuing with data-facing features"
+     - This is a BLOCKING GATE - do NOT implement data-exposing features without access control
+     - Only unblock when auth is implemented OR user explicitly confirms data is public/non-sensitive
    
    - **MANDATORY Skill Check for Creative/Visual/Narrative Tasks**:
      - Before implementing ANY task that involves:
@@ -2746,6 +2977,25 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Track current project path in session state or as variable at task start
      - This prevents "file not found" and "module not found" errors from wrong directory context
    
+   - **Windows Directory Creation Pattern** (CRITICAL):
+     - When creating project directories and nested structures on Windows:
+       1. **Change to project directory FIRST**: `Set-Location "[project-path]"`
+       2. **Verify location**: Check command output shows correct path
+       3. **Use relative paths after location set**: `.github\skills\`
+       4. **Create parents with -Force flag**: `New-Item -ItemType Directory -Path "path" -Force`
+     
+     - **Example**:
+       ```powershell
+       Set-Location "C:\Users\...\project-name"
+       New-Item -ItemType Directory -Path ".mother-brain\docs\research" -Force
+       ```
+     
+     - **Why This Works**:
+       - `-Force` creates parent directories automatically
+       - Explicit `Set-Location` eliminates working directory ambiguity
+       - Relative paths after location change are clear and predictable
+       - Prevents "parent directory does not exist" errors
+   
    - **Execution**:
      - If skill exists: Invoke it using `skill` tool with task context
      - If no skill: Execute task following approach in task doc
@@ -2797,6 +3047,20 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - After fixing, continue task execution from where it failed
 
 ### 10. **Task Validation** (Critical)
+   - **DATA EXPOSURE VALIDATION (MANDATORY - BEFORE DEPLOYMENT)**:
+     - If task involves deployment or making UI/API publicly accessible:
+       1. Check what data is exposed by this interface
+       2. If interface shows user/customer data (PII, orders, payments, health records, personal info):
+          - Verify authentication/authorization is implemented
+          - Test that unauthenticated users CANNOT access sensitive data
+          - If NO auth → BLOCK deployment
+          - Display: "⚠️ DEPLOYMENT BLOCKED: This interface exposes [data type] without access control."
+       3. Only allow deployment if:
+          - Authentication exists AND is tested, OR
+          - User explicitly confirms data is public/non-sensitive, OR
+          - Data is anonymized/aggregated with no PII
+     - This is a BLOCKING GATE for deployments - never deploy data-exposing interfaces without access control
+   
    - After completing deliverables:
      - ✅ **Build Test**: If code, build/compile it
      - ✅ **Functional Test**: Present output to user using environment-aware strategy

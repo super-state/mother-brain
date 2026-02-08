@@ -34,16 +34,23 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - ALWAYS present proposed changes with: Accept / Revise / Reject
 - NEVER apply changes without explicit user acceptance
 
-### RULE 4: PAIRED LEARNING
-- Every feedback MUST propose BOTH a Project Brain entry AND a Mother Brain entry
-- Even if one is "no change needed" - show both levels were considered
+### RULE 4: FOUR-LAYER CONSIDERATION
+- Every feedback MUST be analyzed across ALL FOUR layers:
+  1. **Elder Brain**: Is this domain/tech knowledge?
+  2. **Project Brain**: Is this project-specific?
+  3. **Mother Brain**: Is this about thinking process?
+  4. **Skills**: Is execution capability missing?
+- Even if some are "no change needed" - show all layers were considered
+- Display which layers received updates
 
 ### RULE 5: VISIBLE CONFIRMATION
-- After learning is recorded, ALWAYS display:
+- After learning is recorded, ALWAYS display which layers were updated:
+  - `🧙 Elder Brain will remember this` (for domain/tech gotchas)
   - `📘 Project Brain will remember this` (for project learnings)
-  - `🧠 Mother Brain will remember this` (for process learnings)
-- If user selects from menu options that reveal preferences, STILL note it:
-  - `📘 Noted: [preference summary]`
+  - `🧠 Mother Brain will remember this` (for thinking process)
+  - `🛠️ [skill-name] created/updated` (for execution capability)
+- Show "No changes" for layers that weren't updated
+- If user selects from menu options that reveal preferences, STILL note it
 
 ---
 
@@ -51,18 +58,30 @@ Child Brain is the EXPERT at analyzing ALL user feedback - not just errors. It r
 
 ## Purpose
 
-Child Brain ensures learnings go to the right place:
-- **Project-specific learnings** → Project Brain (`.mother-brain/project-brain.md`)
-  - Course corrections for this project's trajectory
-  - Style/tone preferences discovered
-  - Skill adjustments needed
-  - Vision document updates
-- **Behavioral/process learnings** → Mother Brain (`.github/skills/mother-brain/SKILL.md`)
-  - How to better facilitate user vision
-  - Process improvements for ALL projects
-  - NEVER domain knowledge or project specifics
-- **Domain knowledge gaps** → Skills (via skill-creator)
-  - When expertise is missing, create a skill
+Child Brain ensures learnings go to the right place across FOUR layers:
+
+1. **Elder Brain** (`experience-vault/`) → **Domain Knowledge**
+   - Technology-specific gotchas (Firebase, React, Vercel)
+   - Platform patterns (Windows paths, auth flows)
+   - Cross-project wisdom that applies to ALL projects of a type
+   - Example: "Firebase Auth needs Console click-through"
+
+2. **Project Brain** (`.mother-brain/project-brain.md`) → **Project-Specific**
+   - Style/tone/design preferences for THIS project
+   - Vision refinements discovered during execution
+   - Validation checks for this project's domain
+   - Example: "This game uses warm cozy Stardew Valley aesthetic"
+
+3. **Mother Brain** (`.github/skills/mother-brain/SKILL.md`) → **Meta-Behavioral**
+   - HOW to think, WHEN to research, WHAT to consider
+   - Process improvements for facilitating ALL projects
+   - Cognition and adaptation patterns
+   - Example: "When learning about outcome, research failure modes"
+
+4. **Skills** (via skill-creator) → **Execution Capability**
+   - Domain-specific execution knowledge
+   - Created when expertise gaps are detected
+   - Example: pixel-art-renderer skill with game art knowledge
 
 Child Brain NEVER stores knowledge itself. It analyzes, routes, and creates.
 
@@ -104,26 +123,42 @@ Child Brain is invoked by Mother Brain for ALL of these (not just errors):
   This ensures both levels are always considered and visible to user.
 - **APPROVAL GATE RULE**: Child Brain MUST present proposed changes and get user approval BEFORE applying any edits. Use three options: Accept / Revise / Reject. NEVER apply changes without explicit user acceptance.
 
-## The Three Questions for Every Learning
+## The Four Questions for Every Learning
 
-When analyzing feedback, Child Brain asks:
+When analyzing feedback, Child Brain asks (IN THIS ORDER):
 
-1. **Is this about THIS PROJECT specifically?**
-   - Style preferences, design choices, domain conventions
-   - → Route to Project Brain for course correction
-   - → May trigger skill updates for this project
+1. **Is this DOMAIN KNOWLEDGE (technology/platform-specific)?**
+   - Mentions specific technology name? (Firebase, React, Vercel, Windows)
+   - Platform-specific gotcha or pattern?
+   - Cross-project wisdom for this tech stack?
+   - → Route to **Elder Brain** (experience-vault/)
+   - Example: "Firebase Auth needs Console click-through before use"
 
-2. **Is this about HOW MOTHER BRAIN FACILITATED?**
-   - Did it consider enough at vision phase?
-   - Did it anticipate what would be needed later?
-   - Did it make the right choices based on user's stated needs?
-   - → Route to Mother Brain as behavioral improvement
-   - → Must be completely project-agnostic
+2. **Is this about THIS PROJECT specifically?**
+   - Style preferences, aesthetic choices, design direction
+   - Vision refinements or missed requirements
+   - Project-specific validation needs
+   - → Route to **Project Brain** for course correction
+   - Example: "This game uses warm cozy Stardew Valley aesthetic"
 
-3. **Is this about MISSING EXPERTISE?**
-   - Agent didn't know how to do something well
-   - → Create or update a skill via skill-creator
-   - → Skills hold the domain knowledge
+3. **Is this about HOW MOTHER BRAIN THINKS?**
+   - WHEN to research? WHAT to consider? HOW to anticipate?
+   - Information processing and adaptation patterns
+   - NOT about what to think, but how to approach thinking
+   - → Route to **Mother Brain** as cognitive improvement
+   - Example: "When user mentions outcome, research failure modes first"
+
+4. **Is this about MISSING EXECUTION CAPABILITY?**
+   - Agent didn't know how to execute something well
+   - Need specialized domain knowledge for execution
+   - → Create or update a **Skill** via skill-creator
+   - Example: Need pixel-art-renderer skill with game art knowledge
+
+**The Test (CRITICAL):**
+- Does it mention a technology name? → Elder Brain
+- Is it about this project's style/preferences? → Project Brain  
+- Is it about WHEN/HOW to think? → Mother Brain
+- Is it about execution capability? → Skill
 
 ## Friction Analysis Flow
 
@@ -172,37 +207,109 @@ Determine the **layer** where the issue originated:
 - **Missing Validation**: No check was in place to catch this before user saw it
 - **Process Gap**: Mother Brain's workflow skipped a necessary step
 
-### Step 4: Split the Learning
+### Step 4: Split the Learning (Four-Way Analysis)
 
 Based on root cause, determine what goes where:
 
-**PROJECT-LEVEL Learning (→ Project Brain) - Course Correction:**
-- "This project uses [specific style/tone/approach]"
-- "For this project, always [specific check or validation]"
-- "This project's vision includes [specific requirement]"
-- References, examples, style guides specific to this project
-- Validation checks specific to this project's domain
-- **Course corrections for future tasks:**
-  - "User prefers X over Y - update design skills accordingly"
-  - "Vision document needs to reflect [preference]"
-  - "Flag for Task [N] - incorporate this preference"
+**ELDER BRAIN (experience-vault/) - Technology/Platform Gotchas:**
+- Check: Does this mention a specific technology or platform name?
+- "Firebase Auth requires Console click-through"
+- "Vercel needs .env.production for build-time vars"
+- "Windows PowerShell needs -Force flag for directories"
+- "React refs don't work with functional components"
+- Cross-project patterns for specific tech stacks
+- Platform-specific workarounds and requirements
 
-**META-LEVEL Learning (→ Mother Brain) - Behavioral Only:**
-- Process improvements that help ALL projects
-- Did Mother Brain consider enough during vision discovery?
-- Did Mother Brain anticipate what would be needed later?
-- Did Mother Brain make the right choices based on user's stated needs?
-- When to create skills (patterns that warrant skill creation)
-- When to ask discovery questions (before implementing creative work)
-- When to research (domains that need external knowledge)
-- Validation gates (when to pause and check with user)
-- **NEVER domain specifics** - those go to skills
+**PROJECT BRAIN (.mother-brain/project-brain.md) - This Project's Identity:**
+- "This project uses warm cozy Stardew Valley aesthetic"
+- "This game has horses as central character, not just background"
+- "User prefers Tailwind over CSS modules"
+- Style/tone/design preferences specific to this project
+- Vision refinements discovered during execution
+- Validation checks for this project's domain
+- **Course corrections for future tasks**
 
-**Skill Creation/Update Decision:**
-If root cause is "Missing Skill" or "Insufficient Skill":
-- Invoke skill-creator to create/enhance the skill
-- Skill gets the domain knowledge, NOT Mother Brain
+**MOTHER BRAIN (.github/skills/mother-brain/SKILL.md) - Thinking Process:**
+- Check: Is this about WHEN/HOW/WHAT to consider? (not about specific content)
+- "When user mentions outcome, research failure modes first"
+- "Before creative work, ask user about style preferences"
+- "When outcome involves data, consider exposure risks"
+- Information processing patterns
+- Research triggers and anticipation
+- **NOT hardcoded rules for domains** - those go to Elder Brain
+
+**SKILL CREATION/UPDATE:**
+- If execution capability is missing
+- If domain knowledge needs to be embedded in tooling
+- Route research findings + user preferences to skill-creator
 - Log skill creation in Project Brain
+
+**The Critical Test:**
+1. Does it mention Firebase/React/Vercel/Windows/etc.? → **Elder Brain**
+2. Is it about this project's aesthetic/style/preferences? → **Project Brain**
+3. Is it about WHEN to research or HOW to think? → **Mother Brain**
+4. Is it about execution tooling? → **Skill**
+
+### Step 4.5: Apply Elder Brain Learning (Domain Gotchas)
+
+**When learning is domain/technology-specific:**
+
+**Step 4.5.1: Identify Domain Category**
+- Security (auth, data exposure, vulnerabilities)
+- Deployment (platform-specific requirements, config)
+- APIs (integration patterns, rate limiting)
+- Databases (schema, ORMs, query patterns)
+- UI (accessibility, responsive, design systems)
+- Platforms (Windows, macOS, Linux, mobile, web)
+
+**Step 4.5.2: Check if Knowledge Already Exists**
+- Search `experience-vault/[category]/` for related files
+- Use grep to check for technology mentions
+- If exists → update existing file
+- If new → create new file
+
+**Step 4.5.3: Document the Gotcha**
+
+Create/update `experience-vault/[category]/[tech-name].md`:
+
+```markdown
+# [Technology Name] - [Brief Title]
+
+## Problem
+[What goes wrong - the error/failure user experiences]
+
+## Gotcha
+[The non-obvious thing - why it happens, what's unexpected]
+
+## Solution
+[How to fix/prevent - code examples, config, steps]
+
+**When to Consult**: [Which Mother Brain steps should reference this]
+
+## Related Gotchas
+See also:
+- [Link to related experience-vault files]
+
+## Sources
+- [Link to official docs]
+- [Link to community resources]
+```
+
+**Step 4.5.4: Display Simple Confirmation**
+
+Display to user:
+```
+🧙 Elder Brain will remember this
+```
+
+**Step 4.5.5: Update Mother Brain Reference (If Needed)**
+
+If this is a common gotcha that Mother Brain should ALWAYS check for:
+- Add reference to appropriate Mother Brain step
+- Example: "Before deploying, consult experience-vault/deployment/"
+- Mother Brain doesn't store the gotcha - just knows WHERE to look
+
+**Key Principle**: Elder Brain stores domain facts. Mother Brain learns to consult Elder Brain at the right times.
 
 ### Step 5: Apply Project-Level Learning (Course Correction) - ACTIVE
 

@@ -2191,19 +2191,33 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      
      **Step 5.4.1: Technology Pitfalls & Gotchas Research (MANDATORY)**
      - For EACH technology/platform/tool identified in vision or research:
+       
+       **First, check Elder Brain (experience-vault/) for existing knowledge:**
+       - Use grep to search: `grep -r "[technology]" experience-vault/`
+       - If gotchas exist in Elder Brain:
+         - Load the relevant .md files
+         - Use this knowledge to inform skill creation
+         - No need to re-research what's already known
+       
+       **If NOT in Elder Brain, research and contribute:**
        - Use `web_search` to research:
-         1. "common [technology] mistakes and pitfalls"
+         1. "common [technology] mistakes and pitfalls [current year]"
          2. "[technology] gotchas first-time users encounter"
          3. "[technology] troubleshooting guide"
          4. "[technology] deployment issues and solutions" (if applicable)
-       - Save findings to `.mother-brain/docs/research/[technology]-gotchas.md`
+       - Save findings to BOTH:
+         1. `.mother-brain/docs/research/[technology]-gotchas.md` (project-specific)
+         2. `experience-vault/[category]/[technology].md` (for all future projects)
        - Document:
          - **Common Mistakes**: What do beginners get wrong?
          - **Setup Traps**: First-time setup issues (permissions, configuration, prerequisites)
          - **Known Failures**: Transient errors vs real failures
          - **Workarounds**: Standard solutions to known problems
+       
+       **Result:**
        - This research gets embedded in skills created for this technology
        - Skills become defensive, anticipating known issues instead of only happy-path
+       - Future projects benefit immediately from Elder Brain knowledge
      
      **Step 5.5: Extract Technical Insights from Research**
      - Parse research results to identify:

@@ -1,5 +1,7 @@
 # 🧠 Mother Brain
 
+> **For humans:** Mother Brain learns your vision and ships your project autonomously. It gets better with every interaction - by the end, it knows what you want better than you do. Less prompting. More shipping.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/mother-brain.svg)](https://www.npmjs.com/package/mother-brain)
 [![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/super-state/mother-brain/releases)

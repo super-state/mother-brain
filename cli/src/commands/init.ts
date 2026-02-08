@@ -89,6 +89,19 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
 
   console.log(chalk.cyan('\n✅ Mother Brain initialized!\n'));
+
+  // Create AGENTS.md at project root for always-active rules
+  const agentsFile = path.join(cwd, 'AGENTS.md');
+  const sourceAgentsFile = path.join(packageRoot, 'AGENTS.md');
+  if (await fs.pathExists(sourceAgentsFile)) {
+    const agentsExists = await fs.pathExists(agentsFile);
+    if (!agentsExists || options.force) {
+      await fs.copy(sourceAgentsFile, agentsFile, { overwrite: true });
+      console.log(chalk.green('Created AGENTS.md (always-active rules for Codex/Copilot)'));
+    }
+  }
+
+  console.log('');
   console.log('Next steps:');
   console.log(chalk.dim('  1. Commit the new files to your repo'));
   console.log(chalk.dim('  2. Open your AI CLI:'));

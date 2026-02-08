@@ -85,6 +85,13 @@ export async function update(): Promise<void> {
         console.log(chalk.green(`  ✓ Updated ${skill}`));
       }
     }
+
+    // Update AGENTS.md if source exists in extracted package
+    const extractedAgentsFile = path.join(tempDir, 'package', 'AGENTS.md');
+    const agentsFile = path.join(cwd, 'AGENTS.md');
+    if (await fs.pathExists(extractedAgentsFile)) {
+      await fs.copy(extractedAgentsFile, agentsFile, { overwrite: true });
+    }
     
     // Clean up temp directory
     await fs.remove(tempDir);

@@ -607,6 +607,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Question: "What would you like to do?"
      - Choices (MUST be provided as array):
        - "Continue where I left off"
+       - "💡 I have a new idea"
        - "Review/update roadmap"
        - "Realign with vision"
        - "🧠 Improve Mother Brain"
@@ -614,6 +615,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - "Eject project (reset to framework + learnings)"
    - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
+   - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
+   - **If "Continue where I left off"**: Jump to **Step 2G: Task Resume Preview**
    - **If "Improve Mother Brain"**: Jump to **Step 2A: Improve Mother Brain Menu**
    - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
 
@@ -1592,6 +1595,235 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - If "Yes": Jump to Step 3 (Vision Discovery) with conversation context pre-loaded
    - If "Not yet": Continue brainstorm conversation
    - If "Exit": Return to main menu (Step 2)
+
+### 2F. **Idea Capture & Prioritization** (Quick Idea Logging)
+   - When user selects "💡 I have a new idea" from ANY menu:
+   
+   **Purpose**: Let users quickly capture ideas mid-project without derailing current work. Ideas are analyzed against the vision, prioritized, and inserted into the roadmap at the right position. The user never loses an idea, and the current plan stays intact unless the idea is truly urgent.
+   
+   **Step 2F.1: Capture the Idea**
+   
+   - Display:
+     ```
+     💡 New Idea Capture
+     
+     Tell me your idea — what is it and what would it achieve?
+     Don't worry about where it fits yet, just get it down.
+     ```
+   
+   - Use `ask_user` with `allow_freeform: true` (no predefined choices — pure capture mode)
+   
+   **Step 2F.2: Analyze & Score the Idea**
+   
+   - Load `.mother-brain/docs/vision.md` (for alignment check)
+   - Load `.mother-brain/docs/roadmap.md` (for context on existing tasks)
+   - Load `.mother-brain/project-brain.md` (for project preferences, if exists)
+   
+   - Analyze the idea across four dimensions:
+     1. **Vision Alignment**: How well does this idea serve the project's stated WHY and success criteria?
+     2. **User Impact**: How much does this benefit the target users defined in the vision?
+     3. **Effort Estimate**: Relative complexity — is this a single task or a multi-task effort?
+     4. **Dependency Check**: Does this idea depend on existing tasks, or do existing tasks depend on it?
+   
+   - Determine priority level:
+     - **🔴 Critical (insert into current phase)**: Directly blocks or significantly enhances the MVP. Aligns strongly with vision AND has high user impact.
+     - **🟡 Important (next phase priority)**: Aligns well with vision but isn't needed for MVP. Should be tackled soon after current phase.
+     - **🟢 Backlog (future enhancement)**: Nice-to-have that aligns with vision but can wait. Added to Future Enhancements.
+   
+   **Step 2F.3: Present Analysis to User**
+   
+   - Display:
+     ```
+     💡 Idea Analysis
+     
+     Your Idea: [1-2 sentence summary of what they described]
+     
+     📊 Assessment:
+     - Vision Alignment: [High/Medium/Low] — [brief reason]
+     - User Impact: [High/Medium/Low] — [brief reason]
+     - Effort: [Small (1 task) / Medium (2-3 tasks) / Large (new phase)]
+     - Dependencies: [None / Depends on Task X / Blocks Task Y]
+     
+     🎯 Recommended Priority: [🔴 Critical / 🟡 Important / 🟢 Backlog]
+     
+     Reasoning: [2-3 sentences explaining why this priority level was chosen,
+     referencing vision alignment and current roadmap state]
+     ```
+   
+   - Use `ask_user` with choices:
+     - "Accept this priority — add to roadmap"
+     - "I think it's more urgent than that"
+     - "I think it's less urgent — backlog is fine"
+     - "Let me refine the idea first"
+     - "Discard — I changed my mind"
+   
+   **Step 2F.4: Handle Priority Override**
+   
+   - **If "Accept this priority"**: Proceed to Step 2F.5
+   
+   - **If "I think it's more urgent"**:
+     - Bump priority one level up (🟢→🟡 or 🟡→🔴)
+     - If already 🔴: Acknowledge and proceed
+     - Display: `📘 Project Brain will remember this — you prioritize [idea type] higher than expected`
+     - Invoke Child Brain with preference context (user values this type of feature highly)
+     - Proceed to Step 2F.5
+   
+   - **If "I think it's less urgent"**:
+     - Bump priority one level down (🔴→🟡 or 🟡→🟢)
+     - If already 🟢: Keep at backlog
+     - Display: `📘 Project Brain will remember this — you prefer to defer [idea type]`
+     - Proceed to Step 2F.5
+   
+   - **If "Let me refine the idea"**:
+     - Return to Step 2F.1 with previous input as context
+   
+   - **If "Discard"**:
+     - Display: "💭 No problem — idea discarded. Nothing was changed."
+     - Return to the menu the user came from (Step 2 or Step 11)
+   
+   **Step 2F.5: Insert into Roadmap**
+   
+   - Based on final priority level:
+   
+   - **🔴 Critical (current phase insertion)**:
+     1. Load roadmap and identify current phase tasks
+     2. Determine optimal insertion point:
+        - After dependencies are met
+        - Before tasks that would benefit from this idea
+        - If no dependencies: insert as next uncompleted task
+     3. Create task number (next sequential number)
+     4. Create task document in `.mother-brain/docs/tasks/[number]-[name].md`
+     5. Insert task into `roadmap.md` at determined position
+     6. **Renumber subsequent tasks if needed** to maintain order
+     7. Display:
+        ```
+        ✅ Idea Added to Current Phase!
+        
+        📋 Task [Number]: [Task Name]
+        - Priority: 🔴 Critical
+        - Inserted: Phase [X], position [Y] of [Z]
+        - Status: 🟡 Ready
+        
+        ⚠️ Current plan adjusted:
+        - [Brief description of what moved to accommodate this]
+        
+        Your current task is still: [Current task name]
+        This will be picked up [when in sequence].
+        ```
+   
+   - **🟡 Important (next phase priority)**:
+     1. Identify the next phase in roadmap (or create Phase N+1 if needed)
+     2. Create task number
+     3. Create task document
+     4. Insert at the TOP of the next phase (high priority within that phase)
+     5. Display:
+        ```
+        ✅ Idea Added to Next Phase!
+        
+        📋 Task [Number]: [Task Name]
+        - Priority: 🟡 Important
+        - Placed: Phase [X], position 1 (top priority)
+        - Status: ⬜ Planned
+        
+        Current plan unchanged — this is queued for after [current phase name].
+        ```
+   
+   - **🟢 Backlog (future enhancement)**:
+     1. Add to "Future Enhancements" section of roadmap
+     2. Create a lightweight task entry (no full task doc yet — created when promoted)
+     3. Display:
+        ```
+        ✅ Idea Added to Backlog!
+        
+        📋 [Idea Name]
+        - Priority: 🟢 Backlog
+        - Section: Future Enhancements
+        - Status: 💭 Captured
+        
+        Current plan unchanged. This will be reviewed during phase transitions.
+        ```
+   
+   **Step 2F.6: Update Session State & Return**
+   
+   - Update `session-state.json` to reflect roadmap changes (new task count, etc.)
+   - If task was added to current phase: Update `totalTasks` count
+   
+   - Display:
+     ```
+     💡 Idea captured! Back to where you were.
+     ```
+   
+   - **Return to the menu the user came from**:
+     - If came from Step 2 (main menu): Return to Step 2
+     - If came from Step 11 (post-task menu): Return to Step 11
+     - If came from mid-task: Resume task execution
+   
+   **Key Principles**:
+   - **Speed over ceremony**: Get the idea down fast, analyze quickly, don't interrupt flow
+   - **Vision is the compass**: Priority is always relative to the stated vision
+   - **Current work is protected**: Only 🔴 Critical ideas touch the current phase
+   - **Nothing is lost**: Even discarded ideas could be re-suggested if patterns emerge
+   - **User has final say**: Mother Brain recommends priority, user can override
+
+### 2G. **Task Resume Preview** (Continue Where You Left Off)
+   - When user selects "Continue where I left off" from the main project menu:
+   
+   **Purpose**: Show the user exactly what task they're about to resume, where it sits in the plan, and give them the option to proceed, switch tasks, or review context before diving in. Never jump straight into execution.
+   
+   **Step 2G.1: Load Current Task Context**
+   
+   - Load `session-state.json` to get `lastTask` and `lastTaskStatus`
+   - Load `roadmap.md` to get phase context and task position
+   - Load the current task document from `.mother-brain/docs/tasks/[task].md`
+   - Determine:
+     - Is the last task complete or in-progress?
+     - If complete: the "current task" is the NEXT uncompleted task in the roadmap
+     - If in-progress: the "current task" is the last task
+   
+   **Step 2G.2: Display Task Preview**
+   
+   - Display:
+     ```
+     🎯 Current Task
+     
+     📋 Task [Number]: [Task Name]
+     - Phase: [Phase Name] ([X] of [Y] tasks completed in this phase)
+     - Status: [🟡 In Progress / ⬜ Ready to Start]
+     - Type: [Logic / UI / Animation / Integration / etc.]
+     
+     📝 Objective:
+     [Task objective from task document]
+     
+     ✅ Success Criteria:
+     - [Criterion 1]
+     - [Criterion 2]
+     
+     🛠️ Skills Available:
+     - [Relevant skills for this task]
+     
+     📍 Roadmap Context:
+     - Previous: Task [N-1] - [Name] (✅ Complete)
+     - **Current: Task [N] - [Name]** ← You are here
+     - Next: Task [N+1] - [Name] (⬜ Planned)
+     ```
+   
+   **Step 2G.3: Ask User How to Proceed**
+   
+   - Use `ask_user` with choices:
+     - "Start this task now"
+     - "Skip to a different task"
+     - "Review the full roadmap first"
+     - "💡 I have a new idea"
+     - "Back to main menu"
+   
+   - **If "Start this task now"**: Proceed to Step 9 (Task Execution) with this task
+   - **If "Skip to a different task"**:
+     - Load roadmap and list all uncompleted tasks in current phase
+     - Use `ask_user` with task names as choices
+     - Load selected task and proceed to Step 9
+   - **If "Review the full roadmap"**: Display roadmap, then return to Step 2G.3
+   - **If "I have a new idea"**: Jump to Step 2F
+   - **If "Back to main menu"**: Return to Step 2
 
 ### 2C. **Archive Project** (Save & Reset)
    - When user selects "Archive project (save & reset for new project)":
@@ -3568,10 +3800,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - After task completion, use `ask_user` with choices:
    - After task completion, use `ask_user` with choices:
      - "Start next task automatically"
+     - "💡 I have a new idea"
      - "Review roadmap and choose task"
      - "Take a break (save progress)"
      - "Update/refine the roadmap"
    - Freeform available for custom actions
+   - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
    
    - Save session state to `docs/session-state.json`:
      ```json

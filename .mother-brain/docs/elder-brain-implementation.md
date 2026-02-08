@@ -50,7 +50,7 @@ Created `experience-vault/` folder with domain categories:
 - Create/update gotcha documentation
 - Display: `🧙 Elder Brain will remember this`
 
-### 4. Mother Brain Updates
+### 4. Mother Brain Updates - Consultation Checkpoints
 
 **Step 5.4.1: Technology Pitfalls & Gotchas Research**
 - **First** check Elder Brain for existing knowledge
@@ -58,6 +58,41 @@ Created `experience-vault/` folder with domain categories:
 - If found, use existing knowledge
 - If not found, research AND contribute to Elder Brain
 - Save to both project research AND experience-vault/
+
+**Step 6: Skill Creation - Elder Brain Consultation**
+- Before invoking skill-creator for each skill:
+  1. Identify domains/technologies the skill will work with
+  2. Check Elder Brain: `grep -r "[technology]" experience-vault/`
+  3. Load gotcha content if found
+  4. Pass THREE knowledge sources to skill-creator:
+     - Research findings (Step 5)
+     - Gotchas research (Step 5.4.1)
+     - Elder Brain knowledge (experience-vault/)
+- Skills get defensive knowledge embedded from day one
+
+**Step 7.3.5: Task Planning - Elder Brain Review**
+- After creating roadmap, before displaying:
+  1. Extract technology mentions from all tasks
+  2. Check Elder Brain for each technology
+  3. Add warnings/prerequisites to affected tasks
+  4. Example: "⚠️ Prerequisites: Enable Auth in Firebase Console first"
+  5. Makes pitfalls visible BEFORE tasks start
+
+**Step 9.0.2.5: Task Execution - Elder Brain Check**
+- Before starting any task:
+  1. Extract technologies from task description
+  2. Search Elder Brain for each one
+  3. Display relevant gotchas for awareness
+  4. Apply defensive patterns automatically
+  5. Example: Task uses Firebase → display Console requirement
+
+**Step 9A: Error Recovery - Elder Brain First**
+- When errors occur, FIRST check Elder Brain:
+  1. Extract technology/error keywords from error message
+  2. Search Elder Brain for matching pattern
+  3. If found: Apply documented solution immediately
+  4. If not found: Proceed with root cause analysis
+  5. After fixing: Option to contribute to Elder Brain
 
 ## The Critical Insight
 
@@ -111,25 +146,45 @@ This is about WHEN and HOW to think, not WHAT to think about.
 
 ## How It Works
 
-### Discovery Flow
+### Discovery Flow (Research Phase)
 1. User mentions technology during vision (e.g., "Firebase")
 2. **Step 5.4.1** checks Elder Brain: `grep -r "Firebase" experience-vault/`
 3. If found: Use existing gotcha knowledge
 4. If not found: Research, then contribute to Elder Brain
-5. Skills created with Elder Brain knowledge embedded
 
-### Friction Flow
-1. User reports issue or provides feedback
-2. Child Brain analyzes across four layers
-3. If domain/tech-specific → Elder Brain contribution
-4. If project-specific → Project Brain course correction
-5. If thinking process → Mother Brain improvement
-6. If execution gap → Skill creation
+### Skill Creation Flow
+1. **Step 6**: Ready to create skills
+2. **CHECKPOINT**: For each skill, check Elder Brain for domain knowledge
+3. Pass three knowledge sources to skill-creator:
+   - Research findings (what the skill should do)
+   - Gotchas research (common pitfalls)
+   - Elder Brain knowledge (cross-project wisdom)
+4. Skills created with defensive patterns embedded
 
-### Future Project Benefits
-- New projects automatically get Elder Brain knowledge (comes with npm package)
-- No need to re-research common gotchas
-- Skills created with defensive knowledge from day one
+### Task Planning Flow
+1. **Step 7.3**: Roadmap created with all tasks
+2. **Step 7.3.5 CHECKPOINT**: Review roadmap against Elder Brain
+3. Extract technology mentions from all tasks
+4. Search Elder Brain for each technology
+5. Add warnings/prerequisites to affected tasks
+6. Users see pitfalls BEFORE execution begins
+
+### Task Execution Flow
+1. **Step 9**: About to start a task
+2. **Step 9.0.2.5 CHECKPOINT**: Check Elder Brain for this task
+3. Extract technologies from task description
+4. Load relevant gotchas from Elder Brain
+5. Display gotchas for awareness
+6. Apply defensive patterns automatically
+7. Execute task with Elder Brain knowledge
+
+### Error Recovery Flow
+1. **Step 9A**: Error occurs during execution
+2. **FIRST: Check Elder Brain** for known solution
+3. Search by technology + error keywords
+4. If found: Apply documented fix immediately (skip root cause)
+5. If not found: Analyze root cause, fix, then contribute
+6. Future projects benefit from new Elder Brain knowledge
 
 ## Examples
 

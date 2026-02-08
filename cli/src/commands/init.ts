@@ -1,4 +1,5 @@
 import path from 'path';
+import os from 'os';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
@@ -92,7 +93,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
   console.log(chalk.dim('  1. Commit the new files to your repo'));
   console.log(chalk.dim('  2. Open your AI CLI:'));
   console.log(chalk.dim('     GitHub Copilot CLI: ghcs "/mother-brain"'));
-  console.log(chalk.dim('     Codex CLI:          $mother-brain'));
+  console.log(chalk.dim('     Codex CLI:          $mother-brain or /prompts:mother-brain'));
   console.log(chalk.dim('  3. Follow the wizard to define your vision\n'));
   
   if (copiedCount > 0) {
@@ -138,5 +139,27 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
   if (linkedCount > 0) {
     console.log(chalk.green(`Linked ${linkedCount} skill(s) to .agents/skills/ (Codex CLI compatible)`));
+  }
+
+  // Create Codex CLI custom prompt for /prompts:mother-brain slash command
+  const codexPromptsDir = path.join(os.homedir(), '.codex', 'prompts');
+  const promptFile = path.join(codexPromptsDir, 'mother-brain.md');
+  try {
+    await fs.ensureDir(codexPromptsDir);
+    const skillPath = path.join(cwd, '.github', 'skills', 'mother-brain', 'SKILL.md');
+    const relSkillPath = path.relative(os.homedir(), skillPath).replace(/\\/g, '/');
+    await fs.writeFile(promptFile, [
+      '---',
+      'description: Launch Mother Brain — AI project management framework',
+      '---',
+      '',
+      `Read and follow the complete instructions in ~/${relSkillPath}`,
+      '',
+      'This is the Mother Brain skill. Follow all steps, rules, and processes defined in that file.',
+      ''
+    ].join('\n'));
+    console.log(chalk.green('Registered /prompts:mother-brain slash command for Codex CLI'));
+  } catch {
+    // Non-critical: slash command is a convenience, $mother-brain still works
   }
 }

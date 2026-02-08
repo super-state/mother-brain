@@ -1,4 +1,5 @@
 import path from 'path';
+import os from 'os';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import { exec } from 'child_process';
@@ -120,6 +121,27 @@ export async function update(): Promise<void> {
       }
     }
     console.log(chalk.green('Verified .agents/skills/ (Codex CLI compatible)'));
+
+    // Refresh Codex CLI custom prompt for /prompts:mother-brain
+    const codexPromptsDir = path.join(os.homedir(), '.codex', 'prompts');
+    const promptFile = path.join(codexPromptsDir, 'mother-brain.md');
+    try {
+      await fs.ensureDir(codexPromptsDir);
+      const skillPath = path.join(cwd, '.github', 'skills', 'mother-brain', 'SKILL.md');
+      const relSkillPath = path.relative(os.homedir(), skillPath).replace(/\\/g, '/');
+      await fs.writeFile(promptFile, [
+        '---',
+        'description: Launch Mother Brain — AI project management framework',
+        '---',
+        '',
+        `Read and follow the complete instructions in ~/${relSkillPath}`,
+        '',
+        'This is the Mother Brain skill. Follow all steps, rules, and processes defined in that file.',
+        ''
+      ].join('\n'));
+    } catch {
+      // Non-critical
+    }
     
   } catch (error) {
     console.log(chalk.red('Failed to download update.'));

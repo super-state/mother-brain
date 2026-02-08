@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 export async function update(): Promise<void> {
   const cwd = process.cwd();
   const skillsDir = path.join(cwd, '.github', 'skills');
+  const agentsSkillsDir = path.join(cwd, '.agents', 'skills');
   const motherBrainDir = path.join(cwd, '.mother-brain');
   const versionFile = path.join(motherBrainDir, 'version.json');
 
@@ -96,6 +97,32 @@ export async function update(): Promise<void> {
 
     console.log(chalk.cyan(`\n✅ Updated to v${latestVersion}!\n`));
     console.log(chalk.dim('Don\'t forget to commit the updated files.\n'));
+
+    // Refresh .agents/skills/ symlinks for Codex CLI compatibility
+    if (await fs.pathExists(agentsSkillsDir)) {
+      for (const skill of coreSkills) {
+        const target = path.join(skillsDir, skill);
+        const link = path.join(agentsSkillsDir, skill);
+        if (await fs.pathExists(target)) {
+          try {
+            if (await fs.pathExists(link)) {
+              const stat = await fs.lstat(link);
+              if (stat.isSymbolicLink()) {
+                // Symlink already points to updated source — nothing to do
+                continue;
+              }
+              // Not a symlink (was a copy fallback) — re-copy
+              await fs.copy(target, link, { overwrite: true });
+            } else {
+              await fs.symlink(target, link, 'junction');
+            }
+          } catch {
+            await fs.copy(target, link, { overwrite: true });
+          }
+        }
+      }
+      console.log(chalk.green('Refreshed .agents/skills/ (Codex CLI compatible)'));
+    }
     
   } catch (error) {
     console.log(chalk.red('Failed to download update.'));

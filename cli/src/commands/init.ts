@@ -13,6 +13,7 @@ interface InitOptions {
 export async function init(options: InitOptions = {}): Promise<void> {
   const cwd = process.cwd();
   const skillsDir = path.join(cwd, '.github', 'skills');
+  const agentsSkillsDir = path.join(cwd, '.agents', 'skills');
   const motherBrainDir = path.join(cwd, '.mother-brain');
   
   // Display ASCII art banner
@@ -89,11 +90,47 @@ export async function init(options: InitOptions = {}): Promise<void> {
   console.log(chalk.cyan('\n✅ Mother Brain initialized!\n'));
   console.log('Next steps:');
   console.log(chalk.dim('  1. Commit the new files to your repo'));
-  console.log(chalk.dim('  2. Open GitHub Copilot CLI'));
-  console.log(chalk.dim('  3. Type: /mother-brain\n'));
+  console.log(chalk.dim('  2. Open your AI CLI:'));
+  console.log(chalk.dim('     GitHub Copilot CLI: ghcs "/mother-brain"'));
+  console.log(chalk.dim('     Codex CLI:          $mother-brain'));
+  console.log(chalk.dim('  3. Follow the wizard to define your vision\n'));
   
   if (copiedCount > 0) {
     console.log(chalk.green(`Added ${copiedCount} skill(s) to .github/skills/`));
   }
   console.log(chalk.green('Created .mother-brain/ for project state\n'));
+
+  // Create .agents/skills/ symlinks for Codex CLI compatibility
+  await fs.ensureDir(path.join(cwd, '.agents', 'skills'));
+  let symlinkCount = 0;
+  for (const skill of coreSkills) {
+    const target = path.join(skillsDir, skill);
+    const link = path.join(agentsSkillsDir, skill);
+    if (await fs.pathExists(target)) {
+      try {
+        // Remove existing symlink or directory before creating
+        if (await fs.pathExists(link)) {
+          const stat = await fs.lstat(link);
+          if (stat.isSymbolicLink()) {
+            await fs.remove(link);
+          } else if (!options.force) {
+            console.log(chalk.yellow(`  ⚠ .agents/skills/${skill} exists (not a symlink, skipping)`));
+            continue;
+          } else {
+            await fs.remove(link);
+          }
+        }
+        await fs.symlink(target, link, 'junction');
+        symlinkCount++;
+      } catch (err: any) {
+        // Symlink may fail on Windows without dev mode; fall back to copy
+        console.log(chalk.yellow(`  ⚠ Symlink failed for ${skill}, copying instead`));
+        await fs.copy(target, link, { overwrite: true });
+        symlinkCount++;
+      }
+    }
+  }
+  if (symlinkCount > 0) {
+    console.log(chalk.green(`Linked ${symlinkCount} skill(s) to .agents/skills/ (Codex CLI compatible)`));
+  }
 }

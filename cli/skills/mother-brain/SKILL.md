@@ -2271,7 +2271,23 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      New-Item -ItemType Directory -Path ".mother-brain/docs/tasks" -Force
      New-Item -ItemType Directory -Path ".mother-brain/docs/research" -Force
      New-Item -ItemType Directory -Path ".github/skills" -Force
+     New-Item -ItemType Directory -Path ".agents/skills" -Force
      ```
+   
+   - Create `.agents/skills/` symlinks for Codex CLI compatibility:
+     ```powershell
+     # Symlink each core skill so Codex CLI can discover them
+     # Uses 'junction' on Windows (works without admin/dev mode)
+     $coreSkills = @("mother-brain", "child-brain", "skill-creator")
+     foreach ($skill in $coreSkills) {
+       $target = ".github\skills\$skill"
+       $link = ".agents\skills\$skill"
+       if ((Test-Path $target) -and !(Test-Path $link)) {
+         New-Item -ItemType Junction -Path $link -Target (Resolve-Path $target) -Force
+       }
+     }
+     ```
+   - **Why symlinks**: Skills live in `.github/skills/` (GitHub Copilot CLI) and are symlinked to `.agents/skills/` (Codex CLI). One source of truth, both CLIs can discover them.
    
    - Create initial version tracking:
      ```powershell
@@ -2316,7 +2332,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      ✅ Mother Brain initialized!
      
      📁 Location: [current directory]
-     📂 Created: .mother-brain/, .github/skills/
+     📂 Created: .mother-brain/, .github/skills/, .agents/skills/ (symlinked)
      🔗 Git: [Initialized / Already existed]
      
      Ready to create your vision document.
@@ -2706,6 +2722,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
            ```
          - Let skill-creator run its wizard with all three knowledge sources
          - **Store created skills in `.github/skills/`** (CLI-discoverable location)
+         - **Symlink to `.agents/skills/`** for Codex CLI compatibility:
+           ```powershell
+           New-Item -ItemType Junction -Path ".agents\skills\[skill-name]" -Target (Resolve-Path ".github\skills\[skill-name]") -Force
+           ```
          - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
            1. Check `.github/skills/[skill-name]/SKILL.md` exists
@@ -4034,6 +4054,11 @@ project-root/
 │       ├── skill-creator/            # Core framework (never delete)
 │       ├── [project-skill-1]/        # Project-specific (tracked in session-state.json)
 │       └── [project-skill-2]/        # Project-specific (tracked in session-state.json)
+├── .agents/
+│   └── skills/                       # Symlinks to .github/skills/ (Codex CLI compatibility)
+│       ├── mother-brain/ → ../.github/skills/mother-brain/
+│       ├── child-brain/  → ../.github/skills/child-brain/
+│       └── skill-creator/ → ../.github/skills/skill-creator/
 ├── src/                              # Source code (standard structure)
 ├── tests/                            # Tests (standard structure)
 ├── README.md                         # Project overview
@@ -4041,7 +4066,7 @@ project-root/
 ```
 
 **Key Principles:**
-- **CLI Compatibility**: All skills in `.github/skills/` so Copilot CLI can find them
+- **Dual CLI Compatibility**: Skills live in `.github/skills/` (GitHub Copilot CLI) and are symlinked to `.agents/skills/` (Codex CLI). One source of truth, both CLIs discover them.
 - **Skill Tracking**: `session-state.json` tracks which skills are project-specific via `skillsCreated` array
 - **Easy Ejection**: Delete skills listed in `skillsCreated`, keep core framework skills
 - **Isolated Docs**: Project documentation in `.mother-brain/docs/` (separate from project code)

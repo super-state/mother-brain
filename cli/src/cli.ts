@@ -12,11 +12,11 @@ import { exec } from 'child_process';
 
 const program = new Command();
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 program
   .name('mother-brain')
-  .description('AI-powered project management framework for GitHub Copilot CLI')
+  .description('AI-powered project management framework for GitHub Copilot CLI and Codex CLI')
   .version(VERSION);
 
 program
@@ -74,8 +74,9 @@ program
     console.log(chalk.yellow('Step 1:') + ' Initialize Mother Brain in your project');
     console.log(chalk.dim('  npx -y mother-brain init\n'));
     
-    console.log(chalk.yellow('Step 2:') + ' Start using it with GitHub Copilot CLI');
-    console.log(chalk.dim('  ghcs "/mother-brain"\n'));
+    console.log(chalk.yellow('Step 2:') + ' Start using it with your AI CLI');
+    console.log(chalk.dim('  GitHub Copilot CLI: ghcs "/mother-brain"'));
+    console.log(chalk.dim('  Codex CLI:          $mother-brain\n'));
     
     console.log(chalk.yellow('Step 3:') + ' Follow the wizard to define your vision');
     console.log(chalk.dim('  Mother Brain will guide you through:\n'));
@@ -104,7 +105,7 @@ program
 ┃┃┃┃┃ ┃ ┣┫┣ ┣┫  ┣┫┣┫┣┫┃┃┃
 ┛ ┗┗┛ ┻ ┛┗┗┛┛┗  ┻┛┛┗┛┗┻┛┗
 `));
-    console.log(chalk.white('AI-powered project management for GitHub Copilot CLI'));
+    console.log(chalk.white('AI-powered project management for GitHub Copilot CLI & Codex CLI'));
     console.log(chalk.dim(`v${VERSION}\n`));
     
     console.log(chalk.white.bold('Getting Started:'));

@@ -23,7 +23,7 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - Do NOT improvise, skip, or invent workflows
 - If the step says "use X tool" → use that exact tool
 
-### RULE 2: ALWAYS USE `ask_user`
+### RULE 2: ALWAYS USE `ask_user` (WITH RUNTIME FALLBACK)
 - EVERY user choice MUST use the `ask_user` tool
 - NEVER ask questions as plain text output
 - NEVER leave user in freeform - always return to menu
@@ -31,6 +31,16 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
   - If your output ends without an `ask_user` call → STOP and add one
   - Users must NEVER see an empty prompt with no guidance
   - Exception: Only when explicitly executing a task selected by user
+- **RUNTIME FALLBACK**: If `ask_user` is not available (e.g., Codex CLI), present choices as numbered plain text instead:
+  ```
+  Choose an option:
+  1. Option A
+  2. Option B
+  3. Option C
+
+  Reply with the number or option text.
+  ```
+  This ensures Mother Brain works across ALL agent runtimes (GitHub Copilot CLI, Codex CLI, IDE extensions, etc.) even when interactive UI tools are unavailable.
 
 ### RULE 3: VERSION CHECK FIRST
 - Before showing ANY menu, run: `npm view mother-brain version --json 2>$null`

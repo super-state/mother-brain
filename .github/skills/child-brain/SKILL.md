@@ -33,6 +33,7 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 ### RULE 3: APPROVAL GATE
 - ALWAYS present proposed changes with: Accept / Revise / Reject
 - NEVER apply changes without explicit user acceptance
+- **RUNTIME FALLBACK**: If `ask_user` is not available (e.g., Codex CLI), present choices as numbered plain text and ask user to reply with the number or option text.
 
 ### RULE 4: FOUR-LAYER CONSIDERATION
 - Every feedback MUST be analyzed across ALL FOUR layers:

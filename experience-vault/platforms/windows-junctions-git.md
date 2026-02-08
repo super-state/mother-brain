@@ -26,14 +26,20 @@ New-Item -ItemType SymbolicLink -Path $link -Target "../../.github/skills/mother
 
 Git stores the symlink as a tiny file containing just the relative path. On checkout with `core.symlinks=true`, it recreates real symlinks.
 
-If symlinks fail (no Developer Mode), fall back to copies:
-```powershell
+If symlinks fail (no Developer Mode), fall back to **junctions** (zero duplication, work without elevation):
+```javascript
 try {
-    New-Item -ItemType SymbolicLink -Path $link -Target $relTarget -Force
+    await fs.symlink(relTarget, link, 'dir');        // proper symlink (survives git)
 } catch {
-    Copy-Item $source $dest -Recurse -Force
+    try {
+        const absTarget = path.resolve(path.dirname(link), relTarget);
+        await fs.symlink(absTarget, link, 'junction'); // junction (no elevation needed)
+    } catch {
+        await fs.copy(source, link, { overwrite: true }); // last resort: full copy
+    }
 }
 ```
+**Important**: Junctions require absolute paths. `fs.symlink(target, link, 'junction')` resolves `target` relative to CWD, not the link location. Compute absolute path with `path.resolve(path.dirname(link), relTarget)`.
 
 **When to Consult**: Step 3.6.2 (project initialization), Step 6 (skill creation), Step 2D (release process)
 

@@ -98,9 +98,9 @@ export async function update(): Promise<void> {
     console.log(chalk.cyan(`\n✅ Updated to v${latestVersion}!\n`));
     console.log(chalk.dim('Don\'t forget to commit the updated files.\n'));
 
-    // Refresh .agents/skills/ symlinks for Codex CLI compatibility
-    // Symlinks point to .github/skills/ so they auto-update when source changes
-    // Only recreate if missing (symlinks don't need refresh since they're pointers)
+    // Refresh .agents/skills/ links for Codex CLI compatibility
+    // Symlinks/junctions point to .github/skills/ so they auto-update when source changes
+    // Only recreate if missing (links don't need refresh since they're pointers)
     await fs.ensureDir(agentsSkillsDir);
     for (const skill of coreSkills) {
       const source = path.join(skillsDir, skill);
@@ -110,7 +110,12 @@ export async function update(): Promise<void> {
         try {
           await fs.symlink(relTarget, link, 'dir');
         } catch {
-          await fs.copy(source, link, { overwrite: true });
+          try {
+            const absTarget = path.resolve(path.dirname(link), relTarget);
+            await fs.symlink(absTarget, link, 'junction');
+          } catch {
+            await fs.copy(source, link, { overwrite: true });
+          }
         }
       }
     }

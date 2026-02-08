@@ -100,14 +100,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
   }
   console.log(chalk.green('Created .mother-brain/ for project state\n'));
 
-  // Create .agents/skills/ symlinks for Codex CLI compatibility
-  // Uses relative symlinks (not NTFS junctions) so they survive git clone
+  // Create .agents/skills/ links for Codex CLI compatibility
+  // Codex CLI discovers skills by scanning .agents/skills/ for SKILL.md files
+  // Try symlink first (survives git clone), fall back to junction (Windows, no elevation needed)
   await fs.ensureDir(agentsSkillsDir);
   let linkedCount = 0;
   for (const skill of coreSkills) {
     const source = path.join(skillsDir, skill);
     const link = path.join(agentsSkillsDir, skill);
-    // Relative path from .agents/skills/ to .github/skills/
     const relTarget = path.join('..', '..', '.github', 'skills', skill);
     if (await fs.pathExists(source)) {
       const exists = await fs.pathExists(link);
@@ -121,9 +121,18 @@ export async function init(options: InitOptions = {}): Promise<void> {
         await fs.symlink(relTarget, link, 'dir');
         linkedCount++;
       } catch {
-        // Symlink failed (Windows without Developer Mode) — fall back to copy
-        await fs.copy(source, link, { overwrite: true });
-        linkedCount++;
+        try {
+          // Junction fallback: works on Windows without Developer Mode
+          // Junctions require absolute paths and don't survive git clone,
+          // but mother-brain init/update recreates them
+          const absTarget = path.resolve(path.dirname(link), relTarget);
+          await fs.symlink(absTarget, link, 'junction');
+          linkedCount++;
+        } catch {
+          // Last resort: copy (creates duplication but always works)
+          await fs.copy(source, link, { overwrite: true });
+          linkedCount++;
+        }
       }
     }
   }

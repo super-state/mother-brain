@@ -1,5 +1,7 @@
 {
-  "lastRelease": "v0.4.1",
-  "lastSession": "2026-02-08T13:06:40.6514503+00:00",
-  "metaMode": false
+  "focus": null,
+  "metaMode": true,
+  "lastSession": "2026-02-08T13:09:28.7576028+00:00",
+  "startedAt": "2026-02-08T13:09:28.7572031+00:00",
+  "lastRelease": "v0.4.1"
 }

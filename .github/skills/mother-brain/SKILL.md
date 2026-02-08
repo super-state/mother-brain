@@ -668,9 +668,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - "Improve documentation"
      - "Refactor or clean up code"
      - "📥 Review community improvements"
+     - "💭 Brainstorm (thinking partner mode)"
      - "Continue previous meta-work"
    
    - **If "Review community improvements"**: Jump to **Step 2A.2: Review Community Improvements**
+   - **If "Brainstorm"**: Jump to **Step 2E: Brainstorm Mode** (framework-focused version)
    
    **Step 2.3.2: Track Meta-Work**
    - Update `.mother-brain/meta-mode.json` with focus:

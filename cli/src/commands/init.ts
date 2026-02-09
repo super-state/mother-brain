@@ -90,13 +90,33 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
   console.log(chalk.cyan('\n✅ Mother Brain initialized!\n'));
 
-  // Create AGENTS.md at project root for always-active rules
+  // Create/merge AGENTS.md at project root for always-active rules
+  // Uses markers to preserve user content while keeping our section updatable
   const agentsFile = path.join(cwd, 'AGENTS.md');
   const sourceAgentsFile = path.join(packageRoot, 'AGENTS.md');
   if (await fs.pathExists(sourceAgentsFile)) {
-    const agentsExists = await fs.pathExists(agentsFile);
-    if (!agentsExists || options.force) {
-      await fs.copy(sourceAgentsFile, agentsFile, { overwrite: true });
+    const mbContent = await fs.readFile(sourceAgentsFile, 'utf-8');
+    const markerStart = '<!-- mother-brain:start -->';
+    const markerEnd = '<!-- mother-brain:end -->';
+    const wrappedContent = `${markerStart}\n${mbContent}\n${markerEnd}`;
+
+    if (await fs.pathExists(agentsFile)) {
+      const existing = await fs.readFile(agentsFile, 'utf-8');
+      const startIdx = existing.indexOf(markerStart);
+      const endIdx = existing.indexOf(markerEnd);
+      if (startIdx !== -1 && endIdx !== -1) {
+        // Replace existing Mother Brain section
+        const merged = existing.substring(0, startIdx) + wrappedContent + existing.substring(endIdx + markerEnd.length);
+        await fs.writeFile(agentsFile, merged);
+        console.log(chalk.green('Updated Mother Brain section in AGENTS.md (user content preserved)'));
+      } else {
+        // No markers — append our section to the end
+        await fs.writeFile(agentsFile, existing.trimEnd() + '\n\n' + wrappedContent + '\n');
+        console.log(chalk.green('Appended Mother Brain rules to existing AGENTS.md'));
+      }
+    } else {
+      // No existing file — create with markers
+      await fs.writeFile(agentsFile, wrappedContent + '\n');
       console.log(chalk.green('Created AGENTS.md (always-active rules for Codex/Copilot)'));
     }
   }

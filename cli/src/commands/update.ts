@@ -86,11 +86,29 @@ export async function update(): Promise<void> {
       }
     }
 
-    // Update AGENTS.md if source exists in extracted package
+    // Update AGENTS.md — merge with markers to preserve user content
     const extractedAgentsFile = path.join(tempDir, 'package', 'AGENTS.md');
     const agentsFile = path.join(cwd, 'AGENTS.md');
     if (await fs.pathExists(extractedAgentsFile)) {
-      await fs.copy(extractedAgentsFile, agentsFile, { overwrite: true });
+      const mbContent = await fs.readFile(extractedAgentsFile, 'utf-8');
+      const markerStart = '<!-- mother-brain:start -->';
+      const markerEnd = '<!-- mother-brain:end -->';
+      const wrappedContent = `${markerStart}\n${mbContent}\n${markerEnd}`;
+
+      if (await fs.pathExists(agentsFile)) {
+        const existing = await fs.readFile(agentsFile, 'utf-8');
+        const startIdx = existing.indexOf(markerStart);
+        const endIdx = existing.indexOf(markerEnd);
+        if (startIdx !== -1 && endIdx !== -1) {
+          const merged = existing.substring(0, startIdx) + wrappedContent + existing.substring(endIdx + markerEnd.length);
+          await fs.writeFile(agentsFile, merged);
+        } else {
+          await fs.writeFile(agentsFile, existing.trimEnd() + '\n\n' + wrappedContent + '\n');
+        }
+      } else {
+        await fs.writeFile(agentsFile, wrappedContent + '\n');
+      }
+      console.log(chalk.green('  ✓ Updated AGENTS.md (user content preserved)'));
     }
     
     // Clean up temp directory

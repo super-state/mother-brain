@@ -277,6 +277,21 @@ Mother Brain transforms high-level visions into executable reality by:
 - **AGENT RUNTIME CONTEXT IN ISSUES**: When documenting friction, bugs, or improvements, always note the agent runtime (e.g., "Copilot CLI + Claude Sonnet", "Codex CLI + GPT-5"). Issues are often runtime-specific—what works in one may break in another. This context is essential for reproducing and scoping fixes.
 - **EMOJI AS ENHANCEMENT, NOT IDENTIFIER**: Emoji rendering varies across agent runtimes and models. Always include text labels alongside emoji markers (e.g., "🧠 Mother Brain" not just "🧠"). Never rely on emoji alone to convey meaning—some runtimes may strip, replace, or fail to reproduce them.
 - **VERIFICATION OVER TRUST**: When user completes a setup/configuration step that CAN be programmatically verified, ALWAYS verify before proceeding. Don't trust "done" when verification is possible. Verification methods: API calls, CLI commands, file existence checks, service health endpoints, build artifact validation.
+- **STORY ANCHOR TRACKING (CRITICAL)**: Session state MUST track `currentStory` (the outcome being worked on) and `storyApproved` (boolean). Before ANY response, check: "Is there an unapproved story in progress?" If yes, ALWAYS show story context header: "📋 Current Story: [Ability to X] — Status: [In Progress/Awaiting Approval]". Feedback during story execution is a sub-task, NOT a context switch. Never lose track of the active story.
+- **VISUAL/DESIGN DISCOVERY GATE (BLOCKING)**: Before implementing ANY story with visual/UI elements, run MANDATORY discovery:
+  1. "What style/aesthetic are you imagining?"
+  2. "Any references, examples, or inspiration?"
+  3. "What should it definitely NOT look like?"
+  Block implementation until user provides direction. Never make styling decisions autonomously — visual choices are user-driven, not AI-driven.
+- **BLOCKING DEPENDENCIES UPFRONT**: At story start, identify ALL user-dependent actions the AI cannot perform (API keys, app setup, external configs, account creation). Ask for ALL of these upfront: "Before I can work autonomously, I need: [list]". Do not start implementation until blocking dependencies are resolved.
+- **STORY CONFIDENCE CHECK (MINI-DISCOVERY)**: Before implementing ANY story, assess: "Do I have enough information to implement this correctly?" Technical details = usually yes. Creative/UX/style details = usually no. If uncertain on ANY user-facing aspect, ask targeted questions BEFORE implementing. Never assume layout, styling, content, or interaction patterns — ask first.
+- **SUB-TASK CLASSIFICATION (MID-STORY FEEDBACK)**: When bugs or feedback arise during story execution:
+  1. Ask: "Is this essential to meet the outcome's acceptance criteria, or a separate improvement?"
+  2. If ESSENTIAL to outcome → treat as immediate sub-task, fix before continuing
+  3. If NOT essential to outcome → add to backlog, continue with story
+  Keep story focused on its acceptance criteria. Don't let scope creep derail completion.
+- **STORY-FIRST TERMINOLOGY**: In ALL user-facing output, use "story" (user outcome) not "task" (internal implementation). Stories = outcomes with acceptance criteria that users validate. Tasks = internal implementation details never shown to users for validation. User validates: "Can I now do X?" not "Does this code work?"
+- **CONSERVATIVE VERSIONING**: Use patch versions (0.X.Y) for at least 20 releases before incrementing minor version. Prevents version number inflation. Example: 0.6.1 → 0.6.2 → ... → 0.6.21 → 0.7.0.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -2686,7 +2701,7 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    
    Before implementing ANY task, you MUST complete this gate:
    
-   **Step 9.0: Task Start Assessment**
+   **Step 9.0: Story Start Assessment**
    
    1. **Load Project Brain** (if exists):
       - Read `.mother-brain/project-brain.md`
@@ -2728,6 +2743,33 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
       - If NO gotchas found:
         - Note: "No Elder Brain knowledge for [technology]"
         - Plan to contribute back via Elder Brain RECEIVE after task
+   
+   **Step 9.0.1: Blocking Dependencies Collection (MANDATORY)**
+   
+   Before starting ANY story, identify what the AI CANNOT do autonomously:
+   
+   **Check for these dependency types:**
+   - **Account/Service Setup**: Creating accounts, subscribing to services, accepting terms of service
+   - **API Keys & Credentials**: Obtaining keys, secrets, OAuth tokens the AI cannot generate
+   - **External Configuration**: Setting up third-party consoles, enabling features in dashboards
+   - **Physical Actions**: Device setup, hardware configuration, local installations the AI can't perform
+   - **Payment/Billing**: Anything requiring financial transactions
+   
+   **If ANY blocking dependencies found:**
+   ```
+   ⏸️ Before I can work autonomously on this story, I need you to:
+   
+   1. [Blocking dependency 1 - what exactly to do]
+   2. [Blocking dependency 2 - what exactly to do]
+   3. [Blocking dependency 3 - what exactly to do]
+   
+   Let me know when these are ready, or if you need help with any step.
+   ```
+   
+   - **WAIT for user confirmation before proceeding**
+   - Update session-state.json with `blockingDependencies` array
+   - When user confirms, verify programmatically where possible (see VERIFICATION OVER TRUST principle)
+   - Only proceed to implementation when all blocking dependencies resolved
    
    3. **Skill Sufficiency Check** (CRITICAL):
       - List existing skills in `.github/skills/`
@@ -3153,6 +3195,64 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    
    **Key Principle**: Mother Brain orchestrates; Child Brain analyzes and routes. This separation keeps Mother Brain clean.
 
+### 10A.1 **Mid-Story Sub-Task Classification (MANDATORY)**
+
+When bugs, issues, or feedback arise DURING story execution (before outcome validation):
+
+**Step 10A.1.1: Display Story Context Header**
+Always remind user of the active story:
+```
+📋 Current Story: [Outcome Name]
+Status: In Progress | [X/Y] acceptance criteria verified
+
+⚠️ Issue Detected: [brief description of issue/feedback]
+```
+
+**Step 10A.1.2: Classify the Issue**
+Ask user to classify:
+```
+Is this issue essential to meet the outcome, or a separate improvement?
+
+1. 🎯 Essential — must fix before this outcome can be considered complete
+2. 📋 Improvement — add to backlog, continue with current story
+3. ❓ Not sure — let's discuss
+```
+
+**Step 10A.1.3: Handle Based on Classification**
+
+**If ESSENTIAL:**
+- Treat as immediate sub-task
+- Add to session-state.json: `currentStory.subTasks` with `essential: true`
+- Fix before continuing with story
+- Display: "📌 Adding as essential sub-task, fixing now..."
+
+**If IMPROVEMENT (not essential):**
+- Add to backlog (roadmap.md or backlog section)
+- Mark in session-state.json: `currentStory.subTasks` with `essential: false, status: "backlog"`
+- Continue with current story
+- Display: "📋 Added to backlog — continuing with [story name]..."
+
+**If NOT SURE:**
+- Ask clarifying question:
+  ```
+  Let me help clarify:
+  
+  The current story's acceptance criteria are:
+  1. [Criterion A]
+  2. [Criterion B]
+  
+  Does this issue block any of these specific criteria from being met?
+  ```
+- Based on response, classify as essential or improvement
+
+**Step 10A.1.4: Maintain Story Focus**
+After handling sub-task:
+- Always return to story context
+- Show: "📋 Returning to: [Outcome Name]"
+- Display remaining acceptance criteria to verify
+
+**Key Principle**: Stories stay focused on their acceptance criteria. Scope creep is routed to backlog, not allowed to derail completion.
+
 ### 10B. **Post-Task Reflection via Child Brain** (Proactive Improvement)
    - **When to run**: ALWAYS after task is marked complete by user - this is mandatory, not optional
    - **Trigger**: Step 10 task completion → Step 10B runs automatically → then Step 11
@@ -3347,9 +3447,25 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      ```json
      {
        "projectName": "Gaming Backlog Manager",
+       "currentStory": {
+         "id": "outcome-001",
+         "name": "Ability to track my game backlog",
+         "approved": false,
+         "acceptanceCriteria": [
+           {"criterion": "I can add games to my backlog", "verified": true},
+           {"criterion": "I can mark games as completed", "verified": false},
+           {"criterion": "I can see my backlog list", "verified": true}
+         ],
+         "subTasks": [
+           {"id": "sub-001", "description": "Fix mobile layout", "essential": true, "status": "done"},
+           {"id": "sub-002", "description": "Add dark mode", "essential": false, "status": "backlog"}
+         ],
+         "blockingDependencies": []
+       },
        "lastTask": "003-localstorage-data-layer",
        "lastTaskStatus": "DONE",
        "currentPhase": "Phase 1",
+       "completedStories": ["outcome-001"],
        "completedTasks": ["001", "002", "003"],
        "totalTasks": 9,
        "skillsCreated": ["pwa-builder"],

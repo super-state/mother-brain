@@ -104,6 +104,18 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - **Self-test**: After generating your response, scan it. If it ends with a statement and no menu → STOP and add one
 - This rule exists because passive "don't do X" rules suffer from context decay in long sessions
 
+### RULE 10: TEMPLATE LOADING GATE (MANDATORY)
+- Before displaying ANY menu, creating ANY document, or formatting ANY output, you MUST:
+  1. Read the relevant template file from `references/` or `examples/`
+  2. Use the loaded template as your guide — do not recreate from memory
+- Template files to load on demand:
+  - **Menus**: Read `references/branded-menu.md` before displaying any menu
+  - **Formatting**: Read `references/formatting-rules.md` before formatting lists/output
+  - **Issue reporting**: Read `references/issue-reporting.md` when handling freeform issue detection
+  - **Documents**: Read `references/doc-templates.md` before creating vision.md, task docs, roadmap.md, value-framework.md, or learning-log.md
+  - **File structure**: Read `references/file-structure.md` when setting up project structure
+- **Why this rule exists**: Templates extracted to files prevent context decay. A missed file load is debuggable and enforceable; inline template drift is invisible
+
 ---
 
 ## ⚠️ CRITICAL EXECUTION INSTRUCTIONS
@@ -265,176 +277,21 @@ Mother Brain transforms high-level visions into executable reality by:
 
 ### Output Formatting Rules (CRITICAL)
 
-**NEVER do this (horizontal cramming):**
-```
-❌ Skills: design-system, supabase-integration, maps-integration, component-builder
-❌ Features: Discovery • Ratings • Tracking • Routes
-❌ Tasks completed: 1, 2, 3, 5
-```
-
-**ALWAYS do this (vertical lists):**
-```
-✅ Skills created:
-- design-system
-- supabase-integration
-- maps-integration
-- component-builder
-
-✅ Features:
-- Discovery
-- Ratings
-- Tracking
-- Routes
-
-✅ Tasks completed:
-- Task 1
-- Task 2
-- Task 3
-- Task 5
-```
-
-Each item gets its own line. No exceptions.
+**Read `references/formatting-rules.md` for examples.** Core rule: ALWAYS use vertical lists with one item per line. NEVER use horizontal comma-separated lists or bullet characters (•). Each item gets its own line — no exceptions.
 
 ## Universal Patterns for All Workflows
 
 ### Branded Menu Frame
 
-**Use this template for ALL menus and selections in Mother Brain:**
+**Read `references/branded-menu.md` for the full template and examples before displaying any menu.**
 
-**Theme: Clean, Simple with Brain Emoji**
-
-```
-🧠 Welcome back to [Project Name]!
-
-📍 Where You Left Off:
-- Phase: [Current Phase Name]
-- Last Task: [Task Number] - [Task Name] ([Status])
-- Progress: [X] of [Y] tasks completed
-- Skills Created: [Count]
-
-What would you like to do?
-```
-
-**Theme Elements:**
-- Header starts with 🧠 emoji followed by welcome message
-- Use 📍 emoji for status section header
-- Plain text content with bullet points (•) for lists
-- No ASCII art, no "Vision-Driven Development" tagline
-- No markdown tables (hard to read in terminals)
-- No horizontal rules or code fences around output
-
-**Styling Rules:**
-- Header format: 🧠 [Welcome/Status message]
-- Use bullet character - for lists (not - which triggers markdown)
-- Use emoji markers for sections (📍, ✅, 🔧)
-- Keep content simple and readable
-- No ASCII box borders, no tables
-
-**Example - Welcome Back Menu:**
-```
-🧠 Welcome back to Gaming Backlog Manager!
-
-📍 Where You Left Off:
-- Phase: Phase 1 - Core PWA Foundation
-- Last Task: 003 - localStorage Data Layer (✅ Complete)
-- Progress: 3 of 9 tasks completed
-- Skills Created: 1
-
-What would you like to do?
-```
-
-**Example - Selection Menu:**
-```
-🧠 Snakes and Ladders
-
-What would you like to do?
-```
-
-Then use `ask_user` with choices immediately after the branded text.
-
-**Important**: Do NOT wrap the menu output in triple-backtick code fences when displaying to user. Just output the text directly. Code fences cause terminal styling issues.
+Key rules: Header starts with 🧠 emoji, use 📍 for status, dash `-` for lists, no ASCII art, no tables, no code fences around output. Use `ask_user` with choices immediately after branded text.
 
 ### Issue Reporting via Freeform Input
 
-**Simplified Approach: Use freeform text for issue reporting**
+**Read `references/issue-reporting.md` for the full pattern.**
 
-- Use `allow_freeform: true` on all `ask_user` calls (this is the default)
-- The tool automatically adds "Other" as the last option for freeform text input
-- **No explicit "Report Issue" option needed** - users can type their issues in freeform
-- When user's freeform input contains issue-related keywords, jump to **Step 2A: Update Mother Brain**
-
-**Issue Detection Keywords** (check freeform responses for these):
-- "issue", "problem", "broken", "bug", "not working", "wrong", "error"
-- "doesn't work", "fix", "report", "something's wrong", "this is broken"
-
-**Example Pattern:**
-```
-ask_user with allow_freeform: true and choices:
-- "Option 1 (normal workflow)"
-- "Option 2 (alternative)"
-- "Option 3 (other action)"
-# Tool automatically adds "Other" at the end for freeform input
-```
-
-**What user sees:**
-```
-1. Option 1 (normal workflow)
-2. Option 2 (alternative)
-3. Option 3 (other action)
-4. Other  ← Auto-added by tool, allows freeform text
-```
-
-**Handling Freeform Responses:**
-1. Check if response contains issue-related keywords
-2. If issue detected:
-   - Capture current context (step, action, phase, task)
-   - Display: "🚨 **Issue Detected**"
-   - Jump to Step 2A with context
-3. If not an issue: Process response normally and continue workflow
-
-**When issue is detected in freeform:**
-1. Capture current context
-2. Display: "🚨 **Issue Detected from your feedback**"
-3. Pre-populate issue context: "You were at [Step X], attempting [Action Y]"
-4. Jump to Step 2A with context
-5. Apply 3-layered troubleshooting approach (what happened, root cause, fix)
-5. Apply 3-layered troubleshooting approach (what happened, root cause, fix)
-
-This ensures users can ALWAYS break out of bad behavior and report issues in-context.
-
-### Handling "Report Issue" Selection
-
-When user selects "🚨 Report Issue (something's not working)" from ANY `ask_user`:
-
-1. **Capture Context:**
-   ```
-   Context:
-   - Current Step: [Step number/name being executed]
-   - Action Attempted: [What Mother Brain was trying to do]
-   - Phase: [If in project: current phase]
-   - Task: [If in task execution: task number/name]
-   - Last Command: [Last tool used, if applicable]
-   ```
-
-2. **Display Issue Capture:**
-   ```
-   🚨 **Issue Reporting Mode Activated**
-   
-   I detected you triggered issue reporting from:
-   - Step: [Current step]
-   - Action: [What was happening]
-   [If in task] - Task: [Task number/name]
-   
-   This will help me understand what went wrong.
-   ```
-
-3. **Jump to Step 2A** (Update Mother Brain) with pre-populated context
-
-4. **Ask for issue description** with context already captured:
-   - "What went wrong or didn't work as expected?"
-   - Pre-fill with context: "At [Step], while [Action], the issue was: [user describes]"
-
-This pattern ensures NO workflow ever traps the user—there's always an escape hatch.
+Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform responses for issue keywords ("bug", "broken", "not working", etc.). When detected, capture context and jump to Step 2A. This ensures users can always break out of bad behavior.
 
 ## Steps
 
@@ -2374,34 +2231,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - **Proceed to Step 4** (Vision Document Creation)
 
 ### 4. **Vision Document Creation**
-   - Create `docs/vision.md` with structured content:
-     ```markdown
-     # [Project Name] - Vision
-     
-     ## The Problem
-     [User's pain point/opportunity]
-     
-     ## The Vision
-     [3-12 month desired future state]
-     
-     ## Target Users
-     [Who benefits and how]
-     
-     ## Why This Matters
-     [The deeper purpose]
-     
-     ## Success Looks Like
-     [Measurable outcomes]
-     
-     ## Timeline & Constraints
-     [Constraints only - budget, skills, tech preferences. NOT timeline.]
-     
-     ## MVP Definition
-     [Minimum viable success]
-     
-     ## Strategic Themes
-     [3-5 key focus areas derived from vision]
-     ```
+   - **Read `references/doc-templates.md`** and use the Vision Document Template
+   - Create `docs/vision.md` using the loaded template, filling in content from vision discovery
    
    - Create `README.md` with project overview
    - Display vision summary to user
@@ -2468,59 +2299,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
       - It blocks something more important
    
    **Step 4A.3: Build the Value Framework**
-   - Create `.mother-brain/docs/value-framework.md`:
-   
-   ```markdown
-   # [Project Name] - Value Framework
-   
-   > Living prioritization criteria derived from vision discovery.
-   > Used to order tasks, evaluate new ideas, and justify roadmap decisions.
-   > Updated as the project evolves and user priorities shift.
-   
-   ## Core Value Driver
-   [The #1 thing from Step 4A.2 question 2 — e.g., "Users can track their backlog within 2 weeks"]
-   
-   ## Priority Dimensions (Weighted)
-   
-   | Dimension | Weight | Description |
-   |-----------|--------|-------------|
-   | Vision Alignment | [1-5] | How directly does this serve the core vision? |
-   | MVP Proximity | [1-5] | Does this get us closer to a shippable release? |
-   | User Impact | [1-5] | How much does this improve the user experience? |
-   | Effort | [1-5] | How much work is required? (inverse: lower effort = higher priority) |
-   | Urgency | [1-5] | Is this time-sensitive or blocking other work? |
-   | Long-term Value | [1-5] | Does this pay off strategically over time? |
-   | Risk Reduction | [1-5] | Does this reduce technical or project risk? |
-   
-   *Weights are 1 (low importance) to 5 (critical). Derived from user's stated values.*
-   
-   ## User's Stated Values
-   - Speed vs Quality preference: [from question 3]
-   - Abandon/deprioritize triggers: [from question 4]
-   - Core success metric: [from question 2]
-   
-   ## Scoring Guide
-   
-   **Priority Score** = Sum of (Dimension Score × Weight) for each dimension
-   
-   When comparing tasks:
-   1. Score each task across all dimensions (1-5 per dimension)
-   2. Multiply by weight
-   3. Higher total = higher priority
-   4. Ties broken by: Vision Alignment > MVP Proximity > User Impact
-   
-   ## Decision Rules
-   - Tasks scoring < [threshold] on Vision Alignment should be questioned: "Does this belong in this project?"
-   - Tasks scoring 5 on Urgency override normal ordering (blockers first)
-   - Tasks scoring 5 on MVP Proximity during Phase 1 get priority boost
-   - After MVP: User Impact and Long-term Value become more important than MVP Proximity
-   
-   ## Framework Evolution Log
-   
-   | Date | Change | Reason |
-   |------|--------|--------|
-   | [Created] | Initial framework | Vision discovery |
-   ```
+   - **Read `references/doc-templates.md`** and use the Value Framework Template
+   - Create `.mother-brain/docs/value-framework.md` using the loaded template
+   - Fill in values from user's answers in Step 4A.2
    
    **Step 4A.4: Confirm with User**
    - Show the framework summary (NOT the full file — just the key weights and values)
@@ -2938,113 +2719,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    - Don't over-plan: assume learnings will inform these phases
    
    **Step 7.3: Create `docs/roadmap.md` (Research-Driven Structure)**:
-     ```markdown
-     # [Project Name] - Roadmap
-     
-     ## Delivery Strategy (Research-Based)
-     **Project Type**: [From Step 5 research]  
-     **MVP Approach**: [From Step 6A research - what minimum viable means for this type]  
-     **Launch Pattern**: [From Step 6A research - how to reach users]  
-     **Iteration Strategy**: [From Step 6A research - how to improve post-launch]
-     
-     ---
-     
-     ## Phase 1: MVP - [Core Problem Solution] (Timeline)
-     **Goal**: Shortest path to deliver user value  
-     **Success Gate**: [MVP criteria from vision document]  
-     **Strategy**: Solve core problem, defer everything else
-     
-     **Deliverables** (ordered by Value Framework score):
-     - [ ] **Task 001**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
-     - [ ] **Task 002**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
-     - [ ] **Task 003**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
-     
-     **Why this order**: [1-2 sentence explanation of why tasks are sequenced this way based on the Value Framework. E.g., "Task 001 first because it scores highest on Vision Alignment and unblocks Tasks 002-003."]
-     
-     **Skills Available**: [List relevant skills]
-     
-     **Definition of Done** (from vision + research):
-     - [MVP criterion 1 from vision]
-     - [MVP criterion 2 from vision]
-     - [Launch criterion from Step 6A research]
-     - Ready for [next step from research - users/feedback/deployment]
-     
-     ---
-     
-     ## Phase 2+: Post-MVP Iteration
-     **Strategy**: [Iteration approach from Step 6A research]  
-     **Trigger**: Phase 1 complete + [feedback mechanism from research]  
-     **Focus**: Learn from users and iterate
-     
-     **Planned Enhancements** (ordered by Value Framework, subject to validation):
-     - [ ] **Task [N]**: [Enhancement] — *Score: [N] (top dimensions)*
-     - [ ] **Task [N+1]**: [Feature that wasn't essential for MVP] — *Score: [N] (top dimensions)*
-     
-     **Why this order**: [1-2 sentence explanation based on Value Framework]
-     
-     **Learning Plan**:
-     - [Feedback mechanism from Step 6A research]
-     - [Metrics/data to collect]
-     - [How we'll prioritize improvements]
-     
-     **Note**: These tasks may change completely based on user feedback
-     
-     ---
-     
-     ## MVP Checkpoint (End of Phase 1)
-     
-     ✅ **Phase 1 Complete When**:
-     1. [MVP criterion 1 from vision]
-     2. [MVP criterion 2 from vision]
-     3. Core problem from vision is solved
-     4. User can achieve primary outcome
-     5. [Launch criteria from Step 6A research]
-     
-     **Next Step After MVP**: [From Step 6A research - launch to users, collect feedback, analyze learnings, prioritize Phase 2 based on data]
-     
-     ---
-     
-     ## Future Enhancements (Post-MVP Backlog)
-     
-     **Defer Until After MVP** (nice-to-have):
-     - [ ] [Feature not essential to core problem]
-     - [ ] [Enhancement that can wait for user validation]
-     - [ ] [Assumption-based idea - test with real users first]
-     
-     **Validation Required**: Don't build until validated by user feedback
-     
-     ---
-     
-     ## Iteration & Learning Plan (Research-Based)
-     
-     **Feedback Collection** (from Step 6A research):
-     - [How we'll gather user input for this project type]
-     - [Metrics/analytics to track]
-     - [User research approach]
-     
-     **Iteration Cycle**:
-     1. Complete Phase 1 (MVP)
-     2. [Launch/deploy/release based on Step 6A research]
-     3. Collect feedback via [mechanism from research]
-     4. Analyze learnings and validate assumptions
-     5. Prioritize Phase 2 based on real user data
-     6. Iterate and improve
-     
-     ---
-     
-     ## Risk Mitigation
-     
-     **MVP Risks**: [Potential issues with Phase 1 approach]
-     
-     **Delivery Strategy**: If time/resources become constrained, protect MVP (Phase 1) at all costs. Everything in Phase 2+ can be deferred.
-     
-     ---
-     
-     **Total Tasks**: [Count]  
-     **Phase 1 (MVP) Tasks**: [Count essential tasks]  
-     **Post-MVP Tasks**: [Count - subject to change based on feedback]  
-     **Estimated Timeline**: [From vision document]
-     ```
+   - **Read `references/doc-templates.md`** and use the Roadmap Template
+   - Create `docs/roadmap.md` using the loaded template
+   - Fill in from research findings (Steps 5, 5A, 6A) and Value Framework (Step 4A)
+   - Order tasks by Value Framework score
+   - Include "Why this order" explanation for each phase
    
    **Step 7.3.5: CHECKPOINT - Review Roadmap Against Elder Brain**
    - **Purpose**: Surface known pitfalls for the tech stack BEFORE task execution begins
@@ -3214,47 +2893,8 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ### 8. **Task Document Creation**
    - Create `docs/tasks/` directory
-   - For first task in Phase 1, create `docs/tasks/001-[task-name].md`:
-     ```markdown
-     # Task 001: [Task Name] - [Logic/UI/Animation]
-     
-     **Status**: 🟡 In Progress  
-     **Phase**: Phase 1 - Foundation  
-     **Strategic Theme**: [Which theme this supports]  
-     **Assigned**: [Date]  
-     
-     ## Objective
-     [What this task achieves]
-     
-     **Scope Clarity**:
-     - **Type**: [Logic | UI | Animation | Integration | Testing]
-     - **Focus**: [What this task implements specifically]
-     - **NOT in scope**: [What related features are in future tasks]
-     
-     ## Success Criteria
-     - [ ] [Specific, testable criterion]
-     - [ ] [Specific, testable criterion]
-     
-     ## Approach
-     [High-level approach]
-     
-     ## Dependencies
-     - [What must exist before this]
-     
-     ## Skills to Use
-     - [Relevant skill name and purpose]
-     
-     ## Deliverables
-     - [Specific files/outputs]
-     
-     ## Notes & Decisions
-     [Log decisions made during execution]
-     
-     ## Validation
-     [ ] Built successfully
-     [ ] Tested and verified
-     [ ] User confirmed it meets expectations
-     ```
+   - **Read `references/doc-templates.md`** and use the Task Document Template
+   - For first task in Phase 1, create `docs/tasks/001-[task-name].md` using the loaded template
    
    - Display task to user
    - Use `ask_user` with choices:
@@ -4116,60 +3756,14 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - If pattern affects skill creation: Update skill-creator
        - If pattern affects specific skill: Update that skill
    
-   - Log improvements in `docs/learning-log.md`:
-     ```markdown
-     # Learning Log
-     
-     ## [Date] - [Issue Fixed]
-     **Skill**: [Which skill was healed]
-     **Problem**: [What went wrong]
-     **Root Cause**: [Why it happened]
-     **Fix Applied**: [How it was fixed]
-     **Lesson Learned**: [General principle extracted]
-     **Improvement Made**: [What was updated to prevent recurrence]
-     ```
+   - **Read `references/doc-templates.md`** and use the Learning Log Template
+   - Log improvements in `docs/learning-log.md` using the loaded template
 
 ## File Structure Created by Mother Brain
 
-```
-project-root/
-├── .mother-brain/                    # Mother Brain isolated directory (project docs only)
-│   ├── docs/
-│   │   ├── vision.md                 # Project vision (what, who, when, WHY)
-│   │   ├── roadmap.md                # Phased execution plan
-│   │   ├── learning-log.md           # Self-improvement tracking (PRESERVED on eject)
-│   │   └── tasks/
-│   │       ├── 001-task-name.md      # Individual task documents
-│   │       ├── 002-task-name.md
-│   │       └── ...
-│   ├── project-brain.md              # Project-specific learnings (managed by Child Brain)
-│   ├── session-state.json            # Current session state (tracks skillsCreated)
-│   └── README.md                     # Mother Brain directory info
-├── .github/
-│   └── skills/                       # ALL skills (framework + project-specific)
-│       ├── mother-brain/             # Core framework (never delete)
-│       ├── child-brain/              # Core framework - learning orchestrator (never delete)
-│       ├── skill-creator/            # Core framework (never delete)
-│       ├── [project-skill-1]/        # Project-specific (tracked in session-state.json)
-│       └── [project-skill-2]/        # Project-specific (tracked in session-state.json)
-├── .agents/
-│   └── skills/                       # Symlinks to .github/skills/ (Codex CLI compatibility)
-│       ├── mother-brain/ → ../../.github/skills/mother-brain/
-│       ├── child-brain/  → ../../.github/skills/child-brain/
-│       └── skill-creator/ → ../../.github/skills/skill-creator/
-├── src/                              # Source code (standard structure)
-├── tests/                            # Tests (standard structure)
-├── README.md                         # Project overview
-└── [other standard project files]
-```
+**Read `references/file-structure.md` for the full directory tree and key principles.**
 
-**Key Principles:**
-- **Dual CLI Compatibility**: Skills live in `.github/skills/` (GitHub Copilot CLI, source of truth) and are symlinked to `.agents/skills/` (Codex CLI). Relative symlinks survive git clone (unlike NTFS junctions). Falls back to copy if symlinks fail.
-- **Skill Tracking**: `session-state.json` tracks which skills are project-specific via `skillsCreated` array
-- **Easy Ejection**: Delete skills listed in `skillsCreated`, keep core framework skills
-- **Isolated Docs**: Project documentation in `.mother-brain/docs/` (separate from project code)
-- **Learning Preservation**: `learning-log.md` is preserved on eject for continuous improvement
-- **Learning Separation**: Project Brain stores project-specific learnings; Mother Brain stores only meta-level process improvements
+Core structure: `.mother-brain/` (project docs), `.github/skills/` (all skills), `.agents/skills/` (Codex symlinks), `experience-vault/` (Elder Brain knowledge).
 
 ## Validation Checklist
 
@@ -4235,72 +3829,7 @@ When heal fixes an issue:
 
 ## Example Session Flow
 
-**New Project:**
-```
-User: I want to build a music marketing SaaS platform
-
-Mother Brain:
-🧠 Welcome to Mother Brain!
-
-[Runs vision discovery wizard - 8-12 questions]
-
-Creates:
-- docs/vision.md
-- docs/roadmap.md (3 phases identified)
-- README.md
-
-Identifies repetitive patterns:
-- Spotify API integration
-- Image uploads
-- User authentication
-- Email campaigns
-
-Recommends creating skills:
-- spotify-api-integrator
-- image-upload-handler
-- auth-manager
-
-User agrees, Mother Brain invokes skill-creator 3 times.
-
-First task created: "Set up project structure and authentication"
-
-User: "Start the task"
-
-[Mother Brain uses auth-manager skill, creates deliverables]
-
-Mother Brain: "✅ Task complete! User login system created.
-Please test: [instructions]
-Does it work properly?"
-
-User: "Yes, looks good!"
-
-Mother Brain marks task complete, asks about next task.
-```
-
-**Returning to Project:**
-```
-User: /mother-brain
-
-Mother Brain:
-🧠 Welcome back to MusicMarketingSaaS!
-
-Current Status:
-Phase: 1 - Foundation (75% complete)
-Task: 002 - Spotify API Integration (In Progress)
-Completed: 3 tasks
-Remaining: 12 tasks
-Skills: 3 available
-
-What would you like to do?
-1. Continue current task
-2. Start next task
-3. Review roadmap
-...
-
-User: "Continue current task"
-
-[Mother Brain loads task 002, continues execution]
-```
+**Read `examples/session-flow.md` for full new project and returning project examples.**
 
 ## Notes
 

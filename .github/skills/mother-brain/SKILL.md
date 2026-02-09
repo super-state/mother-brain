@@ -1633,9 +1633,16 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - Load `.mother-brain/docs/vision.md` (for alignment check)
    - Load `.mother-brain/docs/roadmap.md` (for context on existing tasks)
+   - Load `.mother-brain/docs/value-framework.md` (for prioritization criteria)
    - Load `.mother-brain/project-brain.md` (for project preferences, if exists)
    
-   - Analyze the idea across four dimensions:
+   - **Score the idea using the Value Framework** (if it exists):
+     - Rate each dimension from the framework (1-5)
+     - Multiply by weight
+     - Calculate total priority score
+     - Compare against existing task scores to determine placement
+   
+   - **If no Value Framework exists** (legacy projects), use basic analysis:
      1. **Vision Alignment**: How well does this idea serve the project's stated WHY and success criteria?
      2. **User Impact**: How much does this benefit the target users defined in the vision?
      3. **Effort Estimate**: Relative complexity — is this a single task or a multi-task effort?
@@ -1648,7 +1655,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **Step 2F.3: Present Analysis to User**
    
-   - Display:
+   - Display (with Value Framework scores if available):
      ```
      💡 Idea Analysis
      
@@ -1659,11 +1666,13 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - User Impact: [High/Medium/Low] — [brief reason]
      - Effort: [Small (1 task) / Medium (2-3 tasks) / Large (new phase)]
      - Dependencies: [None / Depends on Task X / Blocks Task Y]
+     [If Value Framework exists:]
+     - Value Framework Score: [N] — ranked [position] out of [total] current tasks
      
      🎯 Recommended Priority: [🔴 Critical / 🟡 Important / 🟢 Backlog]
      
      Reasoning: [2-3 sentences explaining why this priority level was chosen,
-     referencing vision alignment and current roadmap state]
+     referencing Value Framework dimensions and current roadmap state]
      ```
    
    - Use `ask_user` with choices:
@@ -1681,6 +1690,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Bump priority one level up (🟢→🟡 or 🟡→🔴)
      - If already 🔴: Acknowledge and proceed
      - Display: `📘 Project Brain will remember this — you prioritize [idea type] higher than expected`
+     - **Update Value Framework**: If user consistently overrides for certain types, adjust relevant dimension weights
      - Invoke Child Brain with preference context (user values this type of feature highly)
      - Proceed to Step 2F.5
    
@@ -1688,6 +1698,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Bump priority one level down (🔴→🟡 or 🟡→🟢)
      - If already 🟢: Keep at backlog
      - Display: `📘 Project Brain will remember this — you prefer to defer [idea type]`
+     - **Update Value Framework**: Log the override in the Evolution Log section
      - Proceed to Step 2F.5
    
    - **If "Let me refine the idea"**:
@@ -2398,6 +2409,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    **⚠️ MANDATORY CHECKPOINT - DO NOT SKIP**
    After user confirms vision, you MUST complete ALL of the following steps IN ORDER before creating the roadmap:
+   - [ ] Step 4A: Value Framework Discovery (capture prioritization criteria)
    - [ ] Step 5: Technology & Pattern Analysis (research best practices)
    - [ ] Step 5A: Design System Discovery (if project has visual requirements)
    - [ ] Step 6: Skill Identification & Creation (create essential skills)
@@ -2406,8 +2418,115 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    **NEVER skip directly to roadmap creation.** The research and skill creation steps ensure quality.
    If you find yourself about to create a roadmap without having done research and created skills, STOP and go back.
    
-   - **After user confirms vision**: Proceed immediately to Step 5 (Technology & Pattern Analysis)
-   - Do NOT stop or return to menu - the full setup flow (Steps 5-6A) must complete before roadmap
+   - **After user confirms vision**: Proceed immediately to Step 4A (Value Framework Discovery)
+   - Do NOT stop or return to menu - the full setup flow (Steps 4A-6A) must complete before roadmap
+
+### 4A. **Value Framework Discovery** (Prioritization Criteria)
+   - **Purpose**: Capture the user's values, priorities, and constraints to create a living prioritization framework. This framework will be used to order tasks in the roadmap, justify priority decisions, and evaluate new tasks throughout the project lifecycle.
+   
+   **Step 4A.1: Extract Implicit Priorities from Vision**
+   - Review the vision document for signals:
+     - "I need this ASAP" → urgency is high
+     - "I want it done right" → quality over speed
+     - "Users are waiting" → user impact is critical
+     - "I'm learning as I go" → reduce risk, ship incrementally
+     - "This is a side project" → effort/time is constrained
+   
+   **Step 4A.2: Ask Prioritization Questions**
+   - Present these as a focused discovery (not overwhelming):
+   
+   ```
+   🎯 Value Framework — Understanding Your Priorities
+   
+   To build the best roadmap, I need to understand what matters most to you.
+   ```
+   
+   Ask (1-2 at a time, not all at once):
+   
+   1. **"What matters more to you right now?"**
+      - Getting to a working version fast (speed to MVP)
+      - Getting it right the first time (quality/polish)
+      - Learning and exploring (discovery/experimentation)
+   
+   2. **"When you think about this project succeeding, what's the #1 thing that needs to happen?"**
+      - (Freeform — captures their core value driver)
+   
+   3. **"How do you feel about technical debt?"**
+      - "Ship it, fix later" (velocity-first)
+      - "Do it properly from the start" (quality-first)
+      - "Depends on the feature" (balanced)
+   
+   4. **"What would make you abandon or deprioritize a task?"**
+      - It doesn't serve the core vision
+      - It takes too long relative to its value
+      - Users don't actually need it
+      - It blocks something more important
+   
+   **Step 4A.3: Build the Value Framework**
+   - Create `.mother-brain/docs/value-framework.md`:
+   
+   ```markdown
+   # [Project Name] - Value Framework
+   
+   > Living prioritization criteria derived from vision discovery.
+   > Used to order tasks, evaluate new ideas, and justify roadmap decisions.
+   > Updated as the project evolves and user priorities shift.
+   
+   ## Core Value Driver
+   [The #1 thing from Step 4A.2 question 2 — e.g., "Users can track their backlog within 2 weeks"]
+   
+   ## Priority Dimensions (Weighted)
+   
+   | Dimension | Weight | Description |
+   |-----------|--------|-------------|
+   | Vision Alignment | [1-5] | How directly does this serve the core vision? |
+   | MVP Proximity | [1-5] | Does this get us closer to a shippable release? |
+   | User Impact | [1-5] | How much does this improve the user experience? |
+   | Effort | [1-5] | How much work is required? (inverse: lower effort = higher priority) |
+   | Urgency | [1-5] | Is this time-sensitive or blocking other work? |
+   | Long-term Value | [1-5] | Does this pay off strategically over time? |
+   | Risk Reduction | [1-5] | Does this reduce technical or project risk? |
+   
+   *Weights are 1 (low importance) to 5 (critical). Derived from user's stated values.*
+   
+   ## User's Stated Values
+   - Speed vs Quality preference: [from question 3]
+   - Abandon/deprioritize triggers: [from question 4]
+   - Core success metric: [from question 2]
+   
+   ## Scoring Guide
+   
+   **Priority Score** = Sum of (Dimension Score × Weight) for each dimension
+   
+   When comparing tasks:
+   1. Score each task across all dimensions (1-5 per dimension)
+   2. Multiply by weight
+   3. Higher total = higher priority
+   4. Ties broken by: Vision Alignment > MVP Proximity > User Impact
+   
+   ## Decision Rules
+   - Tasks scoring < [threshold] on Vision Alignment should be questioned: "Does this belong in this project?"
+   - Tasks scoring 5 on Urgency override normal ordering (blockers first)
+   - Tasks scoring 5 on MVP Proximity during Phase 1 get priority boost
+   - After MVP: User Impact and Long-term Value become more important than MVP Proximity
+   
+   ## Framework Evolution Log
+   
+   | Date | Change | Reason |
+   |------|--------|--------|
+   | [Created] | Initial framework | Vision discovery |
+   ```
+   
+   **Step 4A.4: Confirm with User**
+   - Show the framework summary (NOT the full file — just the key weights and values)
+   - Use `ask_user`:
+     - "This captures my priorities well"
+     - "Adjust the weights" (then ask which dimensions to change)
+     - "Add a dimension I care about" (then ask what)
+   
+   **Step 4A.5: Proceed to Step 5**
+   - Framework is saved and will be used in Step 7 (Roadmap Generation)
+   - Display: `📋 Value Framework created — this will guide task prioritization`
 
 ### 5. **Technology & Pattern Analysis**
    - **Dynamic Research-Driven Discovery**:
@@ -2830,7 +2949,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Do NOT ask user to approve delivery strategy - Mother Brain is the expert
 
 ### 7. **Roadmap Generation**
-   - **MVP-First Phasing Using Research Findings**:
+   - **MVP-First Phasing Using Research Findings + Value Framework**:
+   
+   **Step 7.0: Load Value Framework**
+   - Read `.mother-brain/docs/value-framework.md`
+   - Use the priority dimensions and weights to order tasks
+   - Every task in the roadmap must be scored (even roughly) against the framework
    
    **Step 7.1: Define Phase 1 = MVP (Core Problem Solution)**
    - Phase 1 scope = shortest path to solve core problem from vision
@@ -2864,10 +2988,12 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      **Success Gate**: [MVP criteria from vision document]  
      **Strategy**: Solve core problem, defer everything else
      
-     **Deliverables**:
-     - [ ] **Task 001**: [Essential for solving core problem]
-     - [ ] **Task 002**: [Essential for solving core problem]
-     - [ ] **Task 003**: [Essential for solving core problem]
+     **Deliverables** (ordered by Value Framework score):
+     - [ ] **Task 001**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
+     - [ ] **Task 002**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
+     - [ ] **Task 003**: [Essential for solving core problem] — *Score: [N] (top dimensions)*
+     
+     **Why this order**: [1-2 sentence explanation of why tasks are sequenced this way based on the Value Framework. E.g., "Task 001 first because it scores highest on Vision Alignment and unblocks Tasks 002-003."]
      
      **Skills Available**: [List relevant skills]
      
@@ -2884,9 +3010,11 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      **Trigger**: Phase 1 complete + [feedback mechanism from research]  
      **Focus**: Learn from users and iterate
      
-     **Planned Enhancements** (subject to validation with real users):
-     - [ ] **Task [N]**: [Enhancement based on assumptions - validate first]
-     - [ ] **Task [N+1]**: [Feature that wasn't essential for MVP]
+     **Planned Enhancements** (ordered by Value Framework, subject to validation):
+     - [ ] **Task [N]**: [Enhancement] — *Score: [N] (top dimensions)*
+     - [ ] **Task [N+1]**: [Feature that wasn't essential for MVP] — *Score: [N] (top dimensions)*
+     
+     **Why this order**: [1-2 sentence explanation based on Value Framework]
      
      **Learning Plan**:
      - [Feedback mechanism from Step 6A research]
@@ -3902,6 +4030,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Offer to adjust roadmap
      - Add new tasks if needed
      - Reprioritize based on feedback
+     - **Re-evaluate Value Framework**: After completing a phase, priorities often shift. Ask:
+       - "Now that Phase [N] is done, have your priorities changed?"
+       - If yes → update `.mother-brain/docs/value-framework.md` weights and re-score remaining tasks
+       - Log change in the Framework Evolution Log
    
    - Display:
      ```
@@ -3914,14 +4046,15 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 
 ### 11. **Next Action Menu**
    - After task completion, use `ask_user` with choices:
-   - After task completion, use `ask_user` with choices:
      - "Start next task automatically"
      - "💡 I have a new idea"
      - "Review roadmap and choose task"
      - "Take a break (save progress)"
      - "Update/refine the roadmap"
+     - "Adjust my priorities (Value Framework)"
    - Freeform available for custom actions
    - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
+   - **If "Adjust my priorities"**: Re-run Step 4A.2 questions, update `.mother-brain/docs/value-framework.md`, re-score existing roadmap tasks if weights changed significantly, show what moved
    
    - Save session state to `docs/session-state.json`:
      ```json

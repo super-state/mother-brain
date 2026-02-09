@@ -211,9 +211,12 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Product-first thinking**: Focus on outcomes, not implementation details
 - **Vision clarity**: Always trace back to the WHY
 - **Adaptive planning**: Roadmaps are living documents, not contracts
+- **Outcome-Driven Roadmap (CORE PRINCIPLE)**: Roadmaps are organized by **Outcomes** (user abilities), not tasks. Each outcome is an "Ability to [do something]" that fulfills a user need. Tasks exist only as internal implementation details. Users validate **acceptance criteria** for outcomes, never technical tasks. This keeps validation meaningful ("Can I now do X?") rather than abstract ("Does this code look right?").
+- **User Needs as Foundation**: During Vision Discovery, capture explicit user needs as "Ability to..." statements. These become the outcomes in the roadmap. Every outcome traces back to which user need it fulfills.
+- **Acceptance Criteria Validation**: User signs off on acceptance criteria for each outcome, not on individual tasks. For each criterion, ask: "Can you do this now? Yes/No". If "No" → invoke Child Brain to analyze and fix.
 - **Best practice structure**: Organize projects using standard dev conventions
 - **Skill automation**: Create skills for repetitive tasks proactively
-- **User validation**: Always confirm work meets expectations before marking complete
+- **User validation**: Always confirm outcomes meet expectations via acceptance criteria before marking complete
 - **Self-improvement**: Learn from user feedback and update own SKILL.md to prevent future issues
 - **Transparency**: Document decisions, rationale, and changes
 - **Wizard pattern for all interactions**: Use `ask_user` tool with numbered, selectable choices (2-3 options) for ALL user decisions—never ask freeform yes/no questions in text
@@ -2055,10 +2058,11 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - **The Problem/Opportunity**: What pain point or gap exists?
    - **The Vision**: What does success look like?
    - **The Users**: Who benefits? Who uses it?
+   - **User Needs (CRITICAL)**: What specific abilities does the user need? Capture these as "Ability to [do something]" statements. These become the foundation for the outcome-driven roadmap.
    - **Differentiators**: What makes this unique in the space?
    - **Aesthetic/Experience**: How should it feel? Look? Sound?
    - **Constraints**: Budget, skills, platform limitations?
-   - **MVP Scope**: What proves the concept works?
+   - **MVP Scope**: Which user needs are essential for MVP vs nice-to-have?
    - **Data Sensitivity (MANDATORY)**: If project involves user/customer data:
      - Identify what data is handled (PII, orders, payments, health data, financial data, personal info)
      - Ask: "Who should have access to this data?"
@@ -2231,8 +2235,43 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - **Proceed to Step 4** (Vision Document Creation)
 
 ### 4. **Vision Document Creation**
-   - **Read `references/doc-templates.md`** and use the Vision Document Template
-   - Create `docs/vision.md` using the loaded template, filling in content from vision discovery
+   - Create `docs/vision.md` with structured content:
+     ```markdown
+     # [Project Name] - Vision
+     
+     ## The Problem
+     [User's pain point/opportunity]
+     
+     ## The Vision
+     [3-12 month desired future state]
+     
+     ## Target Users
+     [Who benefits and how]
+     
+     ## Why This Matters
+     [The deeper purpose]
+     
+     ## User Needs
+     > These are the core abilities users need. Each becomes an outcome in the roadmap.
+     
+     | Need | Description | MVP? |
+     |------|-------------|------|
+     | Ability to [do X] | [Why this matters] | ✅/❌ |
+     | Ability to [do Y] | [Why this matters] | ✅/❌ |
+     | Ability to [do Z] | [Why this matters] | ✅/❌ |
+     
+     ## Success Looks Like
+     [Measurable outcomes - tied to user needs being fulfilled]
+     
+     ## Constraints
+     [Budget, skills, tech preferences. NOT timeline - AI has no time constraints.]
+     
+     ## MVP Definition
+     [Which user needs must be fulfilled for minimum viable success]
+     
+     ## Strategic Themes
+     [3-5 key focus areas derived from vision]
+     ```
    
    - Create `README.md` with project overview
    - Display vision summary to user
@@ -2700,17 +2739,19 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    
    **Step 7.0: Load Value Framework**
    - Read `.mother-brain/docs/value-framework.md`
-   - Use the priority dimensions and weights to order tasks
-   - Every task in the roadmap must be scored (even roughly) against the framework
+   - Use the priority dimensions and weights to order **outcomes** (not tasks)
+   - Every outcome in the roadmap must be scored against the framework
    
-   **Step 7.1: Define Phase 1 = MVP (Core Problem Solution)**
-   - Phase 1 scope = shortest path to solve core problem from vision
+   **Step 7.1: Define Phase 1 = MVP (Core User Needs)**
+   - Phase 1 scope = shortest path to fulfill core user needs from vision
    - Use:
-     - MVP definition from Step 4 (vision document)
+     - User Needs table from Step 4 (vision document) — filter by MVP=✅
      - Delivery research from Step 6A
      - Mother Brain's expert judgment on optimal scope
-   - Mother Brain determines what's essential for Phase 1 vs what can wait
-   - Break Phase 1 into tasks that deliver only MVP
+   - Mother Brain determines which user needs are essential for Phase 1 vs can wait
+   - Each user need becomes an **Outcome** (📋 Ability to...)
+   - Each outcome has **Acceptance Criteria** (testable by user)
+   - Tasks are internal implementation details — user validates outcomes, not tasks
    
    **Step 7.2: Structure Post-MVP Work (Research-Driven)**
    - Phase 2+ content based on iteration pattern from Step 6A research
@@ -2718,12 +2759,151 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - Mark clearly as "post-MVP" and "subject to learning/validation"
    - Don't over-plan: assume learnings will inform these phases
    
-   **Step 7.3: Create `docs/roadmap.md` (Research-Driven Structure)**:
-   - **Read `references/doc-templates.md`** and use the Roadmap Template
-   - Create `docs/roadmap.md` using the loaded template
-   - Fill in from research findings (Steps 5, 5A, 6A) and Value Framework (Step 4A)
-   - Order tasks by Value Framework score
-   - Include "Why this order" explanation for each phase
+   **Step 7.3: Create `docs/roadmap.md` (Outcome-Driven Structure)**:
+     ```markdown
+     # [Project Name] - Roadmap
+     
+     ## Delivery Strategy (Research-Based)
+     **Project Type**: [From Step 5 research]  
+     **MVP Approach**: [From Step 6A research - what minimum viable means for this type]  
+     **Launch Pattern**: [From Step 6A research - how to reach users]  
+     **Iteration Strategy**: [From Step 6A research - how to improve post-launch]
+     
+     ---
+     
+     ## User Needs Traceability
+     
+     | User Need (from Vision) | Fulfilled By |
+     |-------------------------|--------------|
+     | Ability to [X] | Outcome 1, Outcome 3 |
+     | Ability to [Y] | Outcome 2 |
+     | Ability to [Z] | Outcome 4 (Phase 2) |
+     
+     ---
+     
+     ## Phase 1: MVP — [Core Problem Solution]
+     
+     **Goal**: Shortest path to deliver user value  
+     **Success Gate**: User can [primary outcome from vision]  
+     **Strategy**: Fulfill core user needs, defer everything else
+     
+     ---
+     
+     ### 📋 Ability to [do something concrete]
+     
+     > So [the benefit/why this matters — traced to user need]
+     
+     **Acceptance Criteria:**
+     - [ ] [Testable condition 1 — user can verify this]
+     - [ ] [Testable condition 2 — user can verify this]
+     - [ ] [Testable condition 3 — user can verify this]
+     
+     **Priority Score:** [N] (Vision: X, MVP: X, User Impact: X)
+     
+     **🔧 Tasks (internal — not shown to user during validation):**
+     - Task 001: [Technical implementation step]
+     - Task 002: [Technical implementation step]
+     - Task 003: [Technical implementation step]
+     
+     ---
+     
+     ### 📋 Ability to [second outcome]
+     
+     > So [benefit — traced to user need]
+     
+     **Acceptance Criteria:**
+     - [ ] [Testable condition 1]
+     - [ ] [Testable condition 2]
+     
+     **Priority Score:** [N]
+     
+     **🔧 Tasks (internal):**
+     - Task 004: [Technical step]
+     - Task 005: [Technical step]
+     
+     ---
+     
+     ## Phase 2+: Post-MVP Iteration
+     
+     **Strategy**: [Iteration approach from Step 6A research]  
+     **Trigger**: Phase 1 complete + user feedback  
+     **Focus**: Learn from users and iterate
+     
+     ### 📋 Ability to [future outcome]
+     
+     > So [benefit]
+     
+     **Acceptance Criteria:**
+     - [ ] [Criterion 1]
+     - [ ] [Criterion 2]
+     
+     **Note**: Subject to validation — may change based on user feedback
+     
+     ---
+     
+     ## MVP Checkpoint (End of Phase 1)
+     
+     ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
+     - Outcome 1: [name]
+     - Outcome 2: [name]
+     - Outcome 3: [name]
+     
+     **Validation Method**: User confirms each criterion with "Yes, I can do this"
+     
+     **Next Step After MVP**: [From Step 6A research]
+     
+     ---
+     
+     ## Future Enhancements (Post-MVP Backlog)
+     
+     **Defer Until After MVP** (nice-to-have):
+     - 📋 Ability to [future feature 1]
+     - 📋 Ability to [future feature 2]
+     
+     **Validation Required**: Don't build until validated by user feedback
+     
+     ---
+     
+     ## Internal Task Index
+     
+     > Tasks exist for implementation tracking but are NOT validated by user.
+     > User validates outcomes (acceptance criteria), not tasks.
+     
+     | Task | Under Outcome | Status |
+     |------|---------------|--------|
+     | 001 | Ability to X | ⬜ |
+     | 002 | Ability to X | ⬜ |
+     | 003 | Ability to Y | ⬜ |
+     
+     ---
+     
+     ## Iteration & Learning Plan (Research-Based)
+     
+     **Feedback Collection** (from Step 6A research):
+     - [How we'll gather user input for this project type]
+     - [Metrics/analytics to track]
+     
+     **Iteration Cycle**:
+     1. Complete Phase 1 outcomes
+     2. User validates all acceptance criteria
+     3. Collect feedback, analyze learnings
+     4. Prioritize Phase 2 outcomes based on data
+     
+     ---
+     
+     ## Risk Mitigation
+     
+     **MVP Risks**: [Potential issues with Phase 1 approach]
+     
+     **Delivery Strategy**: Protect MVP outcomes at all costs. Phase 2+ can be deferred.
+     
+     ---
+     
+     **Total Tasks**: [Count]  
+     **Phase 1 (MVP) Tasks**: [Count essential tasks]  
+     **Post-MVP Tasks**: [Count - subject to change based on feedback]  
+     **Estimated Timeline**: [From vision document]
+     ```
    
    **Step 7.3.5: CHECKPOINT - Review Roadmap Against Elder Brain**
    - **Purpose**: Surface known pitfalls for the tech stack BEFORE task execution begins
@@ -2893,16 +3073,54 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
 
 ### 8. **Task Document Creation**
    - Create `docs/tasks/` directory
-   - **Read `references/doc-templates.md`** and use the Task Document Template
-   - For first task in Phase 1, create `docs/tasks/001-[task-name].md` using the loaded template
+   - Tasks are internal implementation details — users validate **outcomes**, not tasks
+   - For each task in Phase 1, create `docs/tasks/001-[task-name].md`:
+     ```markdown
+     # Task 001: [Task Name]
+     
+     **Status**: 🟡 In Progress  
+     **Phase**: Phase 1 - MVP  
+     **Parent Outcome**: 📋 Ability to [outcome name this task contributes to]  
+     **Assigned**: [Date]  
+     
+     ## Objective
+     [What this task achieves — how it contributes to the parent outcome]
+     
+     ## Technical Details
+     - **Type**: [Logic | UI | Animation | Integration | Testing]
+     - **Focus**: [What this task implements specifically]
+     - **NOT in scope**: [What related features are in other tasks]
+     
+     ## Implementation Notes
+     [Technical approach — user does NOT see this during validation]
+     
+     ## Dependencies
+     - [What must exist before this]
+     
+     ## Skills to Use
+     - [Relevant skill name and purpose]
+     
+     ## Deliverables
+     - [Specific files/outputs]
+     
+     ## Notes & Decisions
+     [Log decisions made during execution]
+     
+     ## Internal Verification (NOT user validation)
+     [ ] Built successfully
+     [ ] Tests pass
+     [ ] Deliverables created
+     
+     ---
+     
+     **Note**: User validates the parent outcome's acceptance criteria, 
+     not this task directly. This task is complete when deliverables 
+     are ready and internal verification passes.
+     ```
    
-   - Display task to user
-   - Use `ask_user` with choices:
-     - "Yes, start this task now"
-     - "Skip to next task"
-     - "Let me review the roadmap first"
-     - "🚨 Report Issue (something's not working)"
-   - Proceed based on selection
+   - **DO NOT ask user to validate individual tasks**
+   - Tasks complete silently when internal verification passes
+   - User validates only when ALL tasks under an outcome are complete (Step 10)
 
 ### 9. **Task Execution**
 
@@ -3267,48 +3485,50 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      - ✅ **Verification**: Test against success criteria
    
    - **Roadmap Cross-Check** (CRITICAL - prevents out-of-order implementation):
-     1. Load current task document from `docs/tasks/[number]-[name].md`
-     2. Load roadmap from `docs/roadmap.md`
-     3. Identify:
-        - What THIS task's deliverables are (from task doc "Deliverables" section)
-        - What FUTURE tasks will deliver (scan roadmap for uncompleted tasks)
-     4. **Only validate what THIS task was supposed to deliver**
-     5. If user mentions missing features during validation:
-        - Check if feature is in a future task
-        - Explain: "That's planned for Task [X] - [Name]"
-        - Offer choices: "Continue with roadmap as planned" or "Adjust roadmap to include this now"
-        - If user chooses continue: Mark current task complete, proceed to next
-        - If user chooses adjust: Update roadmap, then implement requested feature
+     1. Load current outcome from `docs/roadmap.md`
+     2. Identify which acceptance criteria this work addresses
+     3. If user mentions missing features:
+        - Check if feature is in a future outcome
+        - Explain: "That's planned for [Outcome Name]"
+        - Offer: "Continue as planned" or "Adjust roadmap"
    
-   - Ask user to review:
+   - **OUTCOME VALIDATION (User validates acceptance criteria, not tasks)**:
+   
+     When ALL tasks under an outcome are complete, present the outcome for validation:
+     
      ```
-     ✅ Task [Number]: [Task Name] - Ready for Review
+     📋 Outcome Complete: [Ability to do X]
      
-     What was created in THIS task:
-     - [List deliverables with paths - only from this task]
-     
-     Success criteria for THIS task:
-     - [✓] [Criterion met from task doc]
-     - [✓] [Criterion met from task doc]
-     
-     Coming in future tasks (not expected yet):
-     - Task [X]: [Future feature user might expect]
-     - Task [Y]: [Future feature user might expect]
-     
-     Questions about THIS task specifically:
-     1. Does this task's output look how you expected?
-     2. Does THIS task's functionality work properly?
-     3. Anything you'd like changed about THIS task?
+     Please verify each criterion — can you do this now?
      ```
    
-   - Use `ask_user` to get feedback with choices:
-     - "Looks perfect, mark as complete"
-     - "Works but needs adjustment"
-     - "Doesn't meet expectations, needs rework"
-     - "🚨 Report Issue (something's not working)"
-   - Provide freeform for detailed feedback
+   - For EACH acceptance criterion, use `ask_user` with choices:
+     - "Yes, I can do this ✅"
+     - "No, something's wrong ❌"
    
-   - If user confirms: Mark task complete (🟢 Complete)
+   - **If "Yes"**: Mark criterion complete, proceed to next
+   - **If "No"**: 
+     - Invoke Child Brain immediately (friction detected)
+     - Child Brain analyzes what went wrong
+     - Fix applied, re-validate this criterion
+   
+   - **Example validation flow**:
+     ```
+     📋 Ability to see my emails inside the portal
+     
+     Criterion 1: I can see my inbox with sender, subject, and preview
+     → [Yes, I can do this] [No, something's wrong]
+     
+     Criterion 2: I can click an email to read the full content
+     → [Yes, I can do this] [No, something's wrong]
+     
+     Criterion 3: New emails appear without refreshing the page
+     → [Yes, I can do this] [No, something's wrong]
+     ```
+   
+   - **All criteria pass**: Mark outcome complete (✅)
+   - Update roadmap.md to check off the outcome
+   - Display: "✅ [Outcome name] — complete!"
    - If issues: Jump to **Step 10A: Three-Layered Learning from Feedback**
    - Update task document with final status
    - Update roadmap checklist
@@ -3829,15 +4049,86 @@ When heal fixes an issue:
 
 ## Example Session Flow
 
-**Read `examples/session-flow.md` for full new project and returning project examples.**
+**New Project:**
+```
+User: I want to build a music marketing SaaS platform
+
+Mother Brain:
+🧠 Welcome to Mother Brain!
+
+[Runs vision discovery wizard - captures user needs]
+
+User Needs Identified:
+- Ability to connect Spotify and see my artist analytics
+- Ability to schedule social media posts for releases
+- Ability to build email lists and send campaigns
+- Ability to track which promotions drive streams
+
+Creates:
+- docs/vision.md (with User Needs table)
+- docs/roadmap.md (outcomes organized by phase)
+- README.md
+
+Skills created:
+- spotify-api-integrator
+- social-media-scheduler
+- email-campaign-manager
+
+Phase 1 (MVP) Outcomes:
+📋 Ability to connect Spotify and see my artist analytics
+📋 Ability to track which promotions drive streams
+
+[Mother Brain executes tasks internally - user doesn't validate each task]
+
+When outcome tasks complete:
+
+Mother Brain: 
+📋 Outcome Complete: Ability to connect Spotify and see my artist analytics
+
+Please verify each criterion:
+
+1. I can connect my Spotify artist account
+   → [Yes, I can do this] [No, something's wrong]
+
+2. I can see my streaming numbers and top tracks
+   → [Yes, I can do this] [No, something's wrong]
+
+3. Data updates automatically each day
+   → [Yes, I can do this] [No, something's wrong]
+
+User: "Yes" to all
+
+Mother Brain: ✅ Outcome complete! Moving to next outcome...
+```
+
+**Returning to Project:**
+```
+User: /mother-brain
+
+Mother Brain:
+🧠 Welcome back to MusicMarketingSaaS!
+
+Current Status:
+Phase: 1 - MVP (2 of 4 outcomes complete)
+Current Outcome: 📋 Ability to track which promotions drive streams
+Progress: 50% of MVP outcomes validated
+Skills: 3 available
+
+What would you like to do?
+1. Continue where I left off
+2. Review roadmap
+3. 💡 I have a new idea
+...
+```
 
 ## Notes
 
-- **Not a replacement for the user**: Mother Brain guides, but user makes final decisions
-- **Living documents**: Vision and roadmap can be updated as project evolves
-- **Flexible pacing**: Work on tasks in any order if dependencies allow
-- **Session state**: All progress saved in docs/ folder
-- **Best practices**: Uses industry-standard project structure
+- **Outcome-driven**: Users validate abilities, not technical tasks
+- **User Needs as foundation**: Every outcome traces to a captured user need
+- **Living documents**: Vision and roadmap evolve with user feedback
+- **Acceptance criteria validation**: Each criterion gets explicit Yes/No
+- **Child Brain on "No"**: Any failed criterion triggers learning
+- **Session state**: All progress saved in .mother-brain/ folder
 - **Skill ecosystem**: Builds project-specific skill library over time
 
 ## Resources

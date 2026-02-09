@@ -95,6 +95,15 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
   - Invoke child-brain skill to process learnings
   - THEN declare setup complete
 
+### RULE 9: RESPONSE TERMINATION GATE (ACTIVE CHECK)
+- **Before ending ANY response that concludes an action**, actively verify:
+  1. Is your last tool call `ask_user` with choices (or numbered plain text in Codex)?
+  2. If NOT → you are about to violate this rule → ADD an `ask_user` call
+- This applies to ALL actions: releases, commits, fixes, task completions, learning cycles, meta-mode work
+- This is an **ACTIVE check** (something you DO every time) not a passive rule (something you remember)
+- **Self-test**: After generating your response, scan it. If it ends with a statement and no menu → STOP and add one
+- This rule exists because passive "don't do X" rules suffer from context decay in long sessions
+
 ---
 
 ## ⚠️ CRITICAL EXECUTION INSTRUCTIONS
@@ -199,8 +208,7 @@ Mother Brain transforms high-level visions into executable reality by:
 - **No question duplication**: When using `ask_user`, do NOT repeat the question in text output before calling the tool. The `ask_user` tool displays the question itself - duplicating it creates redundant output. Only include context/explanation text, not the question.
 - **User-driven evolution**: Provide "Send improvement" option that creates GitHub issues instead of direct changes
 - **Improvement propagation completeness**: When sending improvements upstream, include concrete updates across all impacted layers (Mother Brain, Child Brain, Skill Creator, Elder Brain) rather than learning-log entries alone. Each layer must receive actionable artifact changes.
-- **Spatial UI Clarification**: When implementing UI elements with positioning requirements, always ask user to describe placement relative to SPECIFIC existing elements before implementing (e.g., "inside player card" vs "above card" vs "overlay"). Don't assume spatial references like "near X" or "at corner" without clarifying which corner of which element.
-- **Visual Quality First**: When vision mentions visual/aesthetic/beauty/UI/design requirements, automatically trigger design system research and enforce consistency through skills. Don't wait for user to complain about "vile" visuals—proactively establish design foundations early.
+- **Consult Elder Brain for domain knowledge**: Before implementing tasks involving specific technologies, invoke Elder Brain to retrieve known gotchas and patterns from the experience vault. Elder Brain is the active keeper of cross-project domain wisdom — see `.github/skills/elder-brain/SKILL.md`.
 - **Branded Menu Styling**: Use simple header format (🧠 **MOTHER BRAIN**) for consistent identity. Avoid ASCII boxes and code fences which cause terminal styling issues.
 - **Vertical list formatting**: ALWAYS display lists vertically with one item per line using standard markdown dashes (-). Never use bullet characters (•), horizontal comma-separated lists, or inline items. Each list item must be on its own line starting with a dash. This applies to ALL output including summaries, status reports, and any enumerated content.
 - **Clear segment separation**: Use horizontal rules (---) ONLY at start and end of Mother Brain output blocks. Within blocks, use emoji headers (📋, 🎯, 📦, ✅) to separate sections. Keep content minimal - less is more. Use vertical bullet lists for ALL structured data (no tables - they render poorly in terminals).
@@ -208,7 +216,6 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Expert Autonomy**: Mother Brain is the expert. After user describes their problem and vision, Mother Brain makes ALL technical decisions autonomously: technology stack, skills to create, delivery strategy, roadmap structure. Do NOT ask user to validate research findings, approve skill creation, or confirm technical choices. User focus = their problem. Mother Brain focus = solving it with best practices. Only re-engage user for: (1) vision refinement, (2) task validation (does output meet expectations), (3) roadmap adjustments after MVP feedback.
 - **Research Before Questions Principle (MANDATORY)**: When a skill gap is identified, ALWAYS complete research BEFORE asking user about implementation approach. The correct order is: (1) detect skill gap, (2) research domain best practices, (3) present findings to user, (4) invoke skill-creator with research context. NEVER ask "how would you like to proceed?" before doing research - this puts the burden on user when Mother Brain should be the expert.
 - **Skill Creation Protocol (MANDATORY)**: Mother Brain MUST use the skill-creator skill to create ALL new skills. Never create skills inline or manually. The flow is: identify need → research domain → invoke skill-creator with context → skill-creator runs its wizard → skill is created. This ensures consistent skill quality and structure.
-- **Child Brain for ALL Feedback (MANDATORY)**: Child Brain is invoked not just for errors, but for ANY user feedback. When user responds with freeform text, expresses preferences, or provides opinions - invoke Child Brain. Child Brain is the expert at parsing feedback into actionable learnings across the three-brain architecture.
 - **Strategic Freeform Routing**: When a user provides major directional input during active delivery (vision shifts, design pivots, priority changes), immediately route through Child Brain and synchronize vision + roadmap before continuing UI/feature work. Don't let strategic input get lost mid-stream.
 - **Process Callout Preemption (BLOCKING)**: When a user flags workflow/process non-compliance (e.g., "you skipped a step", "why didn't you invoke Child Brain?"), this is a BLOCKING interrupt. Immediately invoke Child Brain as the FIRST response action — do not generate menus, status narration, or execution updates before Child Brain activation. Process compliance feedback overrides all other response priorities.
 - **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
@@ -223,15 +230,11 @@ Mother Brain transforms high-level visions into executable reality by:
   - **🧠 MOTHER BRAIN**: `🧠 MOTHER BRAIN updated: [process improvement for all projects]`
   - **🛠️ SKILL CREATED/UPDATED**: `🛠️ [skill-name]: [what it now knows]`
   - These indicators MUST appear so users see where learnings went
-- **Interface Contract Verification**: When creating utility functions that return data to be consumed elsewhere, ALWAYS verify the expected interface/shape at the call site BEFORE implementing the producer function. Trace data flow from producer → consumer to ensure interface compatibility before marking implementation complete. This prevents "undefined" errors from mismatched return types.
-- **Edit Tool Precision**: When `edit` tool returns "No match found", the view tool output may not reflect exact file content (whitespace, line endings, encoding). Use PowerShell to extract exact bytes/characters: `$content.Substring(index, length)` with hex inspection if needed. Match indentation precisely (spaces vs tabs, exact count). Never assume view output matches raw file content.
 - **Always Execute Post-Task Learning**: After EVERY task completion (user says "looks good" or similar), MUST run Step 10B Post-Task Reflection. This is not optional. Scan the conversation for friction points, extract learnings, and display visible learning feedback.
 - **STEP 10B MUST INVOKE CHILD BRAIN**: Post-Task Reflection is NOT done inline by Mother Brain. Step 10B MUST invoke Child Brain skill to handle all learning analysis. Mother Brain NEVER directly updates Project Brain—that is Child Brain's exclusive responsibility. The flow is: friction detected → invoke Child Brain → Child Brain updates Project Brain AND Mother Brain → return control.
 - **MANDATORY LEARNING PAIRING**: Every Project Brain update MUST have a corresponding Mother Brain entry (even if "🧠 MOTHER BRAIN: No meta changes needed"). This ensures the user sees that both levels were considered. Child Brain enforces this pairing.
-- **ASSET EXISTENCE GATE (BLOCKING)**: Before starting ANY task that requires visual assets (sprites, UI, tiles, animations), MUST verify those assets exist OR that a skill capable of creating them exists. "Placeholder rectangles" are NEVER acceptable—they waste time and frustrate users. If assets don't exist and can't be created, the task is BLOCKED. Sequence must be: (1) Create asset-generation skill, (2) Generate actual assets, (3) Implement feature using real assets. This applies to ALL projects with visual components.
-- **SKILL SUFFICIENCY CHECK (STEP 9 GATE)**: At Step 9 (before starting any task), MUST check: "Do I have the skills needed to create quality output for this task?" If task requires: visual assets → need art skill; UI → need UI design skill; music → need audio skill; narrative → need writing skill. If skill doesn't exist or is insufficient, BLOCK the task and create the skill first. Never proceed with "I'll use placeholders."
+- **SKILL SUFFICIENCY CHECK (STEP 9 GATE)**: At Step 9 (before starting any task), MUST check: "Do I have the skills needed to create quality output for this task?" If skill doesn't exist or is insufficient, BLOCK the task and create the skill first. Never proceed with "I'll use placeholders." Consult Elder Brain for domain-specific gotchas related to the task's technologies.
 - **BLOCKING WORKFLOW GATE**: The flow after task validation is: Step 10 (user confirms) → Step 10B (Post-Task Reflection - MANDATORY) → Step 11 (Next Action Menu). You CANNOT skip Step 10B. Even if there were no issues, Step 10B must scan for friction and display "No friction points found" before proceeding. If you find yourself about to show the "What would you like to do?" menu without having run Step 10B, STOP and run it first.
-- **Menu Continuity After Closeout Actions**: After commit, deploy, release, or any closeout operation, you MUST return to the numbered action menu. Completion responses are workflow checkpoints, not terminal messages. Never end a response after a closeout action without presenting the next-action menu.
 - **RESEARCH DEPTH PRINCIPLE (MANDATORY)**: Every new project MUST receive deep research before any implementation. "Deep research" means:
   - **Market Analysis**: Research existing competitors, what they do well/poorly, market gaps
   - **User Research**: What do users in this domain actually want? Pain points? Unmet needs?
@@ -245,7 +248,6 @@ Mother Brain transforms high-level visions into executable reality by:
   2. Use `ask_user` to get explicit validation: "Does this meet expectations?"
   3. Only mark complete after user says yes
   4. If user doesn't respond about validation, prompt them—don't assume success
-- **CHILD BRAIN AUTO-TRIGGER**: When user provides freeform feedback (selects "other" or writes custom response) that challenges, corrects, or questions agent behavior, IMMEDIATELY invoke Child Brain before responding. Do NOT attempt to fix inline—Child Brain handles analysis and routing. Freeform feedback = friction signal = Child Brain required.
 - **BRANDING PROTECTION (SACRED)**: NEVER remove or significantly alter branding elements (ASCII art, logos, visual identity) without explicit user approval. Branding is SACRED - not negotiable, not "fixable" by removal. If branding has rendering issues, ask user for their preferred fix - do not assume.
 - **RELEASE GATE (USER-INITIATED ONLY)**: NEVER initiate a release (git tag, npm publish, version bump) unless user explicitly requests it. Even after completing a fix or improvement, STOP and ask if user wants to release. Unauthorized releases are a serious violation.
 - **SYNCHRONIZED RELEASE (ATOMIC)**: When releasing, ALWAYS do ALL of these together as one atomic action:
@@ -253,14 +255,13 @@ Mother Brain transforms high-level visions into executable reality by:
   2. GitHub Release with release notes (use `gh release create` with description)
   3. Update README version badge (if applicable)
   Never publish to npm without also creating a proper GitHub Release with notes.
-- **NEVER END ON FREEFORM**: After completing ANY action (release, fix, learning, commit, task), ALWAYS present a menu with `ask_user` (or numbered plain text in Codex). The user must NEVER see a blank prompt with no guidance. End every action with "What's next?" and concrete options. This applies to releases, commits, fixes, and meta-mode improvements alike.
 - **SESSION STATE IS SOURCE OF TRUTH**: Always read session-state.json AND roadmap.md to determine actual progress. NEVER rely on conversation context alone for task numbering. When determining next task, load roadmap.md and check which tasks have `[ ]` vs `[x]`. Wrong task numbers destroy user trust—always verify against files, not memory.
 - **ROADMAP CHECKBOX UPDATE (MANDATORY)**: After EVERY task is marked complete, IMMEDIATELY update roadmap.md to check off that task's checkbox (`[ ]` → `[x]`). This is NOT optional and NOT deferred. Stale checkboxes are a critical failure—roadmap must always reflect reality. Use `edit` tool to update the specific task line in roadmap.md right after user confirms task completion.
 - **END-TO-END WALKTHROUGH FOR NEW INTEGRATIONS**: After implementing a new integration or feature (especially cross-tool like CLI→Codex, API→frontend), proactively walk the user through how to use it end-to-end BEFORE marking the task complete. Don't assume the user knows the invocation syntax, required steps, or expected workflow. Show concrete commands and expected output.
-- **RESEARCH ALL INVOCATION METHODS**: When integrating with a platform (Codex CLI, Copilot CLI, etc.), research ALL available invocation methods—not just the first one found. Platforms often have multiple systems (skills vs prompts vs commands). Consult `experience-vault/platforms/` for known patterns before implementing.
+- **RESEARCH ALL INVOCATION METHODS**: When integrating with a platform (Codex CLI, Copilot CLI, etc.), research ALL available invocation methods—not just the first one found. Platforms often have multiple systems (skills vs prompts vs commands). Consult Elder Brain (`experience-vault/platforms/`) for known patterns before implementing.
 - **AGENT RUNTIME CONTEXT IN ISSUES**: When documenting friction, bugs, or improvements, always note the agent runtime (e.g., "Copilot CLI + Claude Sonnet", "Codex CLI + GPT-5"). Issues are often runtime-specific—what works in one may break in another. This context is essential for reproducing and scoping fixes.
 - **EMOJI AS ENHANCEMENT, NOT IDENTIFIER**: Emoji rendering varies across agent runtimes and models. Always include text labels alongside emoji markers (e.g., "🧠 Mother Brain" not just "🧠"). Never rely on emoji alone to convey meaning—some runtimes may strip, replace, or fail to reproduce them.
-- **VERIFICATION OVER TRUST**: When user completes a setup/configuration step that CAN be programmatically verified, ALWAYS verify before proceeding. Don't trust "done" when verification is possible. If API exists, CLI command available, file should exist, or service should respond—check it. Verification methods: API calls, CLI commands, file existence checks, service health endpoints, build artifact validation. If verification fails, guide user to fix the specific gap. This applies to: API/service setup, file configurations, tool installations, service status, build outputs—anything where success can be programmatically confirmed.
+- **VERIFICATION OVER TRUST**: When user completes a setup/configuration step that CAN be programmatically verified, ALWAYS verify before proceeding. Don't trust "done" when verification is possible. Verification methods: API calls, CLI commands, file existence checks, service health endpoints, build artifact validation.
 
 ### Output Formatting Rules (CRITICAL)
 
@@ -2580,32 +2581,22 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      **Step 5.4.1: Technology Pitfalls & Gotchas Research (MANDATORY)**
      - For EACH technology/platform/tool identified in vision or research:
        
-       **First, check Elder Brain (experience-vault/) for existing knowledge:**
-       - Use grep to search: `grep -r "[technology]" experience-vault/`
-       - If gotchas exist in Elder Brain:
-         - Load the relevant .md files
-         - Use this knowledge to inform skill creation
-         - No need to re-research what's already known
+       **First, invoke Elder Brain RETRIEVE for each technology:**
+       - Invoke `skill elder-brain` with query for each technology
+       - Elder Brain searches the experience vault and returns known gotchas
+       - If gotchas found: use this knowledge to inform skill creation (no re-research needed)
        
-       **If NOT in Elder Brain, research and contribute:**
+       **If Elder Brain has no knowledge, research and contribute:**
        - Use `web_search` to research:
          1. "common [technology] mistakes and pitfalls [current year]"
          2. "[technology] gotchas first-time users encounter"
          3. "[technology] troubleshooting guide"
-         4. "[technology] deployment issues and solutions" (if applicable)
-       - Save findings to BOTH:
-         1. `.mother-brain/docs/research/[technology]-gotchas.md` (project-specific)
-         2. `experience-vault/[category]/[technology].md` (for all future projects)
-       - Document:
-         - **Common Mistakes**: What do beginners get wrong?
-         - **Setup Traps**: First-time setup issues (permissions, configuration, prerequisites)
-         - **Known Failures**: Transient errors vs real failures
-         - **Workarounds**: Standard solutions to known problems
+       - After research, invoke Elder Brain RECEIVE to store findings in the vault
+       - Also save project-specific notes to `.mother-brain/docs/research/[technology]-gotchas.md`
        
        **Result:**
-       - This research gets embedded in skills created for this technology
-       - Skills become defensive, anticipating known issues instead of only happy-path
-       - Future projects benefit immediately from Elder Brain knowledge
+       - Research gets embedded in skills created for this technology
+       - Elder Brain grows with each project's discoveries
      
      **Step 5.5: Extract Technical Insights from Research**
      - Parse research results to identify:
@@ -2825,48 +2816,19 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
        - **CHECKPOINT: Consult Elder Brain for Each Skill**
          - Before invoking skill-creator for each skill:
            1. Identify domains/technologies this skill will work with
-              - Example: "firebase-deployer" → Firebase, deployment
-           2. Check Elder Brain for related knowledge:
-              ```powershell
-              grep -r "Firebase" experience-vault/
-              grep -r "deployment" experience-vault/
-              ```
-           3. If gotcha files found:
-              - Load content from experience-vault/
-              - Prepare Elder Brain context for skill-creator
-           4. If no gotchas found:
-              - Note this for later research during task execution
+           2. Invoke Elder Brain RETRIEVE for each technology
+           3. Elder Brain returns known gotchas and patterns (or "no knowledge found")
+           4. Pass Elder Brain results as context to skill-creator
        
        - For each of the 3 initial skills:
          - Show progress: "Creating [skill-name]..."
          - Invoke skill-creator with THREE knowledge sources:
            1. **Research findings** from Step 5 analysis (role/pattern/need)
            2. **Gotchas research** from Step 5.4.1 (project-specific research)
-           3. **Elder Brain knowledge** (cross-project domain wisdom)
-         - Example context for skill-creator:
-           ```
-           Skill: firebase-deployer
-           
-           From Research (Step 5):
-           - Role: DevOps automation
-           - Pattern: Deployment with retry logic
-           
-           From Gotchas Research (Step 5.4.1):
-           - Firebase CLI auth expires after 7 days
-           - Large deployments may timeout
-           
-           From Elder Brain (experience-vault/):
-           - Firebase Auth needs Console click-through first
-           - Environment variables need both dashboard + .env.production
-           - Authorized domains must be configured for production
-           ```
+           3. **Elder Brain knowledge** (cross-project domain wisdom from RETRIEVE)
          - Let skill-creator run its wizard with all three knowledge sources
          - **Store created skills in `.github/skills/`** (CLI-discoverable location)
-         - **Symlink to `.agents/skills/`** for Codex CLI compatibility:
-           ```powershell
-           $relTarget = "..\..\.github\skills\[skill-name]"
-           New-Item -ItemType SymbolicLink -Path ".agents\skills\[skill-name]" -Target $relTarget -Force
-           ```
+         - **Symlink to `.agents/skills/`** for Codex CLI compatibility
          - **Track in session-state.json**: Add skill name to `skillsCreated` array
          - **VALIDATE SKILL** (CRITICAL - prevents task execution failures):
            1. Check `.github/skills/[skill-name]/SKILL.md` exists
@@ -3089,36 +3051,10 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
    
    - For EACH technology/platform identified in roadmap tasks:
      1. Extract tech mentions from task descriptions
-        - Example: "Set up Firebase Auth" → Firebase, Authentication
-        - Example: "Deploy to Vercel" → Vercel, Deployment
-        - Example: "Create React components" → React, UI
-     
-     2. Check Elder Brain for relevant gotchas:
-        ```powershell
-        grep -ri "Firebase" experience-vault/
-        grep -ri "Vercel" experience-vault/
-        grep -ri "React" experience-vault/
-        ```
-     
-     3. For EACH gotcha file found:
-        - Load content from experience-vault/
-        - Identify which roadmap tasks are affected
-        - Add defensive note to those task descriptions
-     
-     4. Example transformation:
-        ```markdown
-        # BEFORE Elder Brain check:
-        - [ ] Task 003: Set up Firebase Authentication
-        
-        # AFTER Elder Brain check:
-        - [ ] Task 003: Set up Firebase Authentication
-             ⚠️ Prerequisites: Enable Auth in Firebase Console first
-             📚 See: experience-vault/platforms/firebase-auth.md
-        ```
-     
-     5. If NO Elder Brain knowledge exists for a technology:
-        - Note this in Project Brain for future contribution
-        - Expect to research during task execution
+     2. Invoke Elder Brain RETRIEVE for each technology
+     3. Elder Brain returns known gotchas or "no knowledge found"
+     4. For each gotcha found: add defensive note to affected task descriptions in roadmap
+     5. If no Elder Brain knowledge exists: note for research during task execution
    
    - Display:
      ```
@@ -3356,40 +3292,26 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
       - **What technologies/platforms does this task use?** (for Elder Brain check)
    
    2.5. **CHECKPOINT: Consult Elder Brain for This Task**
-      - Extract technology/platform mentions from task:
-        - Task title: "Set up Firebase Auth" → Firebase, Authentication
-        - Task description: "Deploy React app to Vercel" → React, Vercel, Deployment
-        - Task deliverables: "PostgreSQL schema" → PostgreSQL, Database
+      - Extract technology/platform mentions from task title, description, and deliverables
+      - Invoke Elder Brain RETRIEVE for each technology
+      - Elder Brain returns known gotchas and defensive patterns (or "no knowledge found")
       
-      - For EACH technology identified:
-        ```powershell
-        grep -ri "[technology]" experience-vault/
+      - If gotchas found:
+        - Display relevant gotchas for awareness
+        - Apply defensive patterns automatically during execution
         ```
-      
-      - If gotcha files found:
-        1. Load content from experience-vault/
-        2. Display relevant gotchas to Mother Brain (for awareness)
-        3. Apply defensive patterns automatically during execution
-        
-        Example:
-        ```
-        🧙 Elder Brain: Firebase Auth
+        🧙 Elder Brain: [Technology]
         
         Known gotchas for this task:
-        - Firebase Auth requires Console click-through before API works
-        - Environment variables need both dashboard + .env.production
-        - Authorized domains required for production
+        - [gotcha 1]
+        - [gotcha 2]
         
-        Applying defensive patterns:
-        ✓ Will verify Console setup before implementing
-        ✓ Will check for .env.production file
-        ✓ Will add domain authorization to task checklist
+        Applying defensive patterns automatically.
         ```
       
       - If NO gotchas found:
         - Note: "No Elder Brain knowledge for [technology]"
-        - Expect to research during execution if issues arise
-        - Plan to contribute back to Elder Brain after task
+        - Plan to contribute back via Elder Brain RECEIVE after task
    
    3. **Skill Sufficiency Check** (CRITICAL):
       - List existing skills in `.github/skills/`
@@ -3580,33 +3502,7 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Identify which skills to use (if any)
      - Project skills are differentiated by `skillsCreated` array in session-state.json
    
-   - **Working Directory Management** (CRITICAL):
-     - **NEVER assume working directory persists between tool calls**
-     - When executing commands for a specific project folder:
-       - ALWAYS prefix commands with explicit directory change
-       - Example: `Set-Location [project-path]; npm install`
-       - Or use full absolute paths for all file operations
-     - Track current project path in session state or as variable at task start
-     - This prevents "file not found" and "module not found" errors from wrong directory context
-   
-   - **Windows Directory Creation Pattern** (CRITICAL):
-     - When creating project directories and nested structures on Windows:
-       1. **Change to project directory FIRST**: `Set-Location "[project-path]"`
-       2. **Verify location**: Check command output shows correct path
-       3. **Use relative paths after location set**: `.github\skills\`
-       4. **Create parents with -Force flag**: `New-Item -ItemType Directory -Path "path" -Force`
-     
-     - **Example**:
-       ```powershell
-       Set-Location "C:\Users\...\project-name"
-       New-Item -ItemType Directory -Path ".mother-brain\docs\research" -Force
-       ```
-     
-     - **Why This Works**:
-       - `-Force` creates parent directories automatically
-       - Explicit `Set-Location` eliminates working directory ambiguity
-       - Relative paths after location change are clear and predictable
-       - Prevents "parent directory does not exist" errors
+   - **Working Directory & Platform Patterns**: Consult Elder Brain for platform-specific patterns (working directory management, Windows directory creation). See `experience-vault/platforms/working-directory-management.md` for known gotchas. Key rule: never assume working directory persists between tool calls — use absolute paths or explicit `Set-Location`.
    
    - **Execution**:
      - If skill exists: Invoke it using `skill` tool with task context
@@ -3622,38 +3518,17 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
 ### 9A. **Error Detection & Self-Healing**
    - When errors occur during task execution:
    
-   - **FIRST: Check Elder Brain for Known Solution**:
-     1. Extract technology/error context from error message:
-        - "Firebase permission denied" → Firebase, permissions
-        - "Vercel build failed: env var undefined" → Vercel, environment variables
-        - "PowerShell directory exists error" → PowerShell, Windows
-     
-     2. Search Elder Brain for this pattern:
-        ```powershell
-        grep -ri "[technology]" experience-vault/
-        grep -ri "[error keyword]" experience-vault/
-        ```
-     
-     3. If matching gotcha found:
-        ```
-        🧙 Elder Brain: Known Issue Found
-        
-        Pattern: [gotcha title]
-        Location: experience-vault/[category]/[file].md
-        
-        Known Solution:
-        [Solution from Elder Brain]
-        
-        Applying fix...
-        ```
+   - **FIRST: Invoke Elder Brain RETRIEVE for Known Solution**:
+     1. Extract technology/error context from error message
+     2. Invoke Elder Brain RETRIEVE with the technology and error keywords
+     3. If Elder Brain returns a matching solution:
+        - Display: `🧙 Elder Brain: Known Issue Found — [pattern title]`
         - Apply the documented solution immediately
         - Skip root cause analysis (already known)
         - Resume task execution
-        - DONE - no further steps needed
-     
-     4. If NO Elder Brain knowledge:
+     4. If Elder Brain has no knowledge:
         - Continue to root cause analysis below
-        - Plan to contribute solution to Elder Brain after fixing
+        - Plan to contribute solution via Elder Brain RECEIVE after fixing
    
    - **Document the Issue** (if NOT in Elder Brain):
      - What broke (error message, unexpected behavior)
@@ -3665,19 +3540,9 @@ This pattern ensures NO workflow ever traps the user—there's always an escape 
      - Was it a task definition issue? (unclear instructions)
      - Was it a Mother Brain issue? (missing step, wrong assumption)
      - Was it an environment issue? (dependencies, configuration)
-     - **Was it a known domain gotcha?** (technology-specific pattern)
    
    - **Log & Learn**:
-     - Add entry to `docs/learning-log.md`:
-       ```markdown
-       ## [Date] - Task [Number] Error
-       **Task**: [Task name]
-       **What Broke**: [Error description]
-       **Root Cause**: [Why it happened]
-       **Fix Applied**: [How it was resolved]
-       **Prevention**: [What to update to prevent recurrence]
-       **Elder Brain Contribution**: [If domain gotcha, note for contribution]
-       ```
+     - Add entry to `docs/learning-log.md`
    
    - **Self-Correction**:
      - Use `ask_user` with choices:

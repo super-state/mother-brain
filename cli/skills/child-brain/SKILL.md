@@ -273,54 +273,25 @@ Based on root cause, determine what goes where:
 - UI (accessibility, responsive, design systems)
 - Platforms (Windows, macOS, Linux, mobile, web)
 
-**Step 4.5.2: Check if Knowledge Already Exists**
-- Search `experience-vault/[category]/` for related files
-- Use grep to check for technology mentions
-- If exists → update existing file
-- If new → create new file
+**Step 4.5.2: Invoke Elder Brain RECEIVE**
+- Invoke `skill elder-brain` with the RECEIVE workflow
+- Provide: category, technology name, the gotcha/pattern, solution
+- Elder Brain handles: deduplication, file creation/update, cross-referencing
 
-**Step 4.5.3: Document the Gotcha**
-
-Create/update `experience-vault/[category]/[tech-name].md`:
-
-```markdown
-# [Technology Name] - [Brief Title]
-
-## Problem
-[What goes wrong - the error/failure user experiences]
-
-## Gotcha
-[The non-obvious thing - why it happens, what's unexpected]
-
-## Solution
-[How to fix/prevent - code examples, config, steps]
-
-**When to Consult**: [Which Mother Brain steps should reference this]
-
-## Related Gotchas
-See also:
-- [Link to related experience-vault files]
-
-## Sources
-- [Link to official docs]
-- [Link to community resources]
-```
-
-**Step 4.5.4: Display Simple Confirmation**
+**Step 4.5.3: Display Simple Confirmation**
 
 Display to user:
 ```
 🧙 Elder Brain will remember this
 ```
 
-**Step 4.5.5: Update Mother Brain Reference (If Needed)**
+**Step 4.5.4: Update Mother Brain Reference (If Needed)**
 
 If this is a common gotcha that Mother Brain should ALWAYS check for:
 - Add reference to appropriate Mother Brain step
-- Example: "Before deploying, consult experience-vault/deployment/"
-- Mother Brain doesn't store the gotcha - just knows WHERE to look
+- Mother Brain doesn't store the gotcha — just knows to invoke Elder Brain at the right time
 
-**Key Principle**: Elder Brain stores domain facts. Mother Brain learns to consult Elder Brain at the right times.
+**Key Principle**: Elder Brain stores domain facts as a skill. Child Brain routes learnings to it via RECEIVE. Mother Brain consults it via RETRIEVE.
 
 ### Step 5: Apply Project-Level Learning (Course Correction) - ACTIVE
 

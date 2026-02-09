@@ -377,6 +377,7 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
    - Use gathered context to inform approach
    - Research best practices for the specific use case
    - Determine appropriate tools and technologies
+   - **Consult Elder Brain**: Invoke Elder Brain RETRIEVE for each technology/domain this skill will work with. Embed known gotchas and patterns directly into the skill's steps and validation checks. This prevents skills from being "happy-path only."
    
 3. **Check Prerequisites** (if skill requires external tools)
    - Use `powershell` or `bash` to check if required tools are installed

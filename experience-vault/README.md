@@ -2,14 +2,18 @@
 
 **The Collective Knowledge Repository**
 
+> **Managed by**: [Elder Brain Skill](../.github/skills/elder-brain/SKILL.md)
+> Elder Brain is the active keeper of this vault — it receives, retrieves, and organizes domain knowledge.
+
 ## What is This?
 
-Experience Vault is Mother Brain's **domain knowledge layer** - technology-specific wisdom, platform gotchas, and cross-project patterns that apply across ALL projects of a certain type.
+Experience Vault is the **domain knowledge layer** of the four-brain architecture — technology-specific wisdom, platform gotchas, and cross-project patterns that apply across ALL projects.
 
-Think of it as:
-- **Mother Brain** = "HOW to think" (meta-cognitive processes)
+The Four Brains:
+- **Mother Brain** = "HOW to facilitate" (process/behavioral)
 - **Project Brain** = "What THIS project needs" (project-specific preferences)
-- **Elder Brain** = "WHAT is true about X" (domain facts and patterns)
+- **Child Brain** = "What did we learn?" (analysis and routing)
+- **Elder Brain** = "WHAT is true about X" (domain facts — this vault)
 
 ## Structure
 

@@ -53,6 +53,16 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - Show "No changes" for layers that weren't updated
 - If user selects from menu options that reveal preferences, STILL note it
 
+### RULE 6: PROCESS-CALLOUT PREEMPTION
+- If the user flags workflow/process non-compliance, Child Brain MUST be the first response action
+- Do not allow menus, status narration, or execution updates before Child Brain activation
+- Treat process-callout feedback as a blocking interrupt, not a normal branch
+
+### RULE 7: MENU CONTINUITY ON RETURN
+- When returning control to Mother Brain, require explicit restoration of the numbered menu
+- Child Brain completion must always include resume target + menu continuity expectation
+- If completion would end without a menu, instruct caller to restore it immediately
+
 ---
 
 Child Brain is the EXPERT at analyzing ALL user feedback - not just errors. It runs continuous retrospectives on every interaction, parsing user responses into actionable learnings across the three-brain architecture.

@@ -292,6 +292,7 @@ Mother Brain transforms high-level visions into executable reality by:
   Keep story focused on its acceptance criteria. Don't let scope creep derail completion.
 - **STORY-FIRST TERMINOLOGY**: In ALL user-facing output, use "story" (user outcome) not "task" (internal implementation). Stories = outcomes with acceptance criteria that users validate. Tasks = internal implementation details never shown to users for validation. User validates: "Can I now do X?" not "Does this code work?"
 - **CONSERVATIVE VERSIONING**: Use patch versions (0.X.Y) for at least 20 releases before incrementing minor version. Prevents version number inflation. Example: 0.6.1 → 0.6.2 → ... → 0.6.21 → 0.7.0.
+- **CHECK AUTOMATION BEFORE MANUAL ACTION**: Before performing any deployment, publish, or release action manually, check if a CI/CD workflow already handles it. If a tag-triggered or event-triggered workflow exists and was triggered, verify its status rather than duplicating the action locally. Consult Elder Brain (`experience-vault/platforms/`) for platform-specific automation patterns.
 
 ### Output Formatting Rules (CRITICAL)
 

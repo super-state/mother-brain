@@ -32,15 +32,6 @@ allowed-tools: bash node view grep glob web_search ask_user powershell create ed
 - Do NOT run in background or parallel
 - The caller is waiting for you to finish
 
-### RULE 4: FOUR-LAYER PROPAGATION FOR HEAL LEARNINGS
-- When healing reveals framework-level improvements, Skill Creator MUST route updates across:
-  1. Mother Brain (process/orchestration)
-  2. Child Brain (learning orchestration behavior)
-  3. Skill Creator itself (generation/healing safeguards)
-  4. Elder Brain (`experience-vault/`) for domain/platform gotchas
-- Do not treat `learning-log.md` entries as sufficient completion on their own
-- Require concrete artifact updates (skills/docs) before declaring healing complete
-
 ---
 
 Use this skill when the user wants a new reusable capability, or when you notice repeated work that should be turned into a skill.
@@ -75,7 +66,6 @@ This skill is optimized for *minimal prompts, maximal clarity*, and iterative im
 - **Error handling**: Skills must handle failures gracefully with actionable error messages, not silent failures.
 - **TEST OUTPUT**: Skills MUST verify their output actually works before claiming success. Build it, run it, test it. Don't assume—prove.
 - **Continuous self-improvement**: When the Heal function fixes a skill execution issue, extract the general lesson and update skill-creator itself to prevent creating skills with similar flaws in the future.
-- **Propagation completeness**: For framework-impacting fixes, ensure updates are proposed/applied to all affected layers, not just local logs.
 - **Skill composition**: Skills should detect when they need expertise from another skill and invoke it using the `skill` tool. This allows skills to collaborate and combine their capabilities for better results.
 - **Guided external service setup**: When skills require external services (databases, APIs, cloud platforms), NEVER dump technical instructions on the user. Instead:
   - Explain in plain language WHAT the service does and WHY it's needed

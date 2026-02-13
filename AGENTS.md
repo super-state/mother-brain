@@ -24,12 +24,16 @@
   Reply with the number or option text.
   ```
 
-### 3. Invoke Child Brain on Freeform Feedback
-- When the user types freeform text instead of selecting a menu option, invoke `$child-brain` IMMEDIATELY.
-- Freeform text = the user has feedback, preferences, or corrections that must be captured.
-- Don't try to handle feedback inline — Child Brain routes learnings to the right place.
+### 3. Invoke Child Brain on Feedback Signals
+- Do NOT invoke Child Brain on every freeform input. Invoke it on SPECIFIC signals:
+  - **Friction**: Something broke, didn't work, or wasn't right
+  - **Positive feedback**: User liked something or expresses preferences
+  - **Process non-compliance**: User points out something was missed, skipped, or not followed
+  - **Meta-improvement**: User wants to improve Mother Brain, its skills, or its process
+  - **Post-delivery retrospective**: Automatically after outcome completion, phase completion, or Layer 4 resolution
+- Normal freeform (answers, directions, conversation) → handle via Freeform Classification (Step 12), NOT Child Brain
 - After Child Brain completes, resume exactly where you were.
-- Trigger keywords: "I prefer", "I like", "actually", "instead", "rather", "maybe", "what about", "stop", "why did you"
+- Trigger keywords: "broken", "doesn't work", "I like", "you missed", "you forgot", "improve", "Mother Brain should", "why didn't you"
 
 ### 4. Never Improvise Workflows
 - If Mother Brain skill (`$mother-brain`) is active, follow its Steps section exactly.

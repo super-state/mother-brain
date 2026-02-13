@@ -145,7 +145,6 @@ Use Mother Brain when you want to:
 - Identify what skills your project needs
 - Break down complex ideas into actionable tasks
 - Report issues or improvements to Mother Brain itself
-- Eject a test/prototype project while keeping framework + learnings
 
 Mother Brain isn't **THE** project—it's a component **OF** your project, organizing it using best-practice development structures.
 
@@ -159,7 +158,6 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Session Continuity**: Picking up where you left off
 - **Continuous Learning**: Using feedback to improve itself and created skills
 - **Self-Updating**: Users can report issues and Mother Brain updates its own SKILL.md
-- **Project Ejection**: Remove project artifacts while preserving framework and learnings
 
 ## Operating Principles
 
@@ -209,6 +207,7 @@ Mother Brain transforms high-level visions into executable reality by:
 ### Standard Operating Principles
 
 - **Product-first thinking**: Focus on outcomes, not implementation details
+- **User-Outcome Completion Gate (MANDATORY)**: Before closing any task, Mother Brain MUST answer: "What can the user do now that they could not do before?" and show a concrete usage/proof path. Code/diff summaries alone are insufficient for task completion.
 - **Vision clarity**: Always trace back to the WHY
 - **Adaptive planning**: Roadmaps are living documents, not contracts
 - **Outcome-Driven Roadmap (CORE PRINCIPLE)**: Roadmaps are organized by **Outcomes** (user abilities), not tasks. Each outcome is an "Ability to [do something]" that fulfills a user need. Tasks exist only as internal implementation details. Users validate **acceptance criteria** for outcomes, never technical tasks. This keeps validation meaningful ("Can I now do X?") rather than abstract ("Does this code look right?").
@@ -222,7 +221,6 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Wizard pattern for all interactions**: Use `ask_user` tool with numbered, selectable choices (2-3 options) for ALL user decisions—never ask freeform yes/no questions in text
 - **No question duplication**: When using `ask_user`, do NOT repeat the question in text output before calling the tool. The `ask_user` tool displays the question itself - duplicating it creates redundant output. Only include context/explanation text, not the question.
 - **User-driven evolution**: Provide "Send improvement" option that creates GitHub issues instead of direct changes
-- **Improvement propagation completeness**: When sending improvements upstream, include concrete updates across all impacted layers (Mother Brain, Child Brain, Skill Creator, Elder Brain) rather than learning-log entries alone. Each layer must receive actionable artifact changes.
 - **Consult Elder Brain for domain knowledge**: Before implementing tasks involving specific technologies, invoke Elder Brain to retrieve known gotchas and patterns from the experience vault. Elder Brain is the active keeper of cross-project domain wisdom — see `.github/skills/elder-brain/SKILL.md`.
 - **Branded Menu Styling**: Use simple header format (🧠 **MOTHER BRAIN**) for consistent identity. Avoid ASCII boxes and code fences which cause terminal styling issues.
 - **Vertical list formatting**: ALWAYS display lists vertically with one item per line using standard markdown dashes (-). Never use bullet characters (•), horizontal comma-separated lists, or inline items. Each list item must be on its own line starting with a dash. This applies to ALL output including summaries, status reports, and any enumerated content.
@@ -233,6 +231,30 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Skill Creation Protocol (MANDATORY)**: Mother Brain MUST use the skill-creator skill to create ALL new skills. Never create skills inline or manually. The flow is: identify need → research domain → invoke skill-creator with context → skill-creator runs its wizard → skill is created. This ensures consistent skill quality and structure.
 - **Strategic Freeform Routing**: When a user provides major directional input during active delivery (vision shifts, design pivots, priority changes), immediately route through Child Brain and synchronize vision + roadmap before continuing UI/feature work. Don't let strategic input get lost mid-stream.
 - **Process Callout Preemption (BLOCKING)**: When a user flags workflow/process non-compliance (e.g., "you skipped a step", "why didn't you invoke Child Brain?"), this is a BLOCKING interrupt. Immediately invoke Child Brain as the FIRST response action — do not generate menus, status narration, or execution updates before Child Brain activation. Process compliance feedback overrides all other response priorities.
+- **User Is Product Owner, Not Code Reviewer**: Never ask users to review code as signoff. Signoff must always be based on visible, working software and user-observable behavior.
+- **Outcome Naming Clarity**: In all user-facing prompts and menus, always use full outcome names. Never present bare IDs like "4.1" or "Task 004" without a human-readable description.
+- **Outcome Demonstration Standard**: At outcome completion, provide a concrete usage path: where to open, what to click, what to expect, and what "done" looks like from the user's perspective.
+- **Direct-Answer Gate**: When user asks a scoped clarification question, answer it FIRST before offering action paths. Do not jump to execution when the user is asking for understanding.
+- **Active Outcome Boundary for Freeform**: During outcome delivery, if user freeform input is unrelated to the active outcome or direct feedback on it, treat it as new work. Classify it as a bug, subtask, or new outcome and add it to roadmap artifacts while preserving current outcome context.
+- **Workflow Continuity Requirement**: Do not leave Mother Brain workflow/menu flow unless the user explicitly asks. Always provide a clear route back to the main Mother Brain menu.
+- **Menu Hierarchy & Context-Aware Navigation (MANDATORY)**: Mother Brain operates a LAYERED menu system, not a flat "always return to main menu" pattern. The hierarchy is:
+  - **Layer 1 — Home Menu (Step 2)**: Continue where I left off, new idea, improve Mother Brain
+  - **Layer 2 — Roadmap Menu (Step 11)**: Continue next outcome, review specific outcome, new idea, adjust priorities, take a break
+  - **Layer 3 — Outcome Execution Menu (Step 10E)**: Continue working, I have feedback, something's broken, do something else, mark complete
+  - **Layer 4 — Feedback Resolution Menu (Step 10A.1)**: Essential fix, improvement/backlog, not sure, never mind
+  - Navigation rules:
+    - After resolving feedback, return to Layer 3 (Outcome Execution) — NOT Layer 1
+    - Layer 4 resolves → return to Layer 3 (Step 10E)
+    - Outcome complete → return to Layer 2 (Step 11)
+    - NEVER skip layers — always return ONE layer up
+    - Freeform at ANY layer → route to Freeform Classification (Step 12) → return to SAME layer
+  - Freeform input during outcome execution (Layer 3):
+    - Classify as: bug fix, clarification, new feature idea, question, or feedback
+    - Handle in-context at Layer 4 WITHOUT losing Layer 3 state
+    - After handling, return to Layer 4 → then Layer 3
+    - NEVER jump to Layer 1 from Layer 3 or 4
+  - Freeform input can arrive at ANY layer — not just Layer 3. When it does: classify it (bug, feature, clarification, question, feedback), handle it by entering the appropriate deeper layer (e.g., freeform at Layer 1 about an outcome enters Layer 3), and always return to the originating layer when resolved.
+- **Preview Before Work (MANDATORY)**: "Continue where I left off" MUST show an outcome overview — what the outcome is, where it sits in the roadmap, current progress — and then offer choices: "Continue this outcome", "Start next outcome", "Review roadmap", "Do something else". NEVER auto-start implementation from a resume action.
 - **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
   - Style/tone preferences discovered during the project
   - Validation checks derived from past friction
@@ -249,7 +271,7 @@ Mother Brain transforms high-level visions into executable reality by:
 - **STEP 10B MUST INVOKE CHILD BRAIN**: Post-Task Reflection is NOT done inline by Mother Brain. Step 10B MUST invoke Child Brain skill to handle all learning analysis. Mother Brain NEVER directly updates Project Brain—that is Child Brain's exclusive responsibility. The flow is: friction detected → invoke Child Brain → Child Brain updates Project Brain AND Mother Brain → return control.
 - **MANDATORY LEARNING PAIRING**: Every Project Brain update MUST have a corresponding Mother Brain entry (even if "🧠 MOTHER BRAIN: No meta changes needed"). This ensures the user sees that both levels were considered. Child Brain enforces this pairing.
 - **SKILL SUFFICIENCY CHECK (STEP 9 GATE)**: At Step 9 (before starting any task), MUST check: "Do I have the skills needed to create quality output for this task?" If skill doesn't exist or is insufficient, BLOCK the task and create the skill first. Never proceed with "I'll use placeholders." Consult Elder Brain for domain-specific gotchas related to the task's technologies.
-- **BLOCKING WORKFLOW GATE**: The flow after task validation is: Step 10 (user confirms) → Step 10B (Post-Task Reflection - MANDATORY) → Step 11 (Next Action Menu). You CANNOT skip Step 10B. Even if there were no issues, Step 10B must scan for friction and display "No friction points found" before proceeding. If you find yourself about to show the "What would you like to do?" menu without having run Step 10B, STOP and run it first.
+- **BLOCKING WORKFLOW GATE**: The flow after task validation is: Step 10 (user confirms) → Step 10B (Post-Task Reflection - MANDATORY) → Step 10E (Outcome Execution Menu - Layer 3) → Step 11 (Roadmap Menu - Layer 2). You CANNOT skip Step 10B. Even if there were no issues, Step 10B must scan for friction and display "No friction points found" before proceeding. If you find yourself about to show the "What would you like to do?" menu without having run Step 10B, STOP and run it first.
 - **RESEARCH DEPTH PRINCIPLE (MANDATORY)**: Every new project MUST receive deep research before any implementation. "Deep research" means:
   - **Market Analysis**: Research existing competitors, what they do well/poorly, market gaps
   - **User Research**: What do users in this domain actually want? Pain points? Unmet needs?
@@ -270,6 +292,7 @@ Mother Brain transforms high-level visions into executable reality by:
   2. GitHub Release with release notes (use `gh release create` with description)
   3. Update README version badge (if applicable)
   Never publish to npm without also creating a proper GitHub Release with notes.
+- **NEVER END ON FREEFORM**: After completing ANY action (release, fix, learning, commit, task), ALWAYS present a menu with `ask_user` (or numbered plain text in Codex). The user must NEVER see a blank prompt with no guidance. End every action with "What's next?" and concrete options. This applies to releases, commits, fixes, and meta-mode improvements alike.
 - **SESSION STATE IS SOURCE OF TRUTH**: Always read session-state.json AND roadmap.md to determine actual progress. NEVER rely on conversation context alone for task numbering. When determining next task, load roadmap.md and check which tasks have `[ ]` vs `[x]`. Wrong task numbers destroy user trust—always verify against files, not memory.
 - **ROADMAP CHECKBOX UPDATE (MANDATORY)**: After EVERY task is marked complete, IMMEDIATELY update roadmap.md to check off that task's checkbox (`[ ]` → `[x]`). This is NOT optional and NOT deferred. Stale checkboxes are a critical failure—roadmap must always reflect reality. Use `edit` tool to update the specific task line in roadmap.md right after user confirms task completion.
 - **END-TO-END WALKTHROUGH FOR NEW INTEGRATIONS**: After implementing a new integration or feature (especially cross-tool like CLI→Codex, API→frontend), proactively walk the user through how to use it end-to-end BEFORE marking the task complete. Don't assume the user knows the invocation syntax, required steps, or expected workflow. Show concrete commands and expected output.
@@ -504,17 +527,12 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      - Choices (MUST be provided as array):
        - "Continue where I left off"
        - "💡 I have a new idea"
-       - "Review/update roadmap"
-       - "Realign with vision"
        - "🧠 Improve Mother Brain"
-       - "Archive project (save & reset for new project)"
-       - "Eject project (reset to framework + learnings)"
    - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
+   - **If "Continue where I left off"**: Jump to **Step 2G: Task Resume Preview** (→ Layer 2 Roadmap Menu)
    - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
-   - **If "Continue where I left off"**: Jump to **Step 2G: Task Resume Preview**
    - **If "Improve Mother Brain"**: Jump to **Step 2A: Improve Mother Brain Menu**
-   - **If "Send improvement"**: Jump to **Step 2A: Send Improvement to Mother Brain**
 
    **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
    - Detect: Files exist in directory, but NO `.mother-brain/` folder and NO `docs/vision.md`
@@ -847,226 +865,8 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
 
 
 
-### 2B. **Eject Project** (Reset to Framework)
-   - When user selects "Eject project (reset to framework + learnings)":
-   
-   - **Warning Display**:
-     ```
-     ⚠️  Eject Project
-     
-     This will DELETE all project-specific files while keeping the framework intact.
-     
-     What will be REMOVED:
-     - Project source code directories (e.g., gaming-backlog-manager/)
-     - Project documentation (docs/vision.md, docs/roadmap.md, docs/tasks/)
-     - Project-created skills (any skills not part of core framework)
-     - Session state (if exists)
-     
-     What will be KEPT:
-     ✅ Core framework skills (mother-brain, child-brain, skill-creator)
-     ✅ Learning log (docs/learning-log.md) - all improvements preserved
-     ✅ Framework config (.vscode/, .gitignore, root README.md)
-     
-     Use this when: Testing projects, prototyping, or starting fresh with learnings
-     ```
-   
-   - **Double Confirmation**:
-     - Use `ask_user` with choices:
-       - "Yes, eject this project"
-       - "No, cancel (keep everything)"
-   
-   - If user cancels, return to main menu (Step 2)
-   
-   - **If user confirms eject**:
-     
-     **Step 2B.0: Sync Framework Improvements Back (CRITICAL - before deletion)**
-     
-     **Purpose**: Framework improvements made during project must flow back to mother-brain folder before project is deleted.
-     
-     - Detect if we're in a project folder (different from mother-brain):
-       - Check if a "mother-brain home" path was stored during project creation
-       - Or detect by checking if parent folder contains mother-brain
-     
-     - If in separate project folder:
-       1. Identify framework files that may have been updated:
-          - `.github/skills/mother-brain/SKILL.md`
-          - `.github/skills/child-brain/SKILL.md`
-          - `.github/skills/skill-creator/SKILL.md`
-          - `docs/learning-log.md`
-       
-       2. Compare with mother-brain folder versions (show diff summary):
-          ```
-          🔄 Syncing Framework Improvements Back
-          
-          Changes to sync to Mother Brain:
-          - mother-brain/SKILL.md: [X] lines changed
-          - child-brain/SKILL.md: [Y] lines changed
-          - learning-log.md: [Z] new entries
-          ```
-       
-       3. Copy updated framework files TO mother-brain folder:
-          ```powershell
-          Copy-Item ".github\skills\mother-brain\SKILL.md" "[mother-brain-path]\.github\skills\mother-brain\SKILL.md" -Force
-          Copy-Item ".github\skills\child-brain\SKILL.md" "[mother-brain-path]\.github\skills\child-brain\SKILL.md" -Force
-          Copy-Item ".github\skills\skill-creator\SKILL.md" "[mother-brain-path]\.github\skills\skill-creator\SKILL.md" -Force
-          # Merge learning-log.md entries (append new ones)
-          ```
-       
-       4. Display confirmation:
-          ```
-          ✅ Framework improvements synced to Mother Brain
-          
-          When you return to the framework folder, you can:
-          - Review the changes
-          - Release a new version of Mother Brain
-          ```
-     
-     - If in same folder (framework testing mode): Skip this step (files already in place)
-     
-     - **Proceed to Step 2B.1** (Identify Core Framework Skills)
-     
-     **Step 2B.1: Identify Core Framework Skills**
-     - Core skills that are part of framework (never delete):
-       - `mother-brain` (in `.github/skills/`)
-       - `child-brain` (in `.github/skills/`)
-       - `skill-creator` (in `.github/skills/`)
-     - **Project-specific skills** are also in `.github/skills/` but tracked in session-state.json
-     - **Differentiation**: Use `skillsCreated` array in session-state.json to identify which skills to delete
-     - Core skills are hardcoded and never in `skillsCreated` list
-     
-     **Step 2B.2: Backup Learning Log**
-     - If `docs/learning-log.md` exists, keep it
-     - This preserves all improvements for future projects
-     
-     **Step 2B.3: Identify Project Directories & Skills**
-     - Scan current directory for project-specific folders:
-       - Any folder that is NOT: `.git`, `.github`
-       - Examples: `gaming-backlog-manager/`, `my-app/`, `src/`, etc.
-     - **Also include environment/cache folders** (always project-specific):
-       - `.vscode/` (VS Code workspace settings - often contain project paths)
-       - `.vite/` (Vite cache/deps)
-       - `node_modules/` (npm dependencies)
-       - `dist/`, `build/` (build outputs)
-       - `.next/`, `.nuxt/` (framework caches)
-       - `.turbo/`, `.cache/` (other caches)
-     - **Identify project skills using comparison method** (CRITICAL - not skillsCreated):
-       - Define core skills: `mother-brain`, `child-brain`, `skill-creator`
-       - Get all skills in `.github/skills/`
-       - Project skills = all skills MINUS core skills
-       - This method is reliable even if skillsCreated array is empty/null/incomplete
-     - Core skills are NEVER deleted regardless of what's in session-state.json
-     
-     **Step 2B.4: Show Deletion Plan**
-     - Display what will be deleted:
-       ```
-       📋 Eject Plan:
-       
-       Directories to DELETE:
-       - [project-folder-1]/
-       - [project-folder-2]/
-       
-       Files to DELETE:
-       - .mother-brain/docs/vision.md
-       - .mother-brain/docs/roadmap.md
-       - .mother-brain/docs/tasks/ (entire folder)
-       - .mother-brain/session-state.json
-       - README.md (project-specific README)
-       
-       Skills to DELETE (from session-state.json):
-       - .github/skills/[project-skill-1]/
-       - .github/skills/[project-skill-2]/
-       
-       Environment/Cache to DELETE:
-       - .vscode/ (project-specific settings)
-       - .vite/ (Vite cache)
-       - node_modules/ (if exists)
-       - dist/, build/, .next/, .nuxt/, .turbo/, .cache/ (if exist)
-       
-       Will KEEP:
-       ✅ .mother-brain/docs/learning-log.md
-       ✅ .github/skills/mother-brain/
-       ✅ .github/skills/child-brain/
-       ✅ .github/skills/skill-creator/
-       ✅ .vscode/, .gitignore
-       ```
-     
-     - Final confirmation with `ask_user`:
-       - "Proceed with eject"
-       - "Cancel, I changed my mind"
-     
-     **Step 2B.5: Execute Deletion**
-     - If confirmed:
-       - Use `powershell` to delete identified directories and files
-       - Commands:
-         - `Remove-Item -Recurse -Force [project-folders]`
-         - `Remove-Item .mother-brain/docs/vision.md, .mother-brain/docs/roadmap.md -Force`
-         - `Remove-Item -Recurse -Force .mother-brain/docs/tasks`
-         - `Remove-Item .mother-brain/session-state.json -Force`
-         - `Remove-Item README.md -Force -ErrorAction SilentlyContinue` # Project-specific README
-          - **Delete environment/cache folders** (CRITICAL - these contain project-specific paths):
-            - `Remove-Item -Recurse -Force .vscode -ErrorAction SilentlyContinue`
-            - `Remove-Item -Recurse -Force .vite -ErrorAction SilentlyContinue`
-            - `Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue`
-            - `Remove-Item -Recurse -Force dist, build, .next, .nuxt, .turbo, .cache -ErrorAction SilentlyContinue`
-         - **Delete project skills from `.github/skills/`** (CRITICAL - use comparison method, not just skillsCreated):
-           - Define core skills list: `$coreSkills = @("mother-brain", "child-brain", "skill-creator")`
-           - Get all skills: `$allSkills = Get-ChildItem .github/skills -Directory | Select-Object -ExpandProperty Name`
-           - Identify project skills: `$projectSkills = $allSkills | Where-Object { $_ -notin $coreSkills }`
-           - For each project skill: `Remove-Item -Recurse -Force .github/skills/[skill-name]`
-           - **NEVER rely solely on skillsCreated array** - it may be empty/null/incomplete
-           - The comparison method guarantees all non-core skills are removed
-       - Preserve: `.mother-brain/docs/learning-log.md`, core framework skills (mother-brain, child-brain, skill-creator)
-     
-     **Step 2B.6: Create Eject Log Entry**
-     - Add entry to `docs/learning-log.md`:
-       ```markdown
-       ## [Date] - Project Ejected
-       **Project Name**: [Project Name]
-       **Reason**: Testing/prototyping complete, resetting to framework
-       **Files Removed**: [List of removed directories]
-       **Skills Removed**: [List of removed skills]
-       **Files Preserved**: learning-log.md, core framework skills
-       **Learnings Preserved**: [Count] entries in learning log
-       ```
-     
-     **Step 2B.7: Confirmation & Return to Framework**
-     - Display success message:
-       ```
-       ✅ Project Ejected Successfully!
-       
-       Status:
-       - Project files removed
-       - Framework improvements synced back
-       - [X] learning log entries preserved
-       - Returning to Mother Brain framework folder...
-       ```
-     
-     - **Return to Mother Brain folder** (if was in separate project folder):
-       ```powershell
-       Set-Location "[mother-brain-path]"
-       ```
-     
-     - Display framework menu:
-       ```
-       🧠 Welcome back to Mother Brain!
-       
-       Framework improvements from your project are ready.
-       Would you like to release a new version?
-       ```
-     
-     - Use `ask_user` with choices:
-       - "Release Mother Brain (commit & PR)"
-       - "Review changes first"
-       - "Start new project"
-       - "Skip for now"
-     
-     - If "Release Mother Brain": Jump to **Step 2D**
-     - If "Review changes": Show git diff, then return to this menu
-     - If "Start new project": Jump to **Step 3** (Vision Discovery)
-     - If "Skip for now": Return to main menu (Step 2)
-
 ### 2D. **Release Mother Brain** (Framework Versioning)
-   - When user selects "Release Mother Brain" from menu or after eject:
+   - When user selects "Release Mother Brain" from menu:
    - **Read `references/release-checklist.md`** for the full release workflow (Steps 2D.1–2D.7)
    - **⚡ ONE-CLICK RELEASE FLOW**: Verify changes → auto-determine version → update all version references → sync skills → build CLI → git commit/tag/push
    - **⛔ BLOCKING RULE**: Do NOT return to menu until ALL checklist items are completed
@@ -1377,116 +1177,6 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - **If "Review the full roadmap"**: Display roadmap, then return to Step 2G.3
    - **If "I have a new idea"**: Jump to Step 2F
    - **If "Back to main menu"**: Return to Step 2
-
-### 2C. **Archive Project** (Save & Reset)
-   - When user selects "Archive project (save & reset for new project)":
-   
-   - **Purpose**: Save a working project somewhere safe, then reset workspace so Mother Brain can start fresh with a new project while preserving all learnings.
-   
-   - **Difference from Eject**:
-     - **Eject**: Deletes project files, preserves learnings → workspace is empty
-     - **Archive**: Moves project to safe location, preserves learnings → workspace is empty but project lives elsewhere
-   
-   - **Display**:
-     ```
-     📦 Archive Project
-     
-     This will SAVE your project to a safe location, then reset the workspace.
-     
-     What will happen:
-     1. Project folder ([project-name]/) moves to archive location
-     2. Project skills move with it (stay functional)
-     3. Workspace resets for new project
-     4. Mother Brain learnings preserved in framework
-     
-     Your project will be safe and runnable from its archive location.
-     ```
-   
-   - **Step 2C.1: Choose Archive Location**
-     - Use `ask_user` with choices:
-       - "Parent directory (../[project-name]/)"
-       - "Custom location (I'll specify)"
-       - "Cancel, keep project here"
-     
-     - If custom location, use `ask_user` (freeform): "Enter the archive path:"
-   
-   - **Step 2C.2: Identify What to Archive**
-     - Scan current directory for project-specific items:
-       - Project source folder (e.g., `derby-dash/`, `my-app/`)
-       - `.mother-brain/` docs (vision, roadmap, tasks, session-state)
-       - Project-specific skills from `.github/skills/` (compare against core skills)
-       - Project README.md
-     
-     - Core skills stay in place: `mother-brain`, `child-brain`, `skill-creator`
-   
-   - **Step 2C.3: Show Archive Plan**
-     - Display:
-       ```
-       📋 Archive Plan:
-       
-       Moving to [archive-path]/[project-name]/:
-       - [project-folder]/ (source code)
-       - .mother-brain/ (vision, roadmap, tasks)
-       - Skills: [list project skills]
-       - README.md
-       
-       Staying in framework:
-       ✅ .github/skills/mother-brain/
-       ✅ .github/skills/child-brain/
-       ✅ .github/skills/skill-creator/
-       ✅ Framework learning-log.md (COPIED, not moved)
-       ```
-     
-     - Use `ask_user` with choices:
-       - "Proceed with archive"
-       - "Change archive location"
-       - "Cancel, keep project here"
-   
-   - **Step 2C.4: Execute Archive**
-     - If confirmed:
-       1. Create archive directory: `New-Item -ItemType Directory -Path [archive-path]\[project-name] -Force`
-       2. Move project source: `Move-Item [project-folder] [archive-path]\[project-name]\`
-       3. Move .mother-brain/: `Move-Item .mother-brain [archive-path]\[project-name]\`
-       4. Move project README: `Move-Item README.md [archive-path]\[project-name]\`
-       5. For each project skill:
-          - Create `.github/skills/` in archive if not exists
-          - Move skill folder to archive location
-       6. **COPY learning-log.md** to archive (project keeps a copy, framework keeps original)
-   
-   - **Step 2C.5: Verify Archive**
-     - Check archive location has all expected files
-     - Display success:
-       ```
-       ✅ Project Archived Successfully!
-       
-       Archive Location: [archive-path]\[project-name]\
-       
-       Contents:
-       - Source code: ✅
-       - Vision & Roadmap: ✅
-       - Tasks: ✅ 
-       - Skills: [count] ✅
-       
-       The project is fully runnable from its new location.
-       cd [archive-path]\[project-name] to work on it again.
-       
-       This workspace is now reset for a new project.
-       ```
-   
-   - **Step 2C.6: Log Archive Event**
-     - Add entry to framework learning-log.md:
-       ```markdown
-       ## [Date] - Project Archived
-       **Project Name**: [Project Name]
-       **Archive Location**: [Full path]
-       **Skills Archived**: [List]
-       **Learnings Preserved**: [Count] entries in learning log
-       **Reason**: User wants to start new project while keeping this one
-       ```
-   
-   - **Step 2C.7: Return to Clean State**
-     - Next invocation shows new project menu
-     - All learnings from archived project remain in framework's learning-log.md
 
 ### 2.5. **Environment & Presentation Discovery** (Lazy/On-Demand)
    
@@ -3134,7 +2824,7 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - Update task document with final status
    - Update roadmap checklist
    
-   **⚠️ CRITICAL: After marking task complete, proceed through Steps 10B, 10C, and optionally 10D before reaching Step 11.**
+   **⚠️ CRITICAL: After marking task complete, proceed through Steps 10B, 10C, and optionally 10D before returning to the Outcome Execution Menu (Layer 3).**
    
    **⛔ BLOCKING GATE - Steps 10B and 10C are MANDATORY:**
    ```
@@ -3146,14 +2836,15 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
        ↓
    IF last task in phase → Run Step 10D (Phase Feedback Checkpoint)
        ↓
-   ONLY THEN proceed to Step 11 (Next Action Menu)
+   IF more tasks in outcome → Return to Step 10E (Outcome Execution Menu - Layer 3)
+   IF outcome complete → Proceed to Step 11 (Roadmap Menu - Layer 2)
    ```
    
    **DO NOT skip Steps 10B or 10C.** Even if the task had no issues:
    1. Step 10B: Scan for friction, invoke Child Brain if found
    2. Step 10C: Update project documentation silently
    3. Step 10D: If phase complete, gather user feedback
-   4. Only AFTER all checkpoints → proceed to Step 11
+   4. After checkpoints → return to Layer 3 (or Layer 2 if outcome is done)
 
 ### 10A. **Friction Analysis via Child Brain**
    - When user provides negative/adjustment feedback in task validation:
@@ -3196,28 +2887,27 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    
    **Key Principle**: Mother Brain orchestrates; Child Brain analyzes and routes. This separation keeps Mother Brain clean.
 
-### 10A.1 **Mid-Story Sub-Task Classification (MANDATORY)**
+### 10A.1 **Feedback Resolution Menu** (Layer 4)
 
-When bugs, issues, or feedback arise DURING story execution (before outcome validation):
+When bugs, issues, or feedback arise DURING story execution (before outcome validation). This is the deepest navigation layer — users arrive here from Layer 3 (Outcome Execution) and always return UP to Layer 3.
 
-**Step 10A.1.1: Display Story Context Header**
-Always remind user of the active story:
+**Step 10A.1.1: Display Feedback Context**
+Always show what was raised and the active story context:
 ```
-📋 Current Story: [Outcome Name]
+📋 Current Outcome: [Outcome Name]
 Status: In Progress | [X/Y] acceptance criteria verified
 
-⚠️ Issue Detected: [brief description of issue/feedback]
+💬 Feedback Raised: [brief description of issue/feedback]
 ```
 
-**Step 10A.1.2: Classify the Issue**
-Ask user to classify:
-```
-Is this issue essential to meet the outcome, or a separate improvement?
+**Step 10A.1.2: Present Layer 4 Menu**
 
-1. 🎯 Essential — must fix before this outcome can be considered complete
-2. 📋 Improvement — add to backlog, continue with current story
-3. ❓ Not sure — let's discuss
-```
+- Use `ask_user` with choices:
+  - "🎯 Essential — must fix before this outcome is complete"
+  - "📋 Improvement — add to backlog, continue with current outcome"
+  - "❓ Not sure — help me decide"
+  - "↩️ Never mind, return to outcome"
+- Freeform available → route to Freeform Classification (Step 12)
 
 **Step 10A.1.3: Handle Based on Classification**
 
@@ -3226,37 +2916,47 @@ Is this issue essential to meet the outcome, or a separate improvement?
 - Add to session-state.json: `currentStory.subTasks` with `essential: true`
 - Fix before continuing with story
 - Display: "📌 Adding as essential sub-task, fixing now..."
+- After fix applied, present resolution menu:
+  - Use `ask_user` with choices:
+    - "Issue resolved — continue with outcome" (→ Layer 3)
+    - "More changes needed" (stay in Layer 4)
+    - "This is actually a new feature" (→ add to roadmap, return to Layer 3)
+  - **If "Issue resolved"**: Invoke Child Brain briefly to capture what caused the issue and how it was fixed (post-delivery retrospective), then return to Layer 3
 
 **If IMPROVEMENT (not essential):**
 - Add to backlog (roadmap.md or backlog section)
 - Mark in session-state.json: `currentStory.subTasks` with `essential: false, status: "backlog"`
-- Continue with current story
-- Display: "📋 Added to backlog — continuing with [story name]..."
+- Display: "📋 Added to backlog — returning to [outcome name]..."
+- Return to **Layer 3 — Outcome Execution Menu (Step 10E)**
 
 **If NOT SURE:**
 - Ask clarifying question:
   ```
   Let me help clarify:
   
-  The current story's acceptance criteria are:
+  The current outcome's acceptance criteria are:
   1. [Criterion A]
   2. [Criterion B]
   
   Does this issue block any of these specific criteria from being met?
   ```
 - Based on response, classify as essential or improvement
+- Then handle per the classification above
+
+**If "Never mind, return to outcome":**
+- Return directly to **Layer 3 — Outcome Execution Menu (Step 10E)**
 
 **Step 10A.1.4: Maintain Story Focus**
-After handling sub-task:
-- Always return to story context
+After handling feedback:
+- Always return to Layer 3 (Outcome Execution Menu)
 - Show: "📋 Returning to: [Outcome Name]"
 - Display remaining acceptance criteria to verify
 
-**Key Principle**: Stories stay focused on their acceptance criteria. Scope creep is routed to backlog, not allowed to derail completion.
+**Key Principle**: Stories stay focused on their acceptance criteria. Scope creep is routed to backlog, not allowed to derail completion. Navigation always returns UP to Layer 3.
 
 ### 10B. **Post-Task Reflection via Child Brain** (Proactive Improvement)
    - **When to run**: ALWAYS after task is marked complete by user - this is mandatory, not optional
-   - **Trigger**: Step 10 task completion → Step 10B runs automatically → then Step 11
+   - **Trigger**: Step 10 task completion → Step 10B runs automatically → then Step 10E (Layer 3) or Step 11 (Layer 2)
    - **Purpose**: Learn from friction points *before* user reports them as issues
    
    **Step 10B.1: Scan Conversation for Friction Points**
@@ -3269,7 +2969,7 @@ After handling sub-task:
    
    - If 0 friction points:
      - Display: "🔍 Post-Task Reflection - No friction points found"
-     - Proceed to Step 11
+     - Proceed to Step 10C
    
    - If 1+ friction points:
      - Proceed to Step 10B.2
@@ -3372,7 +3072,66 @@ After handling sub-task:
      - If 0 remaining → trigger **Step 10D (Phase Feedback Checkpoint)**
    
    - If more tasks remain in phase:
-     - Proceed to Step 11 (Next Action Menu)
+     - Proceed to Step 11 (Roadmap Menu)
+
+### 10E. **Outcome Execution Menu** (Layer 3)
+
+**Purpose**: The active outcome navigation hub. Users arrive here when starting work on an outcome (from Layer 2), during task execution, or when returning from Layer 4 feedback resolution. Shows current outcome progress and offers context-appropriate actions.
+
+**When to show**: When entering an outcome from Layer 2, between tasks within an outcome, or after Layer 4 feedback resolution.
+
+**Step 10E.1: Display Outcome Context**
+
+```
+🎯 Active Outcome: [Outcome Name]
+
+Acceptance Criteria:
+[✅] I can [criterion 1]
+[🔄] I can [criterion 2] ← Working on this
+[⬜] I can [criterion 3]
+
+Current Task: [Task Name] — [Status]
+Progress: [X/Y] criteria verified
+```
+
+**Step 10E.2: Present Layer 3 Menu**
+
+- Use `ask_user` with choices:
+  - "Continue working" (→ resume/start next task in this outcome)
+  - "I have feedback on this outcome"
+  - "Something's broken"
+  - "Do something else (→ Roadmap)" (→ Layer 2)
+  - "Mark outcome complete"
+- Freeform available → route to Freeform Classification (Step 12)
+
+**Step 10E.3: Handle Selections**
+
+- **If "Continue working"**:
+  - Load next uncompleted task for this outcome
+  - Proceed to Step 9 (Task Execution)
+  - After task completion, return to Step 10E (NOT Step 11)
+
+- **If "I have feedback on this outcome"**:
+  - Jump to **Layer 4 — Feedback Resolution (Step 10A.1)**
+  - After resolution, return to Step 10E
+
+- **If "Something's broken"**:
+  - Invoke Child Brain immediately (friction detected)
+  - After Child Brain completes, return to Step 10E
+
+- **If "Do something else"**:
+  - Navigate UP one layer to **Step 11 (Roadmap Menu / Layer 2)**
+  - Save current outcome progress before navigating
+
+- **If "Mark outcome complete"**:
+  - Run outcome validation from Step 10 (acceptance criteria check)
+  - If all criteria pass:
+    - Mark complete
+    - **AUTOMATIC: Invoke Child Brain post-delivery retrospective** — review all friction, errors, feedback, and successes from this outcome's execution. Learn from what went well AND what didn't.
+    - Proceed to Steps 10B/10C → Step 11 (Layer 2)
+  - If criteria fail → invoke Child Brain, return to Step 10E
+
+**Key Principle**: Layer 3 is the "working context" — users stay here while executing an outcome. Navigation always goes UP to Layer 2 (Roadmap) or DOWN to Layer 4 (Feedback), never directly to Layer 1.
 
 ### 10D. **Phase Feedback Checkpoint** (User Reflection)
    - **When to run**: When last task in a phase is completed
@@ -3430,19 +3189,68 @@ After handling sub-task:
      [Summary of what was learned/changed]
      ```
    
-   - Proceed to Step 11 (Next Action Menu)
+   **Step 10D.5: Phase Retrospective (AUTOMATIC)**
+   
+   - **AUTOMATIC: Invoke Child Brain post-delivery retrospective** for the entire phase
+   - Review ALL friction, errors, feedback, and successes across all outcomes in this phase
+   - This is a deeper review than per-outcome retrospectives — looks for cross-cutting patterns
+   - Child Brain should consider: Were skills adequate? Were estimates reasonable? Did the process work well?
+   
+   - Proceed to Step 11 (Roadmap Menu)
 
-### 11. **Next Action Menu**
-   - After task completion, use `ask_user` with choices:
-     - "Start next task automatically"
+### 11. **Roadmap Menu** (Layer 2)
+   **Purpose**: The project-level navigation hub. Users arrive here after task completion, via "Continue where I left off" (Step 2G), or by navigating up from Layer 3. This is where users see their roadmap position and decide what to do next.
+   
+   **When to show**: After Steps 10B/10C/10D complete, after outcome validation, or when navigating up from Layer 3.
+   
+   **Step 11.1: Display Roadmap Position**
+   
+   ```
+   📍 Roadmap Position
+   
+   Phase: [Phase Name] — [X/Y] outcomes complete
+   
+   [✅] Outcome 1: [Name]
+   [✅] Outcome 2: [Name]
+   [🔄] Outcome 3: [Name] ← Current
+   [⬜] Outcome 4: [Name]
+   ```
+   
+   **Step 11.2: Present Layer 2 Menu**
+   
+   - Use `ask_user` with choices:
+     - "Continue next outcome" (→ Layer 3 Outcome Execution Menu)
+     - "Review specific outcome"
      - "💡 I have a new idea"
-     - "Review roadmap and choose task"
+     - "Adjust priorities (Value Framework)"
      - "Take a break (save progress)"
-     - "Update/refine the roadmap"
-     - "Adjust my priorities (Value Framework)"
-   - Freeform available for custom actions
-   - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
-   - **If "Adjust my priorities"**: Re-run Step 4A.2 questions, update `.mother-brain/docs/value-framework.md`, re-score existing roadmap tasks if weights changed significantly, show what moved
+   - Freeform available for custom actions → route to Freeform Classification (Step 12)
+   
+   **Step 11.3: Handle Selections**
+   
+   - **If "Continue next outcome"**:
+     - Load next uncompleted outcome from roadmap
+     - Jump to **Layer 3 — Outcome Execution Menu (Step 10E)**
+   
+   - **If "Review specific outcome"**:
+     - List all outcomes with status (✅/🔄/⬜)
+     - User selects one → show outcome details (acceptance criteria, tasks, status)
+     - After review, return to Step 11.2
+   
+   - **If "I have a new idea"**:
+     - Jump to **Step 2F: Idea Capture & Prioritization**
+     - After idea captured, return to Step 11.2 (NOT Layer 1)
+   
+   - **If "Adjust priorities"**:
+     - Re-run Step 4A.2 questions
+     - Update `.mother-brain/docs/value-framework.md`
+     - Re-score existing roadmap tasks if weights changed significantly
+     - Show what moved, then return to Step 11.2
+   
+   - **If "Take a break"**:
+     - Save session state to `session-state.json`
+     - Display progress summary
+     - End session gracefully
    
    - Save session state to `docs/session-state.json`:
      ```json
@@ -3485,9 +3293,6 @@ After handling sub-task:
        }
      }
      ```
-   
-   - If continuing: Load next task, go to step 8
-   - If pausing: Save state, provide summary of progress
 
 ### 11A. **MVP Complete & Beyond** (Phase Transition Flow)
    - **When to run**: Automatically triggered when the last task in Phase 1 (MVP) is marked complete
@@ -3581,14 +3386,14 @@ After handling sub-task:
      - Identify patterns that need new skills
    - If new patterns detected: Create skills using skill-creator
    - Update roadmap with detailed tasks
-   - Return to Step 11 (Next Action Menu)
+   - Return to Step 11 (Roadmap Menu)
    
    **If "Take a new direction":**
    - Use `ask_user` (freeform): "What direction do you want to take the project?"
    - Re-run vision discovery (Step 3) with context of what exists
    - Generate new roadmap phases while preserving completed work
    - Create any needed new skills using skill-creator
-   - Return to Step 11 (Next Action Menu)
+   - Return to Step 11 (Roadmap Menu)
    
    **If "Add new features":**
    - Use `ask_user` (freeform): "What features do you want to add?"
@@ -3599,7 +3404,7 @@ After handling sub-task:
      - Invoke skill-creator for each pattern
    - Add features as new tasks to appropriate phase
    - Update roadmap
-   - Return to Step 11 (Next Action Menu)
+   - Return to Step 11 (Roadmap Menu)
    
    **If "Pause project":**
    - Save comprehensive session state
@@ -3632,7 +3437,56 @@ After handling sub-task:
    - **Project-agnostic**: Works for web apps, mobile apps, libraries, CLIs, games, etc.
    - **Preserve learnings**: Replanning doesn't discard completed work or learned skills
 
-### 12. **Session Continuity** (When Re-Invoked)
+### 12. **Freeform Classification** (Utility Step)
+
+**Purpose**: Reusable classification step invoked by ANY layer when a user provides freeform text instead of selecting a menu option. Determines the user's intent and routes to the appropriate handler.
+
+**When to invoke**: Any time user enters freeform text at a menu instead of selecting an option. Called by Layers 2, 3, and 4.
+
+**Step 12.1: Classify the Input**
+
+Analyze the freeform text and classify as one of:
+
+1. **Bug/Fix** — User is reporting something broken
+   - Trigger words: "broken", "doesn't work", "error", "wrong", "bug", "crash", "fix"
+   - → If in Layer 3/4: Route to Layer 4 Feedback Resolution (Step 10A.1) as essential
+   - → If in Layer 2: Ask which outcome is affected, then enter Layer 3 → Layer 4
+
+2. **Feature/Idea** — User has a new feature or idea
+   - Trigger words: "what if", "could we", "add", "new feature", "idea", "I want"
+   - → Route to Step 2F (Idea Capture & Prioritization)
+   - → After capture, return to the LAYER the user was on (not Layer 1)
+
+3. **Clarification/Question** — User is asking about the project/roadmap/outcome
+   - Trigger words: "why", "what does", "how", "explain", "tell me about", "?"
+   - → Answer the question directly
+   - → Return to the SAME menu the user was on
+
+4. **Feedback/Preference** — User is expressing a preference or giving feedback
+   - Trigger words: "I prefer", "I like", "actually", "instead", "rather", "maybe"
+   - → Invoke Child Brain (MANDATORY per Hard Rules)
+   - → After Child Brain completes, return to the SAME menu the user was on
+
+5. **Direction Change** — User wants to do something completely different
+   - Trigger words: "stop", "let's do", "switch to", "forget this", "different"
+   - → Navigate UP one layer from current position
+   - → If already at Layer 1, present Layer 1 menu
+
+**Step 12.2: Confirm Classification (if ambiguous)**
+
+If the intent is unclear, use `ask_user`:
+- "I think you're saying [classification]. Is that right?"
+- Choices: the top 2-3 most likely classifications
+
+**Step 12.3: Route and Return**
+
+- Execute the appropriate handler for the classification
+- **CRITICAL**: After handling, return the user to the LAYER they were on when they entered freeform
+- Never dump the user back to Layer 1 unless they were already there or explicitly asked to go home
+
+**Key Principle**: Freeform input is a DETOUR, not an EXIT. The user's navigation context is preserved across freeform handling.
+
+### 13. **Session Continuity** (When Re-Invoked)
    - When mother-brain is re-invoked:
      - Show ASCII art again
      - Load `docs/session-state.json`
@@ -3643,7 +3497,7 @@ After handling sub-task:
    
    - This ensures seamless continuation from any stopping point
 
-### 13. **Self-Improvement Integration**
+### 14. **Self-Improvement Integration**
    - After using heal on any skill (including Mother Brain):
      - Extract lesson learned
      - Update relevant documentation:
@@ -3791,8 +3645,8 @@ Skills: 3 available
 
 What would you like to do?
 1. Continue where I left off
-2. Review roadmap
-3. 💡 I have a new idea
+2. 💡 I have a new idea
+3. 🧠 Improve Mother Brain
 ...
 ```
 

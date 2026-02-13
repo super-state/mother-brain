@@ -15,11 +15,41 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 
 ## 🚨 HARD RULES (MANDATORY)
 
-### RULE 1: TRIGGER ON ALL FREEFORM
-- **ANY freeform response = INVOKE CHILD BRAIN IMMEDIATELY**
-- Don't wait for friction - preferences, hints, feedback are ALL learning opportunities
-- If user typed text instead of selecting an option → Child Brain MUST run
-- Trigger keywords: "I prefer", "I like", "I think", "actually", "instead", "rather", "maybe", "what about"
+### RULE 1: SMART TRIGGERS (NOT ALL FREEFORM)
+- Child Brain does NOT activate on every freeform input. It activates on SPECIFIC signals:
+
+**Trigger Category 1 — Friction Detected:**
+- Something broke, didn't work, or wasn't right
+- Keywords: "broken", "doesn't work", "wrong", "bug", "error", "not what I wanted", "this isn't right"
+
+**Trigger Category 2 — Positive Feedback:**
+- User liked something, something went well
+- Keywords: "I like", "this is great", "perfect", "exactly what I wanted", "well done"
+- Why: positive patterns should be reinforced and learned from too
+
+**Trigger Category 3 — Process Non-Compliance:**
+- User points out something was missed, skipped, or not followed
+- Keywords: "you missed", "you didn't", "why wasn't", "you should have", "you forgot", "that's not how"
+- This is a BLOCKING trigger — process-callout feedback preempts all other actions
+
+**Trigger Category 4 — Meta-Improvement:**
+- User wants to improve Mother Brain, its skills, or its process
+- Keywords: "improve", "Mother Brain should", "the skill needs", "add a rule", "change how you"
+- Route to Mother Brain or skill updates as appropriate
+
+**Trigger Category 5 — Post-Delivery Retrospective (AUTOMATIC):**
+- Runs automatically at these checkpoints — no user trigger needed:
+  - Outcome completion (Layer 3 → user marks outcome complete)
+  - Phase completion (Step 10D)
+  - Layer 4 feedback resolution (after issue resolved and user moves on)
+- Reviews all friction, errors, and feedback from the completed work
+- Learns from what went well AND what didn't
+
+**NOT a trigger — Normal freeform:**
+- User answering a question → handle directly
+- User giving a direction or instruction → handle via Freeform Classification (Step 12)
+- User providing information requested by a step → continue the step
+- Conversation, clarification, questions → answer and continue
 
 ### RULE 2: ALWAYS RETURN TO CALLER
 - Child Brain is INVOKED by Mother Brain
@@ -52,16 +82,6 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
   - `🛠️ [skill-name] created/updated` (for execution capability)
 - Show "No changes" for layers that weren't updated
 - If user selects from menu options that reveal preferences, STILL note it
-
-### RULE 6: PROCESS-CALLOUT PREEMPTION
-- If the user flags workflow/process non-compliance, Child Brain MUST be the first response action
-- Do not allow menus, status narration, or execution updates before Child Brain activation
-- Treat process-callout feedback as a blocking interrupt, not a normal branch
-
-### RULE 7: MENU CONTINUITY ON RETURN
-- When returning control to Mother Brain, require explicit restoration of the numbered menu
-- Child Brain completion must always include resume target + menu continuity expectation
-- If completion would end without a menu, instruct caller to restore it immediately
 
 ---
 
@@ -98,26 +118,32 @@ Child Brain NEVER stores knowledge itself. It analyzes, routes, and creates.
 
 ## When to Invoke
 
-Child Brain is invoked by Mother Brain for ALL of these (not just errors):
+Child Brain is invoked by Mother Brain on SPECIFIC signals (not all freeform):
 
 ### Friction Triggers
 1. User says "this isn't what I wanted" or similar negative feedback
 2. Task validation fails (needs adjustment or rework)
 3. Build/test failures occur during task execution
-4. Post-task reflection identifies friction points
+4. User points out something was missed, skipped, or not done
 
-### Preference Triggers
-5. **User provides freeform/other response** (indicates options didn't match expectations)
-6. **User expresses styling/design preferences** (e.g., "this doesn't feel right", "I prefer X")
+### Positive Feedback Triggers
+5. **User expresses satisfaction** (e.g., "this is great", "exactly what I wanted")
+6. **User expresses styling/design preferences** (e.g., "I like this", "I prefer X")
+
+### Process Non-Compliance Triggers
 7. **User corrects approach** (e.g., "you should have done X" or "why didn't you Y")
+8. **User flags workflow violation** (e.g., "you skipped step X", "you forgot to do Y")
 
-### Continuous Retro Triggers
-8. **Post-task review** - even for successful tasks, analyze what went well vs what could improve
-9. **Vision discussions** - when user refines vision, extract learnings about what was missed
-10. **Roadmap adjustments** - when user wants changes, understand why original plan didn't fit
-11. **ANY freeform user input** - contains opinions, preferences, or corrections worth analyzing
+### Meta-Improvement Triggers
+9. **User wants to improve Mother Brain** (e.g., "Mother Brain should...", "add a rule for...")
+10. **User identifies skill gaps** (e.g., "you need a skill for...", "the skill should know...")
 
-**AUTOMATIC TRIGGER RULE**: If user selects "other" or provides freeform text, IMMEDIATELY invoke Child Brain before continuing. Freeform = the user has something to say that wasn't anticipated.
+### Post-Delivery Retrospective Triggers (AUTOMATIC)
+11. **Outcome completion** — when user marks all acceptance criteria as passed (Layer 3)
+12. **Phase completion** — when last outcome in a phase is done (Step 10D)
+13. **Feedback resolution complete** — when Layer 4 issue is resolved and user moves on
+
+**NOT a trigger**: Normal freeform answers, directions, instructions, or conversation. These are handled by Freeform Classification (Step 12) or the active workflow step.
 
 ## Operating Principles
 

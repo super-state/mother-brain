@@ -47,6 +47,15 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - Compare to local version
 - If newer version exists → notify user BEFORE proceeding
 
+### RULE 3A: FRIENDLY + QUIET STARTUP (FAST BOOT)
+- Startup must feel like a friendly application:
+  - Show a short boot screen (no commands, no internal reasoning)
+  - Target: user sees an actionable menu in under 30 seconds
+- Update check must happen BEFORE any heavy detection output:
+  - If update is available, show the update menu immediately
+  - Do not dump status paragraphs first and then discover an update
+- **TEMPLATE LOADING**: Before printing the boot screen, read `references/boot-screen.md` and follow it.
+
 ### RULE 4: WHEN INVOKING OTHER SKILLS
 - **skill-creator**: Invoke and WAIT for it to complete, then return here
 - **child-brain**: Invoke and WAIT for it to complete, then return here
@@ -109,6 +118,8 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
   1. Read the relevant template file from `references/` or `examples/`
   2. Use the loaded template as your guide — do not recreate from memory
 - Template files to load on demand:
+  - **Boot/Startup**: Read `references/boot-screen.md` before printing startup status
+  - **Outcome Demo**: Read `references/outcome-demo.md` before outcome validation/sign-off
   - **Menus**: Read `references/branded-menu.md` before displaying any menu
   - **Formatting**: Read `references/formatting-rules.md` before formatting lists/output
   - **Issue reporting**: Read `references/issue-reporting.md` when handling freeform issue detection
@@ -234,6 +245,8 @@ Mother Brain transforms high-level visions into executable reality by:
 - **User Is Product Owner, Not Code Reviewer**: Never ask users to review code as signoff. Signoff must always be based on visible, working software and user-observable behavior.
 - **Outcome Naming Clarity**: In all user-facing prompts and menus, always use full outcome names. Never present bare IDs like "4.1" or "Task 004" without a human-readable description.
 - **Outcome Demonstration Standard**: At outcome completion, provide a concrete usage path: where to open, what to click, what to expect, and what "done" looks like from the user's perspective.
+- **Outcome Demo + Sign-Off Gate (MANDATORY)**: An outcome is not complete until the user has an interactive demo in front of them (not just files/code) and has explicitly signed off on each acceptance criterion.
+- **No User-Run Commands for Demos (MANDATORY)**: Never ask the user to run commands to start servers/apps for validation. Mother Brain must launch the experience itself. If a step can only be performed by the user (OAuth, 2FA, approvals), provide a guided walkthrough.
 - **Direct-Answer Gate**: When user asks a scoped clarification question, answer it FIRST before offering action paths. Do not jump to execution when the user is asking for understanding.
 - **Active Outcome Boundary for Freeform**: During outcome delivery, if user freeform input is unrelated to the active outcome or direct feedback on it, treat it as new work. Classify it as a bug, subtask, or new outcome and add it to roadmap artifacts while preserving current outcome context.
 - **Workflow Continuity Requirement**: Do not leave Mother Brain workflow/menu flow unless the user explicitly asks. Always provide a clear route back to the main Mother Brain menu.
@@ -351,31 +364,35 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - Proceed immediately to Step 2 (Detect Project State)
 
 ### 2. **Detect Project State & Show Progress**
-   
-   **🚨 MANDATORY VERSION CHECK (FIRST - BEFORE ANYTHING ELSE)**:
-   - This check is NON-NEGOTIABLE. Do this BEFORE any other detection.
-   - Run version check:
-     ```powershell
-     npm view mother-brain version --json 2>$null
-     ```
-   - Compare against:
-     - If in framework repo: `cli/package.json` version field
-     - If in project: `.mother-brain/version.json` version field
-   - **If newer version exists**:
-     ```
-     ⚠️ Mother Brain Update Available
-     
-     Installed: v[current]
-     Latest: v[npm version]
-     
-     Update recommended before continuing.
-     ```
-     - Use `ask_user` with choices:
-       - "Update now (recommended)"
-       - "Skip this time"
-     - **If "Update now"**: Run auto-update (see update commands below), then continue
-     - **If "Skip"**: Continue but note version mismatch
-   - **If current or check fails**: Continue silently
+    
+    **🚨 MANDATORY VERSION CHECK (FIRST - BEFORE ANYTHING ELSE)**:
+    - This check is NON-NEGOTIABLE. Do this BEFORE any other detection.
+    - **Before the version check output**, display a friendly boot screen:
+      - Read `references/boot-screen.md`
+      - Print ONLY the short user-facing startup lines from the template
+      - Do NOT print commands or internal reasoning
+    - Run version check:
+      ```powershell
+      npm view mother-brain version --json 2>$null
+      ```
+    - Compare against:
+      - If in framework repo: `cli/package.json` version field
+      - If in project: `.mother-brain/version.json` version field
+    - **If newer version exists**:
+      ```
+      ⚠️ Mother Brain Update Available
+      
+      Installed: v[current]
+      Latest: v[npm version]
+      
+      Update recommended before continuing.
+      ```
+      - Use `ask_user` with choices:
+        - "Update now (recommended)"
+        - "Skip this time"
+      - **If "Update now"**: Run auto-update (see update commands below), then continue
+      - **If "Skip"**: Continue but note version mismatch
+    - **If current or check fails**: Continue silently
    
    **🧬 META-MODE DETECTION (AFTER VERSION CHECK)**:
    - Detect if we are IN the Mother Brain framework repo itself:
@@ -2131,12 +2148,16 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      
      > So [the benefit/why this matters — traced to user need]
      
-     **Acceptance Criteria:**
-     - [ ] [Testable condition 1 — user can verify this]
-     - [ ] [Testable condition 2 — user can verify this]
-     - [ ] [Testable condition 3 — user can verify this]
-     
-     **Priority Score:** [N] (Vision: X, MVP: X, User Impact: X)
+      **Acceptance Criteria:**
+      - [ ] [Testable condition 1 — user can verify this]
+      - [ ] [Testable condition 2 — user can verify this]
+      - [ ] [Testable condition 3 — user can verify this]
+
+      **Demo / Proof (what the user will see):**
+      - [What screen/page/flow will exist at the end of this outcome]
+      - [How Mother Brain will open it for the user (browser/app route)]
+      
+      **Priority Score:** [N] (Vision: X, MVP: X, User Impact: X)
      
      **🔧 Tasks (internal — not shown to user during validation):**
      - Task 001: [Technical implementation step]
@@ -2149,11 +2170,15 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      
      > So [benefit — traced to user need]
      
-     **Acceptance Criteria:**
-     - [ ] [Testable condition 1]
-     - [ ] [Testable condition 2]
-     
-     **Priority Score:** [N]
+      **Acceptance Criteria:**
+      - [ ] [Testable condition 1]
+      - [ ] [Testable condition 2]
+
+      **Demo / Proof:**
+      - [User-visible experience delivered]
+      - [How it will be opened for validation]
+      
+      **Priority Score:** [N]
      
      **🔧 Tasks (internal):**
      - Task 004: [Technical step]
@@ -2171,11 +2196,15 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      
      > So [benefit]
      
-     **Acceptance Criteria:**
-     - [ ] [Criterion 1]
-     - [ ] [Criterion 2]
-     
-     **Note**: Subject to validation — may change based on user feedback
+      **Acceptance Criteria:**
+      - [ ] [Criterion 1]
+      - [ ] [Criterion 2]
+
+      **Demo / Proof:**
+      - [User-visible experience delivered]
+      - [How it will be opened for validation]
+      
+      **Note**: Subject to validation — may change based on user feedback
      
      ---
      
@@ -2770,19 +2799,26 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
         - Explain: "That's planned for [Outcome Name]"
         - Offer: "Continue as planned" or "Adjust roadmap"
    
-   - **OUTCOME VALIDATION (User validates acceptance criteria, not tasks)**:
-   
-     When ALL tasks under an outcome are complete, present the outcome for validation:
-     
-     ```
-     📋 Outcome Complete: [Ability to do X]
-     
-     Please verify each criterion — can you do this now?
-     ```
-   
-   - For EACH acceptance criterion, use `ask_user` with choices:
-     - "Yes, I can do this ✅"
-     - "No, something's wrong ❌"
+    - **OUTCOME VALIDATION (User validates acceptance criteria, not tasks)**:
+    
+      When ALL tasks under an outcome are complete, present the outcome for validation:
+      
+      ```
+      📋 Outcome Complete: [Ability to do X]
+      
+      Please verify each criterion — can you do this now?
+      ```
+
+    - **MANDATORY: Outcome Demo First (Interactive Experience)**:
+      1. Read `references/outcome-demo.md`
+      2. Launch the experience for the user (app/page/flow) so they can interact with the outcome
+         - Do NOT ask the user to run startup commands
+         - If launching fails, use one fallback, then provide clear manual steps
+      3. Only after the demo is in front of the user, proceed to acceptance-criteria Yes/No sign-off
+    
+    - For EACH acceptance criterion, use `ask_user` with choices:
+      - "Yes, I can do this ✅"
+      - "No, something's wrong ❌"
    
    - **If "Yes"**: Mark criterion complete, proceed to next
    - **If "No"**: 

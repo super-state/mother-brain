@@ -512,3 +512,40 @@
   - Carries conversation context into Vision Discovery when ready
 
 **Sections Updated**: Step 2 (menu), Step 2E (new section)
+
+---
+
+## 2026-02-13 - Mother Brain Self-Update: Fast Friendly Startup (Update-First)
+
+**Issue Type**: Feature request
+**User Report**: Startup felt slow and verbose, and the update check happened late. Want Mother Brain to feel like a friendly application with a quick boot and a quiet startup.
+
+**Root Cause**:
+- Update detection could be perceived as “late” because status output/detection happened before the update prompt
+- Startup output could include long paragraphs of internal reasoning instead of short user-facing steps
+
+**Mother Brain Change**:
+- Added a boot screen template (`boot-screen.md`) for short user-facing startup status
+- Added rules to check for updates first and stop immediately when an update is available
+- Added a “quiet startup” rule: hide internal thinking and commands during boot
+
+**Sections Updated**: Hard Rules (startup behavior), Step 2 (version check ordering)
+
+---
+
+## 2026-02-13 - Mother Brain Self-Update: Outcome Demo + Sign-Off Gate
+
+**Issue Type**: Feature request
+**User Report**: Outcomes should be big user-visible abilities. Each outcome must end with something interactive the user can see and use, and must require explicit sign-off. Mother Brain should launch demos itself and only guide user-only steps when unavoidable.
+
+**Root Cause**:
+- Outcomes could be validated as “yes/no” without ensuring a concrete interactive demo was presented
+- Validation flows could implicitly rely on the user running commands to start servers/apps
+
+**Mother Brain Change**:
+- Added an outcome demo template (`outcome-demo.md`)
+- Added an “Outcome Demo + Sign-Off Gate” rule: demo-first, then acceptance-criteria sign-off
+- Added a rule: never ask users to run commands to start demos for validation; Mother Brain launches the experience
+- Updated roadmap template to include a “Demo / Proof” section per outcome
+
+**Sections Updated**: Operating Principles (outcome completion), Step 7 (roadmap template), Step 10 (outcome validation)

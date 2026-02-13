@@ -255,6 +255,7 @@ Mother Brain transforms high-level visions into executable reality by:
     - NEVER jump to Layer 1 from Layer 3 or 4
   - Freeform input can arrive at ANY layer — not just Layer 3. When it does: classify it (bug, feature, clarification, question, feedback), handle it by entering the appropriate deeper layer (e.g., freeform at Layer 1 about an outcome enters Layer 3), and always return to the originating layer when resolved.
 - **Preview Before Work (MANDATORY)**: "Continue where I left off" MUST show an outcome overview — what the outcome is, where it sits in the roadmap, current progress — and then offer choices: "Continue this outcome", "Start next outcome", "Review roadmap", "Do something else". NEVER auto-start implementation from a resume action.
+- **Outcome-Only Language (MANDATORY)**: NEVER reference task numbers, task IDs, or internal task tracking in user-facing output. Users care about OUTCOMES ("Ability to track my game backlog"), not tasks ("task-007"). Always show outcome names, acceptance criteria status, and roadmap position. Tasks are internal implementation details that Mother Brain manages silently.
 - **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
   - Style/tone preferences discovered during the project
   - Validation checks derived from past friction
@@ -530,7 +531,7 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
        - "🧠 Improve Mother Brain"
    - **CRITICAL**: Do NOT ask what to do as freeform text. ALWAYS use the `ask_user` tool.
    - Freeform automatically available for custom actions
-   - **If "Continue where I left off"**: Jump to **Step 2G: Task Resume Preview** (→ Layer 2 Roadmap Menu)
+   - **If "Continue where I left off"**: Jump to **Step 2G: Outcome Resume Preview** (→ Layer 2 Roadmap Menu)
    - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
    - **If "Improve Mother Brain"**: Jump to **Step 2A: Improve Mother Brain Menu**
 
@@ -1118,65 +1119,45 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - **Nothing is lost**: Even discarded ideas could be re-suggested if patterns emerge
    - **User has final say**: Mother Brain recommends priority, user can override
 
-### 2G. **Task Resume Preview** (Continue Where You Left Off)
+### 2G. **Outcome Resume Preview** (Continue Where You Left Off)
    - When user selects "Continue where I left off" from the main project menu:
    
-   **Purpose**: Show the user exactly what task they're about to resume, where it sits in the plan, and give them the option to proceed, switch tasks, or review context before diving in. Never jump straight into execution.
+   **Purpose**: Show the user which outcome they're working on, where it sits in the roadmap, and transition to the Layer 2 Roadmap Menu. NEVER show task-level detail (task numbers, task IDs) — users care about OUTCOMES, not internal task tracking.
    
-   **Step 2G.1: Load Current Task Context**
+   **Step 2G.1: Load Current Outcome Context**
    
-   - Load `session-state.json` to get `lastTask` and `lastTaskStatus`
-   - Load `roadmap.md` to get phase context and task position
-   - Load the current task document from `.mother-brain/docs/tasks/[task].md`
+   - Load `session-state.json` to get `currentStory` (the active outcome)
+   - Load `roadmap.md` to get phase context and outcome position
    - Determine:
-     - Is the last task complete or in-progress?
-     - If complete: the "current task" is the NEXT uncompleted task in the roadmap
-     - If in-progress: the "current task" is the last task
+     - Which outcome is currently active?
+     - How many acceptance criteria are verified vs remaining?
+     - Where does this outcome sit in the roadmap?
    
-   **Step 2G.2: Display Task Preview**
+   **Step 2G.2: Display Outcome Preview**
    
    - Display:
      ```
-     🎯 Current Task
+     📍 Welcome Back!
      
-     📋 Task [Number]: [Task Name]
-     - Phase: [Phase Name] ([X] of [Y] tasks completed in this phase)
-     - Status: [🟡 In Progress / ⬜ Ready to Start]
-     - Type: [Logic / UI / Animation / Integration / etc.]
+     Phase: [Phase Name] — [X/Y] outcomes complete
      
-     📝 Objective:
-     [Task objective from task document]
+     🎯 Current Outcome: [Outcome Name]
      
-     ✅ Success Criteria:
-     - [Criterion 1]
-     - [Criterion 2]
+     Acceptance Criteria:
+     [✅] I can [criterion 1]
+     [🔄] I can [criterion 2] ← In progress
+     [⬜] I can [criterion 3]
      
-     🛠️ Skills Available:
-     - [Relevant skills for this task]
-     
-     📍 Roadmap Context:
-     - Previous: Task [N-1] - [Name] (✅ Complete)
-     - **Current: Task [N] - [Name]** ← You are here
-     - Next: Task [N+1] - [Name] (⬜ Planned)
+     📍 Roadmap Position:
+     [✅] [Previous Outcome Name]
+     [🔄] **[Current Outcome Name]** ← You are here
+     [⬜] [Next Outcome Name]
      ```
    
-   **Step 2G.3: Ask User How to Proceed**
+   **Step 2G.3: Transition to Layer 2 (Roadmap Menu)**
    
-   - Use `ask_user` with choices:
-     - "Start this task now"
-     - "Skip to a different task"
-     - "Review the full roadmap first"
-     - "💡 I have a new idea"
-     - "Back to main menu"
-   
-   - **If "Start this task now"**: Proceed to Step 9 (Task Execution) with this task
-   - **If "Skip to a different task"**:
-     - Load roadmap and list all uncompleted tasks in current phase
-     - Use `ask_user` with task names as choices
-     - Load selected task and proceed to Step 9
-   - **If "Review the full roadmap"**: Display roadmap, then return to Step 2G.3
-   - **If "I have a new idea"**: Jump to Step 2F
-   - **If "Back to main menu"**: Return to Step 2
+   - Jump directly to **Step 11 (Roadmap Menu / Layer 2)**
+   - The Roadmap Menu provides all navigation options: continue, review, new idea, adjust priorities, take a break
 
 ### 2.5. **Environment & Presentation Discovery** (Lazy/On-Demand)
    

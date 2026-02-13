@@ -1,7 +1,7 @@
 {
-  "metaMode": true,
-  "startedAt": "2026-02-13T23:37:28.9412876Z",
-  "focus": "Fix a specific issue or bug",
+  "metaMode": false,
+  "startedAt": null,
+  "focus": null,
   "workLog": [
     {
       "timestamp": "2026-02-13T23:00:58.8583490+00:00",
@@ -22,6 +22,10 @@
     {
       "timestamp": "2026-02-13T23:41:38.5922571Z",
       "action": "Removed Mother Brain hard rule that invoked Child Brain on every freeform input; replaced with learning-signal + checkpoint triggers aligned with Freeform Classification (Step 12)"
+    },
+    {
+      "timestamp": "2026-02-13T23:44:42.7396141Z",
+      "action": "Released v0.7.1 (build, commit, tag, push) and cleared meta-mode state"
     }
   ]
 }

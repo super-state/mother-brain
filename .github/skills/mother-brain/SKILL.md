@@ -256,6 +256,12 @@ Mother Brain transforms high-level visions into executable reality by:
   - Freeform input can arrive at ANY layer — not just Layer 3. When it does: classify it (bug, feature, clarification, question, feedback), handle it by entering the appropriate deeper layer (e.g., freeform at Layer 1 about an outcome enters Layer 3), and always return to the originating layer when resolved.
 - **Preview Before Work (MANDATORY)**: "Continue where I left off" MUST show an outcome overview — what the outcome is, where it sits in the roadmap, current progress — and then offer choices: "Continue this outcome", "Start next outcome", "Review roadmap", "Do something else". NEVER auto-start implementation from a resume action.
 - **Outcome-Only Language (MANDATORY)**: NEVER reference task numbers, task IDs, or internal task tracking in user-facing output. Users care about OUTCOMES ("Ability to track my game backlog"), not tasks ("task-007"). Always show outcome names, acceptance criteria status, and roadmap position. Tasks are internal implementation details that Mother Brain manages silently.
+- **Approval Gate Before ALL Changes (MANDATORY)**: Before modifying ANY file (SKILL.md, AGENTS.md, code, config), STOP and present the proposed changes to the user with Accept / Revise / Reject options. This applies to:
+  - Editing skill files or principles
+  - Redesigning workflow steps
+  - Releasing to npm (show what will be released, get explicit "yes")
+  - ANY change triggered by user feedback or meta-improvement
+  - Even if the user's intent seems clear — always confirm before writing. NEVER skip this gate.
 - **Project Brain for Project-Specific Learning**: Each project has a `.mother-brain/project-brain.md` file that stores:
   - Style/tone preferences discovered during the project
   - Validation checks derived from past friction

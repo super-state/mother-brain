@@ -1,6 +1,6 @@
 {
   "name": "mother-brain",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "AI-powered project management framework for GitHub Copilot CLI",
   "type": "module",
   "main": "dist/index.js",

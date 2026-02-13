@@ -76,12 +76,15 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - Even when user selects from menu options (not just freeform), note significant preferences
 - This makes learning visible to the user - they should SEE their input being captured
 
-### RULE 6: TRIGGER CHILD BRAIN ON FREEFORM
-- **ANY freeform user response = IMMEDIATELY invoke Child Brain**
-- Don't wait for explicit friction - preferences and hints are learning opportunities
-- If user typed text instead of selecting an option → invoke Child Brain FIRST
-- After Child Brain completes, continue with whatever Mother Brain was doing
-- Trigger keywords to watch for: "I prefer", "I like", "actually", "instead", "maybe", "what about"
+### RULE 6: TRIGGER CHILD BRAIN ON LEARNING SIGNALS (NOT ALL FREEFORM)
+- Do NOT invoke Child Brain solely because input was freeform.
+- Invoke Child Brain when there is something to learn:
+  - Friction: something broke, didn't work, or wasn't right
+  - Positive feedback: user liked something or a pattern should be reinforced
+  - Process non-compliance: user points out something was missed/skipped/not followed (blocking)
+  - Meta-improvement: user wants to improve Mother Brain, its skills, or its process
+  - Checkpoints: automatic retrospectives at outcome wrap-up, phase completion, and after Layer 4 feedback resolution
+- For freeform text at a menu, use **Freeform Classification (Step 12)** and only invoke Child Brain for the feedback/preference or friction paths (or at the automatic checkpoints).
 
 ### RULE 7: SELF-CHECK
 - If you're about to do something NOT in the Steps section → STOP

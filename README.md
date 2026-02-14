@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/mother-brain.svg)](https://www.npmjs.com/package/mother-brain)
-[![Version](https://img.shields.io/badge/version-0.7.1-blue)](https://github.com/super-state/mother-brain/releases)
+[![Version](https://img.shields.io/badge/version-0.7.2-blue)](https://github.com/super-state/mother-brain/releases)
 
 **Open Source AI Project Management Framework for GitHub Copilot CLI**
 

@@ -54,7 +54,10 @@
    
    - If user selects a delivery option:
      - Check if relevant skill exists (e.g., "deployment-manager", "cicd-setup")
-     - If skill doesn't exist: Invoke skill-creator to create delivery skill
+     - If skill doesn't exist:
+       - Consult Project Brain (`.mother-brain/project-brain.md`) for project-specific delivery constraints/preferences
+       - Consult Elder Brain RETRIEVE for the relevant technologies/platforms BEFORE invoking skill-creator
+       - Invoke skill-creator to create the delivery skill with Project Brain + Elder Brain context
      - Execute delivery using appropriate skill
      - Validate deployment/release succeeded
    
@@ -90,6 +93,7 @@
      - Create task documents (like Step 8)
      - Identify patterns that need new skills
    - If new patterns detected: Create skills using skill-creator
+   - Before creating any new skill, consult Elder Brain RETRIEVE for relevant technologies/domains and pass findings into skill-creator
    - Update roadmap with detailed tasks
    - Return to Step 11 (Roadmap Menu)
    
@@ -97,7 +101,7 @@
    - Use `ask_user` (freeform): "What direction do you want to take the project?"
    - Re-run vision discovery (Step 3) with context of what exists
    - Generate new roadmap phases while preserving completed work
-   - Create any needed new skills using skill-creator
+   - Create any needed new skills using skill-creator (consult Elder Brain RETRIEVE first, and bake gotchas into the skill context)
    - Return to Step 11 (Roadmap Menu)
    
    **If "Add new features":**
@@ -106,7 +110,9 @@
    - If patterns detected that need skills:
      - Display: "I detect patterns that could benefit from new skills:"
      - List detected patterns
-     - Invoke skill-creator for each pattern
+     - For each skill:
+       - Consult Elder Brain RETRIEVE for relevant technologies/domains
+       - Invoke skill-creator with Elder Brain findings baked in
    - Add features as new tasks to appropriate phase
    - Update roadmap
    - Return to Step 11 (Roadmap Menu)

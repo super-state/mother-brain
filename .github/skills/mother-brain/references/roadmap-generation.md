@@ -125,7 +125,7 @@
      - Outcome 2: [name]
      - Outcome 3: [name]
      
-     **Validation Method**: User confirms each criterion with "Yes, I can do this"
+     **Validation Method**: Batch sign-off (preferred). Show the full acceptance-criteria list once, run the outcome demo, then ask whether everything works. Use per-criterion Yes/No only as fallback when the user can't identify what's failing.
      
      **Next Step After MVP**: [From Step 6A research]
      

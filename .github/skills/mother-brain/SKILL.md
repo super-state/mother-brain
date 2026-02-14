@@ -137,6 +137,7 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
 - Template files to load on demand:
   - **Boot/Startup**: Read `references/boot-screen.md` before printing startup status
   - **Outcome Demo**: Read `references/outcome-demo.md` before outcome validation/sign-off
+  - **Outcome Discovery**: Read `references/outcome-discovery.md` before adding a new outcome/phase or pivoting to a new outcome
   - **Menus**: Read `references/branded-menu.md` before displaying any menu
   - **Formatting**: Read `references/formatting-rules.md` before formatting lists/output
   - **Issue reporting**: Read `references/issue-reporting.md` when handling freeform issue detection
@@ -240,7 +241,7 @@ Mother Brain transforms high-level visions into executable reality by:
 - **Adaptive planning**: Roadmaps are living documents, not contracts
 - **Outcome-Driven Roadmap (CORE PRINCIPLE)**: Roadmaps are organized by **Outcomes** (user abilities), not tasks. Each outcome is an "Ability to [do something]" that fulfills a user need. Tasks exist only as internal implementation details. Users validate **acceptance criteria** for outcomes, never technical tasks. This keeps validation meaningful ("Can I now do X?") rather than abstract ("Does this code look right?").
 - **User Needs as Foundation**: During Vision Discovery, capture explicit user needs as "Ability to..." statements. These become the outcomes in the roadmap. Every outcome traces back to which user need it fulfills.
-- **Acceptance Criteria Validation**: User signs off on acceptance criteria for each outcome, not on individual tasks. For each criterion, ask: "Can you do this now? Yes/No". If "No" → invoke Child Brain to analyze and fix.
+- **Acceptance Criteria Validation**: User signs off on acceptance criteria for each outcome, not on individual tasks. Default to **batch sign-off**: show the full criteria list once, run the outcome demo, then ask whether everything works. If something fails or needs adjustment → invoke Child Brain. Only drill into per-criterion Yes/No when the user can't identify what is failing.
 - **Best practice structure**: Organize projects using standard dev conventions
 - **Skill automation**: Create skills for repetitive tasks proactively
 - **User validation**: Always confirm outcomes meet expectations via acceptance criteria before marking complete
@@ -541,13 +542,13 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      Encountered friction or have ideas for improvement?
      ```
    
-   - Use `ask_user` with choices:
-     - "Something broke or didn't work"
-     - "A feature is missing"
-     - "The workflow is confusing"
-     - "I have a suggestion for improvement"
-     - "📤 Send my local improvements (auto-detect changes)"
-     - "⬅️ Back to project"
+    - Use `ask_user` with choices:
+      - "Something broke or didn't work"
+      - "A feature is missing"
+      - "The workflow is confusing"
+      - "I have a suggestion for improvement"
+      - "📤 Send community improvements (auto-detect local changes)"
+      - "⬅️ Back to project"
    
    **Step 2A.0.1: Friction Auto-Detection (for "Something broke")**
    
@@ -604,16 +605,24 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      - Work on implementing if appropriate
      - Offer to send improvement when done
    
-   - **If "Send my local improvements"**: Continue to Step 2A.1 (Auto-Detect)
+   - **If "Send community improvements"**: Continue to Step 2A.1 (Auto-Detect)
    
    - **If "Back to project"**: Return to main menu (Step 2)
 
 ### 2A.1 **Send Improvement** (Automatic Multi-Issue Contribution)
-   - When user selects "📤 Send my local improvements":
+   - When user selects "📤 Send community improvements":
    - **Read `references/improvement-pipeline.md`** for the full pipeline (Steps 2A.1.1–2A.1.5)
    - Covers: gather sources (learning log, core file diffs, conversation context), deduplication via issues tracker, correlate learnings with file changes, generate individual GitHub issues, submit via gh CLI (with manual fallback), update tracker
    - Target repository: `super-state/mother-brain`
    - After submission → return to main menu (Step 2)
+
+### 2H. **Outcome Discovery & Planning** (Mini Requirements Session)
+   - A mini "vision-like" discovery workflow for new outcomes/phases or pivots. Clarifies the outcome, does lightweight research, consults Project Brain constraints, detects skill gaps (via Elder Brain gate + skill-creator), and writes the outcome into the roadmap with a do-now vs later choice.
+   - **Read `references/outcome-discovery.md`** for the full procedure.
+   - This flow must be available from:
+     - Layer 2 (Roadmap): "🔎 Discover a new outcome"
+     - Layer 3 (Outcome execution): "🔎 Pivot to a different outcome"
+   - Also run it when starting an outcome that hasn't been clarified yet (placeholder outcome or unclear scope). In that case, treat the discovery as "clarify/refine this outcome" and update the existing roadmap entry.
 
 ### 2A.2 **Review Community Improvements** (Maintainer Workflow)
    - Maintainer workflow for reviewing community improvement issues. Lists open issues, shows AI-generated analysis, and provides accept/reject/request-changes actions.
@@ -1504,6 +1513,7 @@ Progress: [X/Y] criteria verified
   - "Continue working" (→ resume/start next task in this outcome)
   - "I have feedback on this outcome"
   - "Something's broken"
+  - "🔎 Pivot to a different outcome"
   - "Do something else (→ Roadmap)" (→ Layer 2)
   - "Mark outcome complete"
 - Freeform available → route to Freeform Classification (Step 12)
@@ -1522,6 +1532,12 @@ Progress: [X/Y] criteria verified
 - **If "Something's broken"**:
   - Invoke Child Brain immediately (friction detected)
   - After Child Brain completes, return to Step 10E
+
+- **If "🔎 Pivot to a different outcome"**:
+  - Run **Step 2H (Outcome Discovery & Planning)**
+  - After discovery:
+    - If user chose "Do this next": set it as active and return to Step 10E
+    - If user chose "Add to roadmap for later": return to Step 10E (current outcome unchanged)
 
 - **If "Do something else"**:
   - Navigate UP one layer to **Step 11 (Roadmap Menu / Layer 2)**
@@ -1622,19 +1638,21 @@ Progress: [X/Y] criteria verified
    
    **Step 11.2: Present Layer 2 Menu**
    
-   - Use `ask_user` with choices:
-     - "Continue next outcome" (→ Layer 3 Outcome Execution Menu)
-     - "Review specific outcome"
-     - "💡 I have a new idea"
-     - "Adjust priorities (Value Framework)"
-     - "Take a break (save progress)"
+- Use `ask_user` with choices:
+  - "Continue next outcome" (→ Layer 3 Outcome Execution Menu)
+  - "Review specific outcome"
+  - "🔎 Discover a new outcome"
+  - "💡 I have a new idea"
+  - "Adjust priorities (Value Framework)"
+  - "Take a break (save progress)"
    - Freeform available for custom actions → route to Freeform Classification (Step 12)
    
    **Step 11.3: Handle Selections**
    
-   - **If "Continue next outcome"**:
-     - Load next uncompleted outcome from roadmap
-     - Jump to **Layer 3 — Outcome Execution Menu (Step 10E)**
+- **If "Continue next outcome"**:
+  - Load next uncompleted outcome from roadmap
+  - If this outcome is still a placeholder or needs clarification, run **Step 2H (Outcome Discovery & Planning)** to refine it before starting execution.
+  - Jump to **Layer 3 — Outcome Execution Menu (Step 10E)**
    
    - **If "Review specific outcome"**:
      - List all outcomes with status (✅/🔄/⬜)
@@ -1651,10 +1669,14 @@ Progress: [X/Y] criteria verified
      - Re-score existing roadmap tasks if weights changed significantly
      - Show what moved, then return to Step 11.2
    
-   - **If "Take a break"**:
-     - Save session state to `session-state.json`
-     - Display progress summary
-     - End session gracefully
+- **If "Take a break"**:
+  - Save session state to `session-state.json`
+  - Display progress summary
+  - Then present a choice:
+    - "Back to Main Menu (Layer 1)" (return to Step 2)
+    - "Back to Roadmap Menu (Layer 2)" (return to Step 11.2)
+    - "Exit session" (end cleanly after showing a short resume hint)
+  - **Exit discipline**: If user selects "Exit session", display a short "Session ended" message and a single resume hint (`/mother-brain`), then STOP. Do not present additional menus after exit.
    
    - Save session state to `docs/session-state.json`:
      ```json
@@ -1720,8 +1742,10 @@ Analyze the freeform text and classify as one of:
 
 2. **Feature/Idea** — User has a new feature or idea
    - Trigger words: "what if", "could we", "add", "new feature", "idea", "I want"
-   - → Route to Step 2F (Idea Capture & Prioritization)
-   - → After capture, return to the LAYER the user was on (not Layer 1)
+   - Use `ask_user` to choose:
+     - "💡 Quick idea capture" (→ Step 2F)
+     - "🔎 Outcome discovery (plan it onto the roadmap)" (→ Step 2H)
+   - After capture/discovery, return to the LAYER the user was on (not Layer 1)
 
 3. **Clarification/Question** — User is asking about the project/roadmap/outcome
    - Trigger words: "why", "what does", "how", "explain", "tell me about", "?"
@@ -1933,3 +1957,6 @@ See `references/resources.md` for:
 - Vision document templates
 - Roadmap examples
 - Task management methodologies
+- **If "🔎 Discover a new outcome"**:
+  - Run **Step 2H (Outcome Discovery & Planning)**
+  - After discovery, return to Step 11.2

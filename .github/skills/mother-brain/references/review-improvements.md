@@ -4,17 +4,27 @@
    
    **Step 2A.2.1: List Open Improvement Issues**
    
-   - Fetch issues with "improvement" or "community-contribution" labels:
-     ```
-     github-mcp-server: list_issues
-     state: open
-     labels: ["improvement"]
-     ```
+   - **Do NOT assume repo-specific labels exist.** Many repos only have default labels
+     (`enhancement`, `documentation`, etc.). Improvement submissions created by Mother Brain
+     also commonly use a title prefix like `[Improvement]`.
+   
+   - Fetch open improvement issues using this fallback order:
+     - **Primary (title prefix)**: search for issues whose title includes `[Improvement]`
+       - Example (gh CLI):
+         - `gh issue list --repo super-state/mother-brain --state open --search "is:issue is:open [Improvement]" --limit 20`
+     - **Secondary (default labels)**: search for likely labels
+       - `label:enhancement` and/or `label:documentation`
+       - Example (gh CLI):
+         - `gh issue list --repo super-state/mother-brain --state open --label enhancement --limit 20`
+         - `gh issue list --repo super-state/mother-brain --state open --label documentation --limit 20`
+     - **Last-resort (recent open issues)**: list recent open issues and manually select
+       - Example (gh CLI):
+         - `gh issue list --repo super-state/mother-brain --state open --limit 20`
    
    - **If no issues**: Display "📭 No community improvements pending review." → Return to menu
    
    - **If issues exist**: Display summarized list:
-     ```
+      ```
      📥 Community Improvements to Review ([count] pending)
      
      ┌─────────────────────────────────────────────────────────────┐
@@ -25,10 +35,18 @@
      │ 📁 [files affected count] files • [lines changed] lines    │
      └─────────────────────────────────────────────────────────────┘
      
-     [Repeat for each issue, max 5 shown]
+     [Repeat for each issue, up to 10 shown]
+
+     If more than 10 issues exist:
+     - Show a second menu choice to view the next page (issues 11–20)
+     - Also offer a "Deduplicate by title" view (recommended when many issues share the same `[Improvement] YYYY-MM-DD - ...` titles)
      ```
    
-   - Use `ask_user` with issue numbers as choices + "Back to menu"
+   - Use `ask_user` with:
+     - Issue numbers as choices (for the visible page)
+     - "Next page"
+     - "Deduplicate by title (recommended)"
+     - "Back to menu"
    
    **Step 2A.2.2: Review Selected Issue**
 
@@ -66,6 +84,14 @@
      - "❌ Reject - close with explanation"
      - "💬 Request changes - ask for modifications"
      - "⏭️ Skip - review later"
+
+   **Deduplicate by title (helper view)**
+   - When "Deduplicate by title" is selected:
+     - Group open issues by normalized title (strip issue number, keep full title text)
+     - For each group, show ONLY the newest issue number as the representative
+     - Present the representative issue numbers as choices, plus:
+       - "Show all issues (paged)"
+       - "Back to menu"
    
    **Step 2A.2.3: Accept Improvement**
 

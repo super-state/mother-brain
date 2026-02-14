@@ -22,6 +22,8 @@ One-click release: commit, version bump, push, tag, and publish.
 ## Step 2D.1: Verify & Analyze
 - Check current folder is mother-brain framework folder
 - If in a project folder: Display error and offer to return to framework
+- Refresh remote release context (quiet):
+  - Run `git fetch --tags origin`
 - Run `git status` to verify there are changes to release
 - If no changes: Display "Nothing to release" and return to menu
 

@@ -24,9 +24,17 @@ How to verify (quick path):
 - Step 2: [Click/Action]
 - Expected: [What should happen]
 
-Then validate each acceptance criterion (Yes/No).
+Acceptance Criteria:
+- I can ...
+- I can ...
+
+Then validate acceptance criteria using batch sign-off (preferred): show the full list once, then ask if everything works. Use per-criterion Yes/No only as fallback when the user can't identify what's failing.
+
+Use choices like:
+- "✅ Everything works (all criteria pass)"
+- "⚠️ Something isn't working (tell me what's failing)"
+- "🛠 Works but needs adjustment (tell me what to change)"
 
 Rules:
 - If login/authorization/setup requires user action, guide them step-by-step.
 - If auto-launch fails, provide one fallback method and then clear manual steps with full paths/URLs.
-

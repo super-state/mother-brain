@@ -46,7 +46,9 @@ When user selects to onboard Mother Brain into an existing project, follow these
 ## Step 2.2.4: Skill Identification
 - Analyze patterns in existing code
 - Identify repetitive work that warrants skills
-- Invoke skill-creator for detected patterns
+- Consult Project Brain (`.mother-brain/project-brain.md`) for project-specific constraints/preferences (if it exists)
+- Consult Elder Brain RETRIEVE for relevant technologies/domains BEFORE invoking skill-creator
+- Invoke skill-creator for detected patterns with Project Brain + Elder Brain context baked in
 
 ## Step 2.2.5: Confirmation
 - Display:

@@ -76,7 +76,9 @@
       ```
       📋 Outcome Complete: [Ability to do X]
       
-      Please verify each criterion — can you do this now?
+      Acceptance Criteria:
+      - I can ...
+      - I can ...
       ```
 
     - **MANDATORY: Outcome Demo First (Interactive Experience)**:
@@ -84,30 +86,34 @@
       2. Launch the experience for the user (app/page/flow) so they can interact with the outcome
          - Do NOT ask the user to run startup commands
          - If launching fails, use one fallback, then provide clear manual steps
-      3. Only after the demo is in front of the user, proceed to acceptance-criteria Yes/No sign-off
+      3. Only after the demo is in front of the user, proceed to acceptance-criteria sign-off (batch-first)
     
-    - For EACH acceptance criterion, use `ask_user` with choices:
-      - "Yes, I can do this ✅"
-      - "No, something's wrong ❌"
-   
-   - **If "Yes"**: Mark criterion complete, proceed to next
-   - **If "No"**: 
-     - Invoke Child Brain immediately (friction detected)
-     - Child Brain analyzes what went wrong
-     - Fix applied, re-validate this criterion
+    - **Batch acceptance sign-off (preferred)**:
+      - Display the FULL acceptance-criteria list at once
+      - Then use `ask_user` with choices:
+        - "✅ Everything works (all criteria pass)"
+        - "⚠️ Something isn't working (tell me what's failing)"
+        - "🛠 Works but needs adjustment (tell me what to change)"
+      - If the user reports failures/adjustments:
+        - Ask them to paste the failing criteria text or numbers (freeform)
+        - Invoke Child Brain immediately (friction detected), fix, then re-run demo + batch sign-off
+      - Only drill into per-criterion Yes/No when:
+        - The user says "some fail" but can't identify which, or
+        - The outcome has many criteria and pinpointing is unclear
    
    - **Example validation flow**:
      ```
      📋 Ability to see my emails inside the portal
      
-     Criterion 1: I can see my inbox with sender, subject, and preview
-     → [Yes, I can do this] [No, something's wrong]
+     Acceptance Criteria:
+     1. I can see my inbox with sender, subject, and preview
+     2. I can click an email to read the full content
+     3. New emails appear without refreshing the page
      
-     Criterion 2: I can click an email to read the full content
-     → [Yes, I can do this] [No, something's wrong]
-     
-     Criterion 3: New emails appear without refreshing the page
-     → [Yes, I can do this] [No, something's wrong]
+     Now that the demo is in front of you, which is true?
+     1. ✅ Everything works (all criteria pass)
+     2. ⚠️ Something isn't working (tell me what's failing)
+     3. 🛠 Works but needs adjustment (tell me what to change)
      ```
    
    - **All criteria pass**: Mark outcome complete (✅)
@@ -116,6 +122,15 @@
    - If issues: Jump to **Step 10A: Three-Layered Learning from Feedback**
    - Update task document with final status
    - Update roadmap checklist
+   
+   - **Post-outcome wrap-up + commit discipline (order matters)**:
+     1. Run Steps 10B and 10C (mandatory learning + documentation checkpoint)
+     2. If the outcome was accepted, run the outcome-level retrospective:
+        - Invoke Child Brain (post-delivery retrospective)
+        - Apply any approved Mother Brain / Project Brain / skill updates
+     3. If the repo is a git repo and there are uncommitted changes:
+        - Create a commit AFTER the retrospective updates are applied
+        - Then return the user to the Layer 2 Roadmap Menu
    
    **⚠️ CRITICAL: After marking task complete, proceed through Steps 10B, 10C, and optionally 10D before returning to the Outcome Execution Menu (Layer 3).**
    

@@ -1,7 +1,7 @@
 {
   "metaMode": true,
   "startedAt": "2026-02-14T17:14:38.2172027Z",
-  "focus": "Review community improvements",
+  "focus": null,
   "workLog": [
     {
       "timestamp": "2026-02-14T17:15:34.699961Z",
@@ -14,6 +14,14 @@
     {
       "timestamp": "2026-02-14T17:31:44.1702465Z",
       "action": "Enhanced review-improvements procedure: show up to 10 issues, add Next page + Deduplicate by title options."
+    },
+    {
+      "timestamp": "2026-02-14T17:44:53.1323322Z",
+      "action": "Returned to meta-mode menu after releasing v0.7.4"
+    },
+    {
+      "timestamp": "2026-02-14T18:05:25.0113009Z",
+      "action": "Fixed state detection to treat scaffolding-only Mother Brain init folders as new projects (avoid false onboarding). Updated state-detection.md + SKILL.md Step 2 wording."
     }
   ]
 }

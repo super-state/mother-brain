@@ -382,17 +382,17 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - Proceed immediately to Step 2 (Detect Project State)
 
 ### 2. **Detect Project State & Show Progress**
-    
-   - Runs version check, meta-mode detection, fast startup optimization, auto-update with improvement capture, and artifact scanning.
-   - **Read `references/state-detection.md`** for the full detection procedure (version check, meta-mode, fast startup, auto-update Steps A–D, artifact list)
-   - After detection completes, display the appropriate menu below based on project state:
+     
+    - Runs version check, meta-mode detection, fast startup optimization, auto-update with improvement capture, and artifact scanning.
+    - **Read `references/state-detection.md`** for the full detection procedure (version check, meta-mode, fast startup, auto-update Steps A–D, artifact list)
+    - After detection completes, display the appropriate menu below based on project state:
 
-   **If project exists:**
-   - Load session state from `docs/session-state.json`
-   
-   - **Git Check (ensure git is available)**:
-     - Check if `.git` folder exists in project root
-     - If NOT exists:
+    **If project exists:**
+    - Load session state from `.mother-brain/session-state.json`
+    
+    - **Git Check (ensure git is available)**:
+      - Check if `.git` folder exists in project root
+      - If NOT exists:
        ```
        ⚠️ Git repository not found - initializing...
        ```
@@ -424,11 +424,11 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
    - **If "I have a new idea"**: Jump to **Step 2F: Idea Capture & Prioritization**
    - **If "Improve Mother Brain"**: Jump to **Step 2A: Improve Mother Brain Menu**
 
-   **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
-   - Detect: Files exist in directory, but NO `.mother-brain/` folder and NO `docs/vision.md`
-   - Display:
-     ```
-     🧠 I see an existing project here!
+    **If existing project WITHOUT Mother Brain artifacts (ONBOARDING):**
+    - Detect: Files exist in directory, but NO `.mother-brain/` folder (Mother Brain not installed here)
+    - Display:
+      ```
+      🧠 I see an existing project here!
      
      I can help you manage this project using the Mother Brain framework.
      I'll scan your codebase, understand what you've built, and help you
@@ -439,12 +439,19 @@ Key rules: Use `allow_freeform: true` on all `ask_user` calls. Check freeform re
      - "Yes, onboard Mother Brain into this project"
      - "No, start fresh (ignore existing files)"
 
-   - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
+    - **If user selects onboarding**: Jump to **Step 2.2: Existing Project Onboarding**
 
-   **If new project (empty directory or user chose fresh start):**
-   - Display welcome:
-     ```
-     🧠 Welcome to Mother Brain!
+    **If Mother Brain is installed but this folder is scaffolding-only (NEW PROJECT):**
+    - Detect:
+      - `.mother-brain/session-state.json` exists AND its project is unset (e.g., `project: null`)
+      - `.mother-brain/docs/vision.md` does NOT exist
+      - Repo root contains only Mother Brain scaffolding (e.g., `.mother-brain/`, `.github/`, `.agents/`, `AGENTS.md`, optional `.git/`)
+    - Treat this as a **new project** (show the new-project welcome flow below). Do NOT show onboarding.
+
+    **If new project (empty directory or user chose fresh start):**
+    - Display welcome:
+      ```
+      🧠 Welcome to Mother Brain!
      
      I'm your AI project companion. Tell me what you want to build,
      and I'll help you make it real—step by step.

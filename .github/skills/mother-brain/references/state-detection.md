@@ -11,22 +11,41 @@
       npm view mother-brain version --json 2>$null
       ```
     - Compare against:
-      - If in framework repo: `cli/package.json` version field
-      - If in project: `.mother-brain/version.json` version field
+      - If in framework repo: `cli/package.json` version field (source repo version)
+      - If in project: `.mother-brain/version.json` installed field (installed/tracked version)
     - **If newer version exists**:
-      ```
-      ⚠️ Mother Brain Update Available
+      - **If in a project folder** (has `.mother-brain/version.json`):
+        ```
+        ⚠️ Mother Brain Update Available
+        
+        Installed: v[current]
+        Latest: v[npm version]
+        
+        Update recommended before continuing.
+        ```
+        - Use `ask_user` with choices:
+          - "Update now (recommended)"
+          - "Skip this time"
+        - **If "Update now"**: Run `npx -y mother-brain update`, then continue
+        - **If "Skip"**: Continue but note version mismatch
       
-      Installed: v[current]
-      Latest: v[npm version]
-      
-      Update recommended before continuing.
-      ```
-      - Use `ask_user` with choices:
-        - "Update now (recommended)"
-        - "Skip this time"
-      - **If "Update now"**: Run auto-update (see update commands below), then continue
-      - **If "Skip"**: Continue but note version mismatch
+      - **If in the Mother Brain framework repo** (source code checkout):
+        ```
+        ⚠️ Mother Brain Release Ahead of This Checkout
+        
+        Repo version (cli/package.json): v[current]
+        Latest release (npm): v[npm version]
+        
+        This usually means your local checkout hasn’t been pulled to the latest tag yet.
+        ```
+        - Use `ask_user` with choices:
+          - "Fetch tags + pull latest framework changes (recommended)"
+          - "Skip this time"
+        - **If "Fetch tags + pull"**:
+          - Run `git fetch --tags origin`
+          - Run `git pull --ff-only origin main`
+          - Then continue detection
+        - **If "Skip"**: Continue but note mismatch
     - **If current or check fails**: Continue silently
    
    **🧬 META-MODE DETECTION (AFTER VERSION CHECK)**:
@@ -37,6 +56,8 @@
      4. If ALL of these exist → we are in the Mother Brain framework repo
    
    - **If in Mother Brain framework repo**:
+     - Refresh tags before reporting "last release" (quiet):
+       - Run `git fetch --tags origin`
      - Check `.mother-brain/meta-mode.json` for existing meta session state
      - Display:
        ```
@@ -77,11 +98,34 @@
    - **If NOT in framework repo**: Continue with normal detection below
    
    **⚡ FAST STARTUP OPTIMIZATION (MANDATORY)**:
-   - **Single file check first**: Check ONLY `.mother-brain/session-state.json` - if it exists, project exists
+   - **Single file check first**: Check ONLY `.mother-brain/session-state.json`
+     - If it exists: Mother Brain is installed in this folder (NOT necessarily an "existing project")
+     - If it does not exist: treat as "no Mother Brain artifacts" (possible onboarding or brand-new folder)
    - **Parallel tool calls**: When multiple checks are needed, run them in ONE response (not sequentially)
    - **Lazy loading**: Only load vision.md, roadmap.md, README.md when actually needed (not at startup)
    - **Minimal detection**: For new project detection, a single glob for `.mother-brain/` is sufficient
    - Goal: User sees menu within 1-2 tool calls, not 6+
+
+   **🧩 SCAFFOLDING-ONLY DETECTION (CRITICAL - fixes false "existing project" onboarding)**
+   - A freshly created folder can look like an "existing project" after `mother-brain init` because init creates:
+     - `.mother-brain/session-state.json` (with `project: null`)
+     - `.mother-brain/version.json`
+     - `.github/skills/*`
+     - `.agents/skills/*`
+     - `AGENTS.md`
+     - `.git/` (if git init is performed)
+   - **Rule**: If the folder contains ONLY Mother Brain scaffolding, treat it as a **new project** (show the new-project welcome flow), NOT onboarding.
+   - Detect scaffolding-only as:
+     1. `.mother-brain/session-state.json` exists AND its JSON has `project: null` (or no project name)
+     2. `.mother-brain/docs/vision.md` does NOT exist
+     3. The repo root contains no "real project files" beyond:
+        - `.mother-brain/`
+        - `.github/`
+        - `.agents/`
+        - `.git/`
+        - `AGENTS.md`
+     - If all true → show **New Project** welcome menu (Step 2 new project)
+     - If false → proceed with normal project/onboarding detection
    
    **📦 AUTO-UPDATE CHECK (on startup, if project exists)**:
    - If `.mother-brain/version.json` exists:

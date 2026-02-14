@@ -43,8 +43,14 @@ allowed-tools: powershell view grep glob web_search ask_user create edit skill
   This ensures Mother Brain works across ALL agent runtimes (GitHub Copilot CLI, Codex CLI, IDE extensions, etc.) even when interactive UI tools are unavailable.
 
 ### RULE 3: VERSION CHECK FIRST
-- Before showing ANY menu, run: `npm view mother-brain version --json 2>$null`
-- Compare to local version
+- Before showing ANY menu, perform a version check (fast-first):
+  - Read `.mother-brain/version.json` to get the installed version
+  - If `.mother-brain/version.json` contains a fresh cached update check:
+    - Fields: `lastUpdateCheckAt` + `lastKnownLatest`
+    - TTL: 24 hours
+    - Then you may skip the network call and treat `lastKnownLatest` as the latest version for this startup
+  - Otherwise, run: `npm view mother-brain version --json 2>$null`
+- Compare installed vs latest
 - If newer version exists → notify user BEFORE proceeding
 - **To update**: Run `npx -y mother-brain update` — the CLI handles everything automatically
 

@@ -71,7 +71,10 @@ export async function init(options: InitOptions = {}): Promise<void> {
   const pkg = await fs.readJSON(path.join(packageRoot, 'package.json'));
   await fs.writeJSON(versionFile, {
     installed: pkg.version,
-    installedAt: new Date().toISOString()
+    installedAt: new Date().toISOString(),
+    // Startup can use this to avoid hitting the network every run.
+    lastUpdateCheckAt: new Date().toISOString(),
+    lastKnownLatest: pkg.version
   }, { spaces: 2 });
 
   // Create initial session state if it doesn't exist

@@ -46,6 +46,12 @@ export async function update(): Promise<void> {
   console.log(chalk.dim(`Latest:    v${latestVersion}\n`));
   
   if (currentVersion.installed === latestVersion) {
+    // Refresh cached update-check fields so startup flows can skip the network call.
+    await fs.writeJSON(versionFile, {
+      ...currentVersion,
+      lastUpdateCheckAt: new Date().toISOString(),
+      lastKnownLatest: latestVersion
+    }, { spaces: 2 });
     console.log(chalk.green('✅ Already on the latest version!\n'));
     return;
   }
@@ -118,7 +124,9 @@ export async function update(): Promise<void> {
     await fs.writeJSON(versionFile, {
       installed: latestVersion,
       installedAt: new Date().toISOString(),
-      previousVersion: currentVersion.installed
+      previousVersion: currentVersion.installed,
+      lastUpdateCheckAt: new Date().toISOString(),
+      lastKnownLatest: latestVersion
     }, { spaces: 2 });
 
     console.log(chalk.cyan(`\n✅ Updated to v${latestVersion}!\n`));

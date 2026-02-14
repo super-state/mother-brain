@@ -6,13 +6,20 @@
       - Read `references/boot-screen.md`
       - Print ONLY the short user-facing startup lines from the template
       - Do NOT print commands or internal reasoning
-    - Run version check:
-      ```powershell
-      npm view mother-brain version --json 2>$null
-      ```
-    - Compare against:
-      - If in framework repo: `cli/package.json` version field (source repo version)
-      - If in project: `.mother-brain/version.json` installed field (installed/tracked version)
+    - **Fast-first version check (cache before network)**:
+      1. Read installed version from `.mother-brain/version.json` (project) or `cli/package.json` (framework repo)
+      2. If in a project folder, check whether `.mother-brain/version.json` has a fresh cached update check:
+         - Fields: `lastUpdateCheckAt` + `lastKnownLatest`
+         - TTL: 24 hours
+         - If fresh: treat `lastKnownLatest` as "Latest" for this startup and SKIP the network call
+      3. If no cache or cache is stale: run the network check:
+         ```powershell
+         npm view mother-brain version --json 2>$null
+         ```
+         - After a successful check, update `.mother-brain/version.json` with:
+           - `lastUpdateCheckAt`: now
+           - `lastKnownLatest`: the npm version
+         - If check fails (offline), continue silently without blocking startup
     - **If newer version exists**:
       - **If in a project folder** (has `.mother-brain/version.json`):
         ```

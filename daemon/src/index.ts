@@ -3,40 +3,49 @@
 /**
  * Mother Brain Daemon — Entry Point
  *
- * Autonomous development agent that executes Mother Brain roadmaps overnight.
- * Runs on Raspberry Pi, communicates via Telegram, verifies all output.
+ * Commands:
+ *   mother-brain-daemon init   — Interactive setup wizard
+ *   mother-brain-daemon start  — Start the daemon
+ *   mother-brain-daemon        — Default: start
  */
 
-import { Daemon } from './core/daemon.js';
-import { createLogger } from './core/logger.js';
+export {};  // Make this a module for top-level await
 
-const logger = createLogger(process.env['LOG_LEVEL'] ?? 'info');
-const configPath = process.argv[2]; // optional: path to config.json
+const command = process.argv[2];
 
-const daemon = new Daemon(logger, configPath);
+if (command === 'init') {
+  const { runInitWizard } = await import('./cli/init.js');
+  await runInitWizard();
+} else {
+  // start (default)
+  const { Daemon } = await import('./core/daemon.js');
+  const { createLogger } = await import('./core/logger.js');
 
-// Graceful shutdown on signals
-const shutdown = async (signal: string) => {
-  logger.info({ signal }, 'Shutdown signal received');
-  await daemon.stop();
-  process.exit(0);
-};
+  const logger = createLogger(process.env['LOG_LEVEL'] ?? 'info');
+  const configPath = command === 'start' ? process.argv[3] : command;
 
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
-process.on('SIGINT', () => void shutdown('SIGINT'));
+  const daemon = new Daemon(logger, configPath);
 
-// Unhandled errors — log and continue (never crash silently)
-process.on('uncaughtException', (error) => {
-  logger.fatal({ error }, 'Uncaught exception');
-  void shutdown('uncaughtException');
-});
+  const shutdown = async (signal: string) => {
+    logger.info({ signal }, 'Shutdown signal received');
+    await daemon.stop();
+    process.exit(0);
+  };
 
-process.on('unhandledRejection', (reason) => {
-  logger.error({ reason }, 'Unhandled rejection');
-});
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 
-// Start
-daemon.start().catch((error) => {
-  logger.fatal({ error }, 'Failed to start daemon');
-  process.exit(1);
-});
+  process.on('uncaughtException', (error) => {
+    logger.fatal({ error }, 'Uncaught exception');
+    void shutdown('uncaughtException');
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    logger.error({ reason }, 'Unhandled rejection');
+  });
+
+  daemon.start().catch((error) => {
+    logger.fatal({ error }, 'Failed to start daemon');
+    process.exit(1);
+  });
+}

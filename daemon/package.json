@@ -1,0 +1,51 @@
+{
+  "name": "mother-brain-daemon",
+  "version": "0.1.0",
+  "description": "Autonomous development agent that executes Mother Brain roadmaps overnight on Raspberry Pi",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mother-brain-daemon": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mother-brain",
+    "daemon",
+    "autonomous-agent",
+    "raspberry-pi",
+    "telegram"
+  ],
+  "author": "super-state",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/super-state/mother-brain.git",
+    "directory": "daemon"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "better-sqlite3": "^11.7.0",
+    "croner": "^9.0.0",
+    "grammy": "^1.35.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}

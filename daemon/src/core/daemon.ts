@@ -11,7 +11,8 @@ import { WorkspaceManager } from '../workspace/workspace.js';
 import { parseRoadmap } from '../workspace/roadmap-parser.js';
 import { pickNextTask } from '../workspace/task-picker.js';
 import { buildTaskContext } from '../workspace/context-builder.js';
-import { CloudLLMClient } from '../llm/cloud.js';
+import { createLLMClient } from '../llm/router.js';
+import type { LLMExecutor } from '../llm/router.js';
 import { applyFileChanges } from '../workspace/file-writer.js';
 import { verify } from '../verifier/verifier.js';
 import { BudgetTracker } from '../budget/tracker.js';
@@ -112,8 +113,8 @@ export class Daemon {
       this.logger,
     );
 
-    // LLM client
-    const llmClient = new CloudLLMClient(this.config.llm.cloud, this.logger);
+    // LLM client — prefers Copilot (subscription) over direct cloud (per-token)
+    const llmClient = createLLMClient(this.config, this.logger);
 
     // Wire up Telegram status provider
     reporter?.onStatus(() => ({
@@ -158,7 +159,7 @@ export class Daemon {
   private async executeNextTask(
     repoPath: string,
     workspace: WorkspaceManager,
-    llmClient: CloudLLMClient,
+    llmClient: LLMExecutor,
     budgetTracker: BudgetTracker,
     reporter: TelegramReporter | null,
     db: DatabaseManager,

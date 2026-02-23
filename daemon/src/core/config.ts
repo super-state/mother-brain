@@ -30,8 +30,14 @@ export interface LocalLLMConfig {
   model: string;
 }
 
+export interface CopilotLLMConfig {
+  githubToken: string;    // GitHub PAT with models:read scope
+  model: string;          // e.g., "openai/gpt-4.1", "anthropic/claude-sonnet-4-20250514"
+}
+
 export interface LLMConfig {
-  cloud: CloudLLMConfig;
+  copilot?: CopilotLLMConfig;  // Preferred — uses Copilot subscription ($0 per token)
+  cloud: CloudLLMConfig;        // Fallback — direct API with per-token costs
   local?: LocalLLMConfig;
 }
 
@@ -124,14 +130,31 @@ function validateCloudLLM(raw: unknown): CloudLLMConfig {
   };
 }
 
+function validateCopilotLLM(raw: unknown): CopilotLLMConfig | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const obj = raw as Record<string, unknown>;
+  if (!obj['githubToken'] || !obj['model']) return undefined;
+  return {
+    githubToken: assertString(obj, 'githubToken'),
+    model: assertString(obj, 'model'),
+  };
+}
+
 function validateLLM(raw: unknown): LLMConfig {
   if (!raw || typeof raw !== 'object') {
-    throw new ConfigError('llm must be an object with cloud config');
+    throw new ConfigError('llm must be an object with copilot or cloud config');
   }
   const obj = raw as Record<string, unknown>;
+  const copilot = validateCopilotLLM(obj['copilot']);
+  const hasCloud = obj['cloud'] && typeof obj['cloud'] === 'object';
+
+  if (!copilot && !hasCloud) {
+    throw new ConfigError('llm must have either copilot or cloud config');
+  }
+
   return {
-    cloud: validateCloudLLM(obj['cloud']),
-    // local is optional for MVP
+    copilot,
+    cloud: hasCloud ? validateCloudLLM(obj['cloud']) : { provider: 'anthropic', apiKey: '', model: '' },
   };
 }
 

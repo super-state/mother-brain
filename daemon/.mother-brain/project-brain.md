@@ -49,6 +49,12 @@
 **Impact**: Complete rewrite of conversation handler. Added Brain Runtime state machine, phase-specific system prompts, SQLite state persistence, entity extraction, and automatic phase transitions.
 **Check Added**: The daemon's conversation must follow a guided process with state tracking. Never freestyle LLM chat.
 
+### Always-On, Not Overnight-Only
+**Trigger**: User clarified "this isn't an overnight app — it just runs as an agent, there aren't set running times, it is just always on. The bonus is it works while asleep, not only works when you're asleep"
+**Learning**: The daemon is an always-on development partner. The overnight capability is a BONUS feature, not its identity. System prompts, persona, and all messaging must frame it as "always available" not "works while you sleep." Never promise to do something "tonight" — say "right away" or "now."
+**Impact**: Reframed all system prompts, persona greeting, and tagline from "overnight worker" to "always-on partner."
+**Check Added**: Never use "overnight", "while you sleep", or time-bound language as the daemon's primary identity.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
@@ -61,3 +67,4 @@
 - [ ] System prompts must not reference "overnight work" during onboarding phases
 - [ ] LLM API calls must have content filter error handling (Azure false positives)
 - [ ] Phase transitions must have safety valves — never let a phase get stuck indefinitely
+- [ ] Never use "overnight" or "while you sleep" as daemon's primary identity — it's always-on

@@ -25,6 +25,7 @@ export class DatabaseManager implements DaemonModule {
   }
 
   async start(): Promise<void> {
+    if (this.db) return; // Already started — idempotent
     this.db = new Database(this.dbPath);
 
     // WAL mode for better concurrent read performance

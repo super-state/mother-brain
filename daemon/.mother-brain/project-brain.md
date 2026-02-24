@@ -21,7 +21,17 @@
 - Build for ourselves — not optimizing for external users
 
 ## Course Corrections
-(None yet — project just started)
+
+### Conversational Onboarding (Not Command-Based)
+**Trigger**: User feedback that `/addproject` commands feel unnatural
+**Learning**: The daemon's project onboarding should be conversational, not command-based. Instead of requiring users to learn Telegram commands, the daemon should:
+1. **Identity Phase**: First establish its own personality/soul (borrowed from OpenClaw's identity concept)
+2. **Discovery Phase**: Chat naturally with the user, understand what they're working on
+3. **Vision Phase**: Organically detect projects and craft direction from conversation (maps to Mother Brain's vision phase)
+**Impact**: Commands like `/addproject` become power-user shortcuts, not the primary onboarding flow. The default experience should feel like talking to an intelligent assistant that figures out what you need.
+**Check Added**: Before building user-facing features, default to conversational UX over command-based UX.
 
 ## Validation Checks
-(None yet — will accumulate from task execution feedback)
+- [ ] User-facing features should prefer conversational discovery over explicit commands
+- [ ] Onboarding flows should feel natural, not require reading documentation
+- [ ] The daemon should have identity/personality before engaging with users

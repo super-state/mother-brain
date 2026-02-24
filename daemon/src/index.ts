@@ -45,7 +45,8 @@ if (command === 'init') {
   });
 
   daemon.start().catch((error) => {
-    logger.fatal({ error }, 'Failed to start daemon');
+    logger.fatal({ error: String(error), stack: error?.stack }, 'Failed to start daemon');
+    console.error('Startup error:', error);
     process.exit(1);
   });
 }

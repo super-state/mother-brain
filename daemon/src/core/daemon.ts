@@ -70,9 +70,10 @@ export class Daemon {
       return;
     }
 
-    // Register core modules in dependency order
+    // Register and start database FIRST (other modules depend on it)
     const db = new DatabaseManager(join(dataDir, 'daemon.db'), this.logger);
     this.register(db);
+    await db.start(); // Start immediately so connection is available
 
     // Project manager — handles multiple projects
     const projectManager = new ProjectManager(db.connection, this.logger);
@@ -108,7 +109,7 @@ export class Daemon {
       this.register(reporter);
     }
 
-    // Start all modules
+    // Start remaining modules (scheduler, telegram — DB already started)
     await this.lifecycle.startAll();
 
     // Create session record

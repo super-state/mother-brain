@@ -19,8 +19,9 @@
 | Ability to execute roadmap outcomes autonomously | Outcome 2 |
 | Ability to run self-hosted on Pi | Outcome 1 |
 | Ability to have zero cost when idle | Outcomes 4, 5 |
-| Ability to onboard quickly | Outcome 1 |
+| Ability to onboard quickly | Outcome 1, **Outcome 7** |
 | Ability to monitor from phone | Outcome 6 |
+| Ability to have natural conversational onboarding | **Outcome 7** |
 | Ability to configure via web dashboard | Phase 2 |
 | Ability to see agents and cron jobs | Phase 2 |
 
@@ -197,6 +198,39 @@
 
 ---
 
+### 📋 Outcome 7: Ability to onboard through natural conversation (not commands)
+
+> So the daemon feels like talking to an intelligent assistant, not a command-line tool. Users chat naturally and the daemon discovers projects, builds understanding, and crafts direction — mirroring the Mother Brain vision phase but through organic conversation.
+
+**Acceptance Criteria:**
+- [ ] Daemon establishes its own identity/personality on first run (soul/persona config)
+- [ ] New users are greeted conversationally, not with a command list
+- [ ] Through natural chat, the daemon understands what the user is working on
+- [ ] The daemon can detect and suggest projects from conversation context
+- [ ] Conversation naturally flows into vision discovery (what does the user want to achieve?)
+- [ ] Projects are registered organically from conversation, not via `/addproject` commands
+- [ ] Existing commands (`/addproject`, `/work`) remain as power-user shortcuts
+- [ ] Conversation context persists across sessions (the daemon remembers)
+
+**Demo / Proof:**
+- Start the daemon fresh, open Telegram, and just start chatting
+- Daemon introduces itself with personality, asks what you're working on
+- Through 3-5 messages, daemon understands the project and registers it
+- No commands needed — the daemon figured it out from conversation
+
+**Priority Score:** 130 (Vision: 5, Reliability: 3, Token Efficiency: 3, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 027: Soul/persona system — configurable identity, greeting, communication style
+- Task 028: Conversation handler — natural language processing for Telegram messages (not just commands)
+- Task 029: Intent classifier — detect when user is describing a project, asking for help, or just chatting
+- Task 030: Project discovery from conversation — extract repo paths, project names, goals from natural chat
+- Task 031: Vision extraction — synthesize user's goals into a vision document from conversation
+- Task 032: Conversation memory — persist chat context in SQLite across sessions
+- Task 033: Onboarding flow — orchestrate identity → discovery → vision → project registration
+
+---
+
 ## MVP Checkpoint (End of Phase 1)
 
 ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
@@ -206,6 +240,7 @@
 - Outcome 4: Budget control
 - Outcome 5: Scheduled operation
 - Outcome 6: Telegram communication
+- Outcome 7: Conversational onboarding & identity
 
 **Validation Method**: Run the daemon overnight. Wake up to a Telegram morning report showing verified, committed work within budget.
 
@@ -273,7 +308,6 @@
 - 📋 Ability to manage multiple project repos simultaneously
 - 📋 Ability to have the daemon contribute to income-generating activities
 - 📋 Ability to have the daemon self-learn from outcome history
-- 📋 Ability to have soul/personality files shape communication style
 
 **Validation Required**: Don't build until validated by real usage experience
 
@@ -309,6 +343,13 @@
 | 024 | Outcome 6: Telegram | ✅ |
 | 025 | Outcome 6: Telegram | ✅ |
 | 026 | Outcome 6: Telegram | ✅ |
+| 027 | Outcome 7: Conversational onboarding | ⬜ |
+| 028 | Outcome 7: Conversational onboarding | ⬜ |
+| 029 | Outcome 7: Conversational onboarding | ⬜ |
+| 030 | Outcome 7: Conversational onboarding | ⬜ |
+| 031 | Outcome 7: Conversational onboarding | ⬜ |
+| 032 | Outcome 7: Conversational onboarding | ⬜ |
+| 033 | Outcome 7: Conversational onboarding | ⬜ |
 
 ---
 
@@ -324,6 +365,6 @@
 
 ---
 
-**Total Tasks**: 26  
-**Phase 1 (MVP) Tasks**: 26  
+**Total Tasks**: 33  
+**Phase 1 (MVP) Tasks**: 33 (26 complete, 7 pending)  
 **Post-MVP Tasks**: TBD based on usage experience

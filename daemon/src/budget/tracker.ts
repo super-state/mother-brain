@@ -12,13 +12,13 @@ interface ModelPricing {
 }
 
 const PRICING: Record<string, ModelPricing> = {
-  // Anthropic Claude
+  // Claude (via GitHub Copilot / Models API)
   'claude-sonnet-4-20250514': { inputPerMillion: 3.00, outputPerMillion: 15.00 },
   'claude-opus-4-20250514': { inputPerMillion: 15.00, outputPerMillion: 75.00 },
   'claude-3-5-sonnet-20241022': { inputPerMillion: 3.00, outputPerMillion: 15.00 },
   'claude-3-5-haiku-20241022': { inputPerMillion: 0.80, outputPerMillion: 4.00 },
   'claude-3-haiku-20240307': { inputPerMillion: 0.25, outputPerMillion: 1.25 },
-  // OpenAI GPT
+  // OpenAI GPT (via GitHub Copilot / Models API)
   'gpt-4.1': { inputPerMillion: 2.00, outputPerMillion: 8.00 },
   'gpt-4.1-mini': { inputPerMillion: 0.40, outputPerMillion: 1.60 },
   'gpt-4o': { inputPerMillion: 2.50, outputPerMillion: 10.00 },
@@ -30,7 +30,7 @@ const PRICING: Record<string, ModelPricing> = {
 
 /** Get pricing for a model. Strips provider prefix, falls back to mid-tier pricing. */
 function getPricing(model: string): ModelPricing {
-  // Strip provider prefix (e.g., "anthropic/claude-sonnet-4-20250514" → "claude-sonnet-4-20250514")
+  // Strip provider prefix (e.g., "openai/gpt-4.1" → "gpt-4.1")
   const shortModel = model.includes('/') ? model.split('/').pop()! : model;
   return PRICING[shortModel] ?? { inputPerMillion: 3.00, outputPerMillion: 15.00 };
 }

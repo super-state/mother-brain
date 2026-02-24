@@ -103,18 +103,18 @@ export async function runInitWizard(): Promise<void> {
   // Chat tier
   console.log();
   header('  💬 Chat Tier (understanding, conversing, organising)');
-  console.log('  1. anthropic/claude-sonnet-4-20250514 (recommended)');
-  console.log('  2. openai/gpt-4.1');
+  console.log('  1. openai/gpt-4.1 (recommended)');
+  console.log('  2. openai/gpt-4.1-mini (budget-friendly)');
   console.log('  3. Custom');
   console.log();
   const chatChoice = await rl.question('  Select (1-3): ');
 
   let chatModel: string;
   switch (chatChoice.trim()) {
-    case '1': chatModel = 'anthropic/claude-sonnet-4-20250514'; break;
-    case '2': chatModel = 'openai/gpt-4.1'; break;
+    case '1': chatModel = 'openai/gpt-4.1'; break;
+    case '2': chatModel = 'openai/gpt-4.1-mini'; break;
     case '3': chatModel = await rl.question('  Enter model ID: '); break;
-    default: chatModel = 'anthropic/claude-sonnet-4-20250514';
+    default: chatModel = 'openai/gpt-4.1';
   }
   success(`Chat: copilot/${chatModel}`);
 
@@ -139,20 +139,18 @@ export async function runInitWizard(): Promise<void> {
   // Coding tier
   console.log();
   header('  🏗️  Coding Tier (implementation — premium)');
-  console.log('  1. anthropic/claude-opus-4-20250514 (recommended — best coder)');
-  console.log('  2. anthropic/claude-sonnet-4-20250514');
-  console.log('  3. openai/gpt-4.1');
-  console.log('  4. Custom');
+  console.log('  1. openai/gpt-5.3-codex (recommended — best coder)');
+  console.log('  2. openai/gpt-4.1');
+  console.log('  3. Custom');
   console.log();
-  const codeChoice = await rl.question('  Select (1-4): ');
+  const codeChoice = await rl.question('  Select (1-3): ');
 
   let codingModel: string;
   switch (codeChoice.trim()) {
-    case '1': codingModel = 'anthropic/claude-opus-4-20250514'; break;
-    case '2': codingModel = 'anthropic/claude-sonnet-4-20250514'; break;
-    case '3': codingModel = 'openai/gpt-4.1'; break;
-    case '4': codingModel = await rl.question('  Enter model ID: '); break;
-    default: codingModel = 'anthropic/claude-opus-4-20250514';
+    case '1': codingModel = 'openai/gpt-5.3-codex'; break;
+    case '2': codingModel = 'openai/gpt-4.1'; break;
+    case '3': codingModel = await rl.question('  Enter model ID: '); break;
+    default: codingModel = 'openai/gpt-5.3-codex';
   }
   success(`Coding: copilot/${codingModel}`);
 

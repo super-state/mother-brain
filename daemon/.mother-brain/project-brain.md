@@ -37,8 +37,16 @@
 **Impact**: The daemon doesn't just track costs — it actively analyzes and recommends optimizations. This is a self-improvement loop: track → analyze → suggest → act.
 **Check Added**: Autonomous systems must include self-optimization loops — don't just track metrics, automatically analyze them for improvement opportunities.
 
+### All Models Via Copilot (Not Direct API)
+**Trigger**: User corrected that Claude/Sonnet models should be labeled as Copilot, not Anthropic
+**Learning**: All LLM models are accessed via GitHub Copilot subscription through GitHub Models API (`models.github.ai`). No direct Anthropic or OpenAI API keys are used. The provider is always "copilot". Anthropic-prefixed model IDs return 404 on GitHub Models API — only OpenAI-prefixed models are confirmed working.
+**Impact**: Init wizard defaults changed from `anthropic/claude-*` to `openai/gpt-*`. Pricing labels updated. All code comments reference Copilot as provider.
+**Check Added**: Never recommend or default to model IDs that haven't been confirmed working on GitHub Models API.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
 - [ ] The daemon should have identity/personality before engaging with users
 - [ ] Autonomous tracking systems must include automatic analysis/optimization, not just data collection
+- [ ] Never default to model IDs not confirmed working on GitHub Models API
+- [ ] All models are accessed via Copilot — never label as "Anthropic" or "OpenAI" provider directly

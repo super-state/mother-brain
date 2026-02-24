@@ -17,9 +17,9 @@ export interface LLMExecutor {
  * LLM tier — determines which model to use for what purpose.
  *
  *   background → mindless tasks, heartbeat, classification — local/free
- *   chat       → Telegram conversations, organising — mid-tier (Sonnet)
+ *   chat       → Telegram conversations, organising — mid-tier (GPT-4.1)
  *   planning   → planning, approach breakdown — reasoning (Codex)
- *   coding     → implementation — premium (Opus)
+ *   coding     → implementation — premium (GPT-5.3-Codex)
  *   review     → code review — reasoning (Codex)
  */
 export type LLMTier = 'background' | 'chat' | 'planning' | 'coding' | 'review';

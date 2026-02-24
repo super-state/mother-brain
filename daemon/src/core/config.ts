@@ -32,7 +32,7 @@ export interface LocalLLMConfig {
 
 export interface CopilotLLMConfig {
   githubToken: string;    // GitHub PAT with models:read scope
-  model: string;          // e.g., "openai/gpt-4.1", "anthropic/claude-sonnet-4-20250514"
+  model: string;          // e.g., "openai/gpt-4.1" — all models accessed via Copilot
 }
 
 /**

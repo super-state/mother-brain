@@ -196,25 +196,8 @@ export async function runInitWizard(): Promise<void> {
   const chatId = await rl.question('  Enter your Telegram chat ID: ');
   success(`Chat ID: ${chatId}`);
 
-  // --- Step 4: Workspace ---
-  step(4, 'Target Project');
-  hint('Which repo should the daemon work on?');
-  hint('This should be a local git repo with a Mother Brain roadmap.');
-  console.log();
-  const repoPath = await rl.question('  Absolute path to repo: ');
-
-  if (!existsSync(repoPath)) {
-    warn(`Path doesn't exist: ${repoPath}. You can fix this in config.json later.`);
-  } else {
-    success(`Repo: ${repoPath}`);
-  }
-
-  const branchDefault = 'daemon/work';
-  const branch = (await rl.question(`  Work branch (default: ${branchDefault}): `)).trim() || branchDefault;
-  success(`Branch: ${branch}`);
-
-  // --- Step 5: Schedule ---
-  step(5, 'Active Hours');
+  // --- Step 4: Schedule ---
+  step(4, 'Active Hours');
   hint('When should the daemon run? (24h format, e.g., 23 for 11pm)');
   console.log();
   const startHour = parseInt((await rl.question('  Start hour (default: 23): ')).trim() || '23', 10);
@@ -223,8 +206,8 @@ export async function runInitWizard(): Promise<void> {
   const timezone = (await rl.question(`  Timezone (default: ${timezoneDefault}): `)).trim() || timezoneDefault;
   success(`Schedule: ${startHour}:00 — ${endHour}:00 ${timezone}`);
 
-  // --- Step 6: Budget ---
-  step(6, 'Budget');
+  // --- Step 5: Budget ---
+  step(5, 'Budget');
   hint('With Copilot subscription, costs are flat. This tracks API-level usage.');
   const budgetStr = (await rl.question('  Max spend per night in USD (default: 5.00): ')).trim() || '5.00';
   const budget = parseFloat(budgetStr);
@@ -249,7 +232,6 @@ export async function runInitWizard(): Promise<void> {
         review: { provider: 'copilot', model: reviewModel },
       },
     },
-    workspace: { repoPath, branch },
     heartbeatMinutes: 15,
   };
 
@@ -310,7 +292,6 @@ export async function runInitWizard(): Promise<void> {
   header('🎉 Setup Complete!');
   console.log();
   console.log(`  Config: ${configPath}`);
-  console.log(`  Repo:   ${repoPath}`);
   console.log(`  🔧 Background: ${backgroundTier.provider}/${backgroundTier.model}`);
   console.log(`  💬 Chat:       copilot/${chatModel}`);
   console.log(`  📋 Planning:   copilot/${planningModel}`);
@@ -320,6 +301,11 @@ export async function runInitWizard(): Promise<void> {
   console.log();
   console.log(`  ${BOLD}Start the daemon:${RESET}`);
   console.log(`    cd daemon && npm run build && node dist/index.js start`);
+  console.log();
+  console.log(`  ${BOLD}Add projects via Telegram:${RESET}`);
+  console.log(`    /addproject /path/to/your/repo`);
+  console.log(`    /work project-name`);
+  console.log(`    /projects`);
   console.log();
   console.log(`  ${BOLD}Or with pm2:${RESET}`);
   console.log(`    pm2 start dist/index.js --name mother-brain-daemon -- start`);

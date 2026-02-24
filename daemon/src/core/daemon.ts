@@ -5,6 +5,7 @@ import { Lifecycle } from './lifecycle.js';
 import { loadConfig, defaultConfigPath } from './config.js';
 import { ensureDataDir } from './logger.js';
 import { DatabaseManager } from '../db/database.js';
+import { ProjectManager } from '../db/projects.js';
 import { Scheduler } from '../scheduler/scheduler.js';
 import { TelegramReporter } from '../reporter/telegram.js';
 import { WorkspaceManager } from '../workspace/workspace.js';
@@ -73,13 +74,23 @@ export class Daemon {
     const db = new DatabaseManager(join(dataDir, 'daemon.db'), this.logger);
     this.register(db);
 
-    // Workspace
-    const workspace = new WorkspaceManager(
-      this.config.workspace.repoPath,
-      this.config.workspace.branch,
-      this.logger,
-    );
-    this.register(workspace);
+    // Project manager — handles multiple projects
+    const projectManager = new ProjectManager(db.connection, this.logger);
+
+    // If config has a legacy workspace, auto-register it as a project
+    if (this.config.workspace) {
+      const existing = projectManager.listProjects();
+      const alreadyAdded = existing.some(p => p.repoPath === this.config!.workspace!.repoPath);
+      if (!alreadyAdded) {
+        const project = projectManager.addProject(
+          this.config.workspace.repoPath,
+          this.config.workspace.branch,
+        );
+        if (project) {
+          projectManager.setActiveProject(project.id);
+        }
+      }
+    }
 
     // Scheduler
     const scheduler = new Scheduler(
@@ -126,6 +137,9 @@ export class Daemon {
       uptime: formatUptime(Date.now() - this.startTime),
     }));
 
+    // Wire up project management via Telegram
+    reporter?.onProjects(projectManager);
+
     // Wire up Telegram control commands
     reporter?.onControl((action) => {
       if (action === 'pause') this.paused = true;
@@ -134,15 +148,29 @@ export class Daemon {
     });
 
     // Wire up the execution loop to the scheduler
-    const repoPath = this.config.workspace.repoPath;
     scheduler.onTask(async () => {
-      await this.executeNextTask(
-        repoPath, workspace, codingClient, budgetTracker, reporter, db,
-      );
-    });
+      const activeProject = projectManager.getActiveProject();
+      if (!activeProject) {
+        this.logger.info('No active project — skipping task');
+        return;
+      }
 
-    // Ensure we're on the work branch
-    await workspace.ensureBranch();
+      const workspace = new WorkspaceManager(
+        activeProject.repoPath,
+        activeProject.branch,
+        this.logger,
+      );
+      await workspace.start();
+
+      try {
+        await this.executeNextTask(
+          activeProject.repoPath, workspace, codingClient, budgetTracker, reporter, db,
+        );
+        projectManager.recordWork(activeProject.id);
+      } finally {
+        await workspace.stop();
+      }
+    });
 
     this.logger.info('Mother Brain Daemon started');
   }

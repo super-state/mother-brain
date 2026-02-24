@@ -2,6 +2,7 @@ import { Bot } from 'grammy';
 import type { Logger } from 'pino';
 import type { DaemonModule } from '../core/lifecycle.js';
 import type { TelegramConfig } from '../core/config.js';
+import type { ProjectManager, Project } from '../db/projects.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,6 +44,7 @@ export class TelegramReporter implements DaemonModule {
   private bot: Bot | null = null;
   private statusProvider: StatusProvider | null = null;
   private controlHandler: PauseResumeHandler | null = null;
+  private projectManager: ProjectManager | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -57,6 +59,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register a callback for pause/resume/stop commands. */
   onControl(handler: PauseResumeHandler): void {
     this.controlHandler = handler;
+  }
+
+  /** Register the project manager for project commands. */
+  onProjects(manager: ProjectManager): void {
+    this.projectManager = manager;
   }
 
   async start(): Promise<void> {
@@ -97,6 +104,77 @@ export class TelegramReporter implements DaemonModule {
     this.bot.command('stop', async (ctx) => {
       await ctx.reply('🛑 Emergency stop initiated. Daemon shutting down...');
       this.controlHandler?.('stop');
+    });
+
+    // /projects — list all projects
+    this.bot.command('projects', async (ctx) => {
+      if (!this.projectManager) {
+        await ctx.reply('Project manager not available.');
+        return;
+      }
+      const projects = this.projectManager.listProjects();
+      if (projects.length === 0) {
+        await ctx.reply('📂 No projects. Use /addproject &lt;path&gt; to add one.');
+        return;
+      }
+      await ctx.reply(formatProjectsList(projects), { parse_mode: 'HTML' });
+    });
+
+    // /addproject <path> [name] — add a new project
+    this.bot.command('addproject', async (ctx) => {
+      if (!this.projectManager) {
+        await ctx.reply('Project manager not available.');
+        return;
+      }
+      const args = ctx.match?.toString().trim().split(/\s+/) ?? [];
+      if (args.length === 0 || !args[0]) {
+        await ctx.reply('Usage: /addproject &lt;path&gt; [name]');
+        return;
+      }
+      const project = this.projectManager.addProject(args[0], 'daemon/work', args[1]);
+      if (!project) {
+        await ctx.reply(`❌ Path not found: ${args[0]}`);
+        return;
+      }
+      await ctx.reply(`✅ Added project: <b>${escapeHtml(project.name)}</b>\nPath: <code>${escapeHtml(project.repoPath)}</code>`, { parse_mode: 'HTML' });
+    });
+
+    // /work <name> — set active project
+    this.bot.command('work', async (ctx) => {
+      if (!this.projectManager) {
+        await ctx.reply('Project manager not available.');
+        return;
+      }
+      const name = ctx.match?.toString().trim();
+      if (!name) {
+        await ctx.reply('Usage: /work &lt;project-name&gt;');
+        return;
+      }
+      const project = this.projectManager.setActiveProject(name);
+      if (!project) {
+        await ctx.reply(`❌ Project not found: ${name}`);
+        return;
+      }
+      await ctx.reply(`🎯 Now working on: <b>${escapeHtml(project.name)}</b>`, { parse_mode: 'HTML' });
+    });
+
+    // /rmproject <name> — remove a project
+    this.bot.command('rmproject', async (ctx) => {
+      if (!this.projectManager) {
+        await ctx.reply('Project manager not available.');
+        return;
+      }
+      const name = ctx.match?.toString().trim();
+      if (!name) {
+        await ctx.reply('Usage: /rmproject &lt;project-name&gt;');
+        return;
+      }
+      const removed = this.projectManager.removeProject(name);
+      if (removed) {
+        await ctx.reply(`🗑 Project removed: ${name}`);
+      } else {
+        await ctx.reply(`❌ Project not found: ${name}`);
+      }
     });
 
     // Start polling (long polling — no webhooks needed for Pi)
@@ -229,4 +307,16 @@ function escapeHtml(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function formatProjectsList(projects: Project[]): string {
+  const lines = [`📂 <b>Projects</b> (${projects.length})\n`];
+  for (const p of projects) {
+    const active = p.active ? ' 🎯' : '';
+    const tasks = p.tasksCompleted > 0 ? ` (${p.tasksCompleted} tasks done)` : '';
+    lines.push(`${active} <b>${escapeHtml(p.name)}</b>${tasks}`);
+    lines.push(`  <code>${escapeHtml(p.repoPath)}</code>`);
+  }
+  lines.push('', 'Use /work &lt;name&gt; to switch projects');
+  return lines.join('\n');
 }

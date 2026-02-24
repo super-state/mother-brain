@@ -83,8 +83,8 @@ export interface DaemonConfig {
   budget: BudgetConfig;
   telegram: TelegramConfig;
   llm: LLMConfig;
-  workspace: WorkspaceConfig;
-  heartbeatMinutes?: number;  // Default: 15
+  workspace?: WorkspaceConfig;    // Optional — projects managed via Telegram/DB
+  heartbeatMinutes?: number;      // Default: 15
 }
 
 // ---------------------------------------------------------------------------
@@ -288,7 +288,7 @@ export function loadConfig(configPath: string, logger: Logger): DaemonConfig {
     budget: validateBudget(obj['budget']),
     telegram: validateTelegram(obj['telegram']),
     llm: validateLLM(obj['llm']),
-    workspace: validateWorkspace(obj['workspace']),
+    workspace: obj['workspace'] ? validateWorkspace(obj['workspace']) : undefined,
     heartbeatMinutes: typeof obj['heartbeatMinutes'] === 'number' ? obj['heartbeatMinutes'] : 15,
   };
 

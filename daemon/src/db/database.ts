@@ -131,4 +131,21 @@ const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    name: '002_projects_table',
+    sql: `
+      CREATE TABLE projects (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        repo_path TEXT NOT NULL,
+        branch TEXT NOT NULL DEFAULT 'daemon/work',
+        active INTEGER NOT NULL DEFAULT 0,
+        added_at TEXT NOT NULL DEFAULT (datetime('now')),
+        last_worked_at TEXT,
+        tasks_completed INTEGER DEFAULT 0
+      );
+
+      CREATE INDEX idx_projects_active ON projects(active);
+    `,
+  },
 ];

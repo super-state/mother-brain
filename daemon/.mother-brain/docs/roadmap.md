@@ -22,6 +22,7 @@
 | Ability to onboard quickly | Outcome 1, **Outcome 7** |
 | Ability to monitor from phone | Outcome 6 |
 | Ability to have natural conversational onboarding | **Outcome 7** |
+| Ability to self-optimize token spending | **Outcome 8** |
 | Ability to configure via web dashboard | Phase 2 |
 | Ability to see agents and cron jobs | Phase 2 |
 
@@ -231,6 +232,34 @@
 
 ---
 
+### 📋 Outcome 8: Ability to self-optimize token usage
+
+> So the daemon doesn't just track costs — it automatically analyzes spending patterns, identifies waste, and recommends optimizations. Like a Child Brain retrospective applied to token economics.
+
+**Acceptance Criteria:**
+- [ ] Daemon runs usage optimization analysis at startup (daily retrospective)
+- [ ] Analysis identifies tier imbalance (e.g., chat using 80% of budget)
+- [ ] Analysis detects expensive individual requests and context bloat
+- [ ] Analysis flags project hotspots (disproportionate spending)
+- [ ] Analysis detects usage spikes over time
+- [ ] Optimization report sent via Telegram with actionable suggestions
+- [ ] `/optimize` command available for on-demand analysis
+- [ ] Zero cost when no usage data exists
+
+**Demo / Proof:**
+- Start daemon, receive optimization report in Telegram if usage data exists
+- Send `/optimize` to get on-demand analysis with insights
+- Insights include severity levels (info/warning/critical) and specific suggestions
+
+**Priority Score:** 125 (Vision: 5, Reliability: 3, Token Efficiency: 5, MVP: 4)
+
+**🔧 Tasks (internal):**
+- Task 034: Usage optimization analyzer — pattern detection across tiers, models, projects, time
+- Task 035: Telegram /optimize command and optimization report formatting
+- Task 036: Startup daily retrospective — auto-send optimization insights on daemon boot
+
+---
+
 ## MVP Checkpoint (End of Phase 1)
 
 ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
@@ -241,6 +270,7 @@
 - Outcome 5: Scheduled operation
 - Outcome 6: Telegram communication
 - Outcome 7: Conversational onboarding & identity
+- Outcome 8: Self-optimization of token usage
 
 **Validation Method**: Run the daemon overnight. Wake up to a Telegram morning report showing verified, committed work within budget.
 
@@ -343,13 +373,16 @@
 | 024 | Outcome 6: Telegram | ✅ |
 | 025 | Outcome 6: Telegram | ✅ |
 | 026 | Outcome 6: Telegram | ✅ |
-| 027 | Outcome 7: Conversational onboarding | ⬜ |
-| 028 | Outcome 7: Conversational onboarding | ⬜ |
-| 029 | Outcome 7: Conversational onboarding | ⬜ |
-| 030 | Outcome 7: Conversational onboarding | ⬜ |
-| 031 | Outcome 7: Conversational onboarding | ⬜ |
-| 032 | Outcome 7: Conversational onboarding | ⬜ |
-| 033 | Outcome 7: Conversational onboarding | ⬜ |
+| 027 | Outcome 7: Conversational onboarding | ✅ |
+| 028 | Outcome 7: Conversational onboarding | ✅ |
+| 029 | Outcome 7: Conversational onboarding | ✅ |
+| 030 | Outcome 7: Conversational onboarding | ✅ |
+| 031 | Outcome 7: Conversational onboarding | ✅ |
+| 032 | Outcome 7: Conversational onboarding | ✅ |
+| 033 | Outcome 7: Conversational onboarding | ✅ |
+| 034 | Outcome 8: Self-optimization | ✅ |
+| 035 | Outcome 8: Self-optimization | ✅ |
+| 036 | Outcome 8: Self-optimization | ✅ |
 
 ---
 
@@ -365,6 +398,6 @@
 
 ---
 
-**Total Tasks**: 33  
-**Phase 1 (MVP) Tasks**: 33 (26 complete, 7 pending)  
+**Total Tasks**: 36  
+**Phase 1 (MVP) Tasks**: 36 (all complete)  
 **Post-MVP Tasks**: TBD based on usage experience

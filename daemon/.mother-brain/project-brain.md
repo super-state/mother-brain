@@ -31,7 +31,14 @@
 **Impact**: Commands like `/addproject` become power-user shortcuts, not the primary onboarding flow. The default experience should feel like talking to an intelligent assistant that figures out what you need.
 **Check Added**: Before building user-facing features, default to conversational UX over command-based UX.
 
+### Self-Optimization Loop (Usage Retrospective)
+**Trigger**: User feedback that usage tracking without analysis is wasted data
+**Learning**: The daemon should run a daily usage retrospective at startup — analyze highest token consumers by tier/model/project, identify optimization opportunities (e.g., "chat tier used 80% of tokens — consider switching to a cheaper model" or "project X consumed 3x more than project Y — investigate"), and report findings via Telegram. This mirrors Child Brain's post-delivery retrospective pattern.
+**Impact**: The daemon doesn't just track costs — it actively analyzes and recommends optimizations. This is a self-improvement loop: track → analyze → suggest → act.
+**Check Added**: Autonomous systems must include self-optimization loops — don't just track metrics, automatically analyze them for improvement opportunities.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
 - [ ] The daemon should have identity/personality before engaging with users
+- [ ] Autonomous tracking systems must include automatic analysis/optimization, not just data collection

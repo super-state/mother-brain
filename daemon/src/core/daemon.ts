@@ -17,6 +17,7 @@ import type { LLMExecutor } from '../llm/router.js';
 import { applyFileChanges } from '../workspace/file-writer.js';
 import { verify } from '../verifier/verifier.js';
 import { BudgetTracker } from '../budget/tracker.js';
+import { UsageOptimizer } from '../budget/optimizer.js';
 import { loadPersona } from '../conversation/persona.js';
 import { ConversationMemory } from '../conversation/memory.js';
 import { ConversationHandler } from '../conversation/handler.js';
@@ -132,6 +133,9 @@ export class Daemon {
     // LLM clients — three-tier model routing
     const codingClient = createLLMClient(this.config, this.logger, 'coding');
 
+    // Usage optimizer — analyzes spending patterns
+    const usageOptimizer = new UsageOptimizer(db.connection, this.logger);
+
     // Wire up Telegram status provider
     reporter?.onStatus(() => ({
       state: this.paused ? 'paused' : 'running',
@@ -148,6 +152,9 @@ export class Daemon {
     // Wire up usage tracking via Telegram
     reporter?.onBudget(budgetTracker);
 
+    // Wire up usage optimizer via Telegram
+    reporter?.onOptimizer(usageOptimizer);
+
     // Wire up conversational onboarding
     const persona = loadPersona(this.logger);
     const conversationMemory = new ConversationMemory(db.connection, this.logger);
@@ -163,6 +170,20 @@ export class Daemon {
       reporter.sendMessage(greeting).catch((err) => {
         this.logger.warn({ error: err }, 'Failed to send greeting');
       });
+    }
+
+    // Run startup usage optimization analysis (daily retrospective)
+    if (reporter) {
+      const optReport = usageOptimizer.analyze(7);
+      if (optReport.totalRequests > 0 && optReport.insights.length > 0) {
+        reporter.sendOptimizationReport(optReport).catch((err) => {
+          this.logger.warn({ error: err }, 'Failed to send optimization report');
+        });
+        this.logger.info(
+          { insights: optReport.insights.length },
+          'Startup optimization analysis sent',
+        );
+      }
     }
 
     // Wire up Telegram control commands

@@ -4,6 +4,7 @@ import type { DaemonModule } from '../core/lifecycle.js';
 import type { TelegramConfig } from '../core/config.js';
 import type { ProjectManager, Project } from '../db/projects.js';
 import type { BudgetTracker, UsageReport } from '../budget/tracker.js';
+import type { UsageOptimizer, OptimizationReport } from '../budget/optimizer.js';
 import type { ConversationHandler } from '../conversation/handler.js';
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,7 @@ export class TelegramReporter implements DaemonModule {
   private controlHandler: PauseResumeHandler | null = null;
   private projectManager: ProjectManager | null = null;
   private budgetTracker: BudgetTracker | null = null;
+  private usageOptimizer: UsageOptimizer | null = null;
   private conversationHandler: ConversationHandler | null = null;
 
   constructor(
@@ -73,6 +75,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the budget tracker for usage commands. */
   onBudget(tracker: BudgetTracker): void {
     this.budgetTracker = tracker;
+  }
+
+  /** Register the usage optimizer for optimization analysis. */
+  onOptimizer(optimizer: UsageOptimizer): void {
+    this.usageOptimizer = optimizer;
   }
 
   /** Register the conversation handler for natural language messages. */
@@ -201,6 +208,17 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(formatUsageReport(report), { parse_mode: 'HTML' });
     });
 
+    // /optimize — run usage optimization analysis
+    this.bot.command('optimize', async (ctx) => {
+      if (!this.usageOptimizer) {
+        await ctx.reply('Usage optimizer not available.');
+        return;
+      }
+      const days = parseInt(ctx.match?.toString().trim() || '7', 10) || 7;
+      const report = this.usageOptimizer.analyze(days);
+      await ctx.reply(formatOptimizationReport(report), { parse_mode: 'HTML' });
+    });
+
     // Catch-all: natural language messages → conversation handler
     this.bot.on('message:text', async (ctx) => {
       if (!this.conversationHandler) {
@@ -270,6 +288,11 @@ export class TelegramReporter implements DaemonModule {
   async sendMorningReport(report: MorningReport): Promise<void> {
     const message = formatMorningReport(report);
     await this.sendMessage(message);
+  }
+
+  /** Send an optimization analysis report. */
+  async sendOptimizationReport(report: OptimizationReport): Promise<void> {
+    await this.sendMessage(formatOptimizationReport(report));
   }
 
   /** Send a message to the configured Telegram chat. */
@@ -414,6 +437,33 @@ function formatUsageReport(report: UsageReport): string {
     }
   }
 
+  return lines.join('\n');
+}
+
+function formatOptimizationReport(report: OptimizationReport): string {
+  const lines = [
+    `🔍 <b>Usage Optimization Report</b>`,
+    `<i>Last ${report.periodDays} days — ${report.totalRequests} requests, $${report.totalCost.toFixed(4)} spent</i>`,
+    ``,
+  ];
+
+  if (report.insights.length === 0) {
+    lines.push('✅ No optimization opportunities found — usage looks efficient.');
+  } else {
+    const severityEmoji: Record<string, string> = {
+      critical: '🔴', warning: '🟡', info: '🔵',
+    };
+
+    for (const insight of report.insights) {
+      const emoji = severityEmoji[insight.severity] ?? '•';
+      lines.push(`${emoji} <b>${escapeHtml(insight.title)}</b>`);
+      lines.push(`   ${escapeHtml(insight.detail)}`);
+      lines.push(`   💡 ${escapeHtml(insight.suggestion)}`);
+      lines.push('');
+    }
+  }
+
+  lines.push(`<i>${escapeHtml(report.summary)}</i>`);
   return lines.join('\n');
 }
 

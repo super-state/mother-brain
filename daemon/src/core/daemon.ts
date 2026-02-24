@@ -113,8 +113,8 @@ export class Daemon {
       this.logger,
     );
 
-    // LLM client — prefers Copilot (subscription) over direct cloud (per-token)
-    const llmClient = createLLMClient(this.config, this.logger);
+    // LLM clients — three-tier model routing
+    const codingClient = createLLMClient(this.config, this.logger, 'coding');
 
     // Wire up Telegram status provider
     reporter?.onStatus(() => ({
@@ -137,7 +137,7 @@ export class Daemon {
     const repoPath = this.config.workspace.repoPath;
     scheduler.onTask(async () => {
       await this.executeNextTask(
-        repoPath, workspace, llmClient, budgetTracker, reporter, db,
+        repoPath, workspace, codingClient, budgetTracker, reporter, db,
       );
     });
 
@@ -210,7 +210,7 @@ export class Daemon {
       // 5. Record budget
       budgetTracker.recordUsage(
         this.sessionId,
-        this.config!.llm.cloud.provider,
+        'copilot',
         result.model,
         result.inputTokens,
         result.outputTokens,

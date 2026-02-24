@@ -35,10 +35,32 @@ export interface CopilotLLMConfig {
   model: string;          // e.g., "openai/gpt-4.1", "anthropic/claude-sonnet-4-20250514"
 }
 
+/**
+ * Three-tier model routing.
+ * Each tier can use a different provider/model combination:
+ *   system → lightweight tasks (heartbeat, classification) — ideally local/free
+ *   chat   → Telegram conversations — mid-tier quality
+ *   coding → code generation & outcome delivery — premium quality
+ */
+export type LLMTierProvider = 'local' | 'copilot' | 'cloud';
+
+export interface LLMTierConfig {
+  provider: LLMTierProvider;
+  model: string;
+}
+
+export interface LLMTiers {
+  system: LLMTierConfig;  // Heartbeat, classification, summarization
+  chat: LLMTierConfig;    // Telegram conversations
+  coding: LLMTierConfig;  // Code generation & outcome delivery
+}
+
 export interface LLMConfig {
-  copilot?: CopilotLLMConfig;  // Preferred — uses Copilot subscription ($0 per token)
-  cloud: CloudLLMConfig;        // Fallback — direct API with per-token costs
-  local?: LocalLLMConfig;
+  githubToken?: string;          // Shared GitHub PAT for all copilot tiers
+  local?: LocalLLMConfig;        // Ollama/local model config
+  cloud?: CloudLLMConfig;        // Direct cloud API config (fallback)
+  copilot?: CopilotLLMConfig;    // Legacy single-tier config (still supported)
+  tiers?: LLMTiers;              // Three-tier model routing
 }
 
 export interface BudgetConfig {
@@ -142,19 +164,50 @@ function validateCopilotLLM(raw: unknown): CopilotLLMConfig | undefined {
 
 function validateLLM(raw: unknown): LLMConfig {
   if (!raw || typeof raw !== 'object') {
-    throw new ConfigError('llm must be an object with copilot or cloud config');
+    throw new ConfigError('llm must be an object with tiers, copilot, or cloud config');
   }
   const obj = raw as Record<string, unknown>;
+
+  const githubToken = typeof obj['githubToken'] === 'string' ? obj['githubToken'] : undefined;
   const copilot = validateCopilotLLM(obj['copilot']);
   const hasCloud = obj['cloud'] && typeof obj['cloud'] === 'object';
+  const hasTiers = obj['tiers'] && typeof obj['tiers'] === 'object';
 
-  if (!copilot && !hasCloud) {
-    throw new ConfigError('llm must have either copilot or cloud config');
+  // Must have at least one LLM source
+  if (!copilot && !hasCloud && !hasTiers && !githubToken) {
+    throw new ConfigError('llm must have tiers, copilot, cloud, or githubToken config');
+  }
+
+  let tiers: LLMTiers | undefined;
+  if (hasTiers) {
+    const t = obj['tiers'] as Record<string, unknown>;
+    tiers = {
+      system: validateTierConfig(t['system'], 'system'),
+      chat: validateTierConfig(t['chat'], 'chat'),
+      coding: validateTierConfig(t['coding'], 'coding'),
+    };
   }
 
   return {
+    githubToken,
     copilot,
-    cloud: hasCloud ? validateCloudLLM(obj['cloud']) : { provider: 'anthropic', apiKey: '', model: '' },
+    cloud: hasCloud ? validateCloudLLM(obj['cloud']) : undefined,
+    tiers,
+  };
+}
+
+function validateTierConfig(raw: unknown, tierName: string): LLMTierConfig {
+  if (!raw || typeof raw !== 'object') {
+    throw new ConfigError(`llm.tiers.${tierName} must be an object with provider and model`);
+  }
+  const obj = raw as Record<string, unknown>;
+  const provider = assertString(obj, 'provider') as LLMTierProvider;
+  if (!['local', 'copilot', 'cloud'].includes(provider)) {
+    throw new ConfigError(`llm.tiers.${tierName}.provider must be local, copilot, or cloud`);
+  }
+  return {
+    provider,
+    model: assertString(obj, 'model'),
   };
 }
 

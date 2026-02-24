@@ -71,27 +71,71 @@ export async function runInitWizard(): Promise<void> {
     success('Token accepted');
   }
 
-  // --- Step 2: Model selection ---
-  step(2, 'LLM Model');
-  hint('Which model should the daemon use via GitHub Models API?');
+  // --- Step 2: Model selection (three-tier) ---
+  step(2, 'LLM Model Tiers');
+  hint('The daemon uses three model tiers for different jobs:');
+  hint('  🔧 System — heartbeat, classification (local = $0)');
+  hint('  💬 Chat   — Telegram conversations (mid-tier)');
+  hint('  🏗️  Coding — code generation & outcomes (premium)');
+  console.log();
+
+  // System tier
+  header('  🔧 System Tier (lightweight tasks)');
+  console.log('  1. Local Ollama (recommended — free, runs on your machine)');
+  console.log('  2. Copilot (uses subscription)');
+  console.log('  3. Skip (use Copilot for everything)');
+  console.log();
+  const sysChoice = await rl.question('  Select (1-3): ');
+
+  let systemTier: { provider: string; model: string };
+  let localBaseUrl = 'http://localhost:11434';
+  if (sysChoice.trim() === '1') {
+    const localModel = (await rl.question('  Ollama model name (default: llama3.2:3b): ')).trim() || 'llama3.2:3b';
+    localBaseUrl = (await rl.question(`  Ollama URL (default: ${localBaseUrl}): `)).trim() || localBaseUrl;
+    systemTier = { provider: 'local', model: localModel };
+    success(`System: local/${localModel}`);
+  } else {
+    systemTier = { provider: 'copilot', model: 'openai/gpt-4.1-mini' };
+    success(`System: copilot/gpt-4.1-mini`);
+  }
+
+  // Chat tier
+  console.log();
+  header('  💬 Chat Tier (Telegram conversations)');
   console.log('  1. openai/gpt-4.1 (recommended — fast, good quality)');
   console.log('  2. openai/gpt-4o');
-  console.log('  3. anthropic/claude-sonnet-4-20250514');
-  console.log('  4. Custom (enter your own)');
+  console.log('  3. Custom');
   console.log();
-  const modelChoice = await rl.question('  Select (1-4): ');
+  const chatChoice = await rl.question('  Select (1-3): ');
 
-  let model: string;
-  switch (modelChoice.trim()) {
-    case '1': model = 'openai/gpt-4.1'; break;
-    case '2': model = 'openai/gpt-4o'; break;
-    case '3': model = 'anthropic/claude-sonnet-4-20250514'; break;
-    case '4':
-      model = await rl.question('  Enter model ID (e.g., openai/gpt-4.1): ');
-      break;
-    default: model = 'openai/gpt-4.1';
+  let chatModel: string;
+  switch (chatChoice.trim()) {
+    case '1': chatModel = 'openai/gpt-4.1'; break;
+    case '2': chatModel = 'openai/gpt-4o'; break;
+    case '3': chatModel = await rl.question('  Enter model ID: '); break;
+    default: chatModel = 'openai/gpt-4.1';
   }
-  success(`Model: ${model}`);
+  success(`Chat: copilot/${chatModel}`);
+
+  // Coding tier
+  console.log();
+  header('  🏗️  Coding Tier (code generation & outcomes)');
+  console.log('  1. anthropic/claude-opus-4-20250514 (recommended — best coder)');
+  console.log('  2. anthropic/claude-sonnet-4-20250514');
+  console.log('  3. openai/gpt-4.1');
+  console.log('  4. Custom');
+  console.log();
+  const codeChoice = await rl.question('  Select (1-4): ');
+
+  let codingModel: string;
+  switch (codeChoice.trim()) {
+    case '1': codingModel = 'anthropic/claude-opus-4-20250514'; break;
+    case '2': codingModel = 'anthropic/claude-sonnet-4-20250514'; break;
+    case '3': codingModel = 'openai/gpt-4.1'; break;
+    case '4': codingModel = await rl.question('  Enter model ID: '); break;
+    default: codingModel = 'anthropic/claude-opus-4-20250514';
+  }
+  success(`Coding: copilot/${codingModel}`);
 
   // --- Step 3: Telegram ---
   step(3, 'Telegram Bot');
@@ -152,14 +196,19 @@ export async function runInitWizard(): Promise<void> {
   // --- Write config ---
   header('Writing configuration...');
 
-  const config = {
+  const config: Record<string, unknown> = {
     activeHours: { start: startHour, end: endHour },
     timezone,
     budget: { perNight: budget, currency: 'USD' },
     telegram: { botToken, chatId, wakeTime: `${endHour.toString().padStart(2, '0')}:00` },
     llm: {
-      copilot: { githubToken, model },
-      cloud: { provider: 'anthropic', apiKey: '', model: 'claude-sonnet-4-20250514' },
+      githubToken,
+      ...(systemTier.provider === 'local' ? { local: { enabled: true, baseUrl: localBaseUrl, model: systemTier.model } } : {}),
+      tiers: {
+        system: systemTier,
+        chat: { provider: 'copilot', model: chatModel },
+        coding: { provider: 'copilot', model: codingModel },
+      },
     },
     workspace: { repoPath, branch },
     heartbeatMinutes: 15,
@@ -183,7 +232,7 @@ export async function runInitWizard(): Promise<void> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model,
+        model: codingModel,
         messages: [{ role: 'user', content: 'Say "hello" and nothing else.' }],
         max_tokens: 10,
       }),
@@ -223,7 +272,9 @@ export async function runInitWizard(): Promise<void> {
   console.log();
   console.log(`  Config: ${configPath}`);
   console.log(`  Repo:   ${repoPath}`);
-  console.log(`  Model:  ${model}`);
+  console.log(`  🔧 System: ${systemTier.provider}/${systemTier.model}`);
+  console.log(`  💬 Chat:   copilot/${chatModel}`);
+  console.log(`  🏗️  Coding: copilot/${codingModel}`);
   console.log(`  Hours:  ${startHour}:00 — ${endHour}:00 ${timezone}`);
   console.log();
   console.log(`  ${BOLD}Start the daemon:${RESET}`);

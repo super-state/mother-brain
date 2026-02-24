@@ -4,6 +4,7 @@ import type { DaemonModule } from '../core/lifecycle.js';
 import type { TelegramConfig } from '../core/config.js';
 import type { ProjectManager, Project } from '../db/projects.js';
 import type { BudgetTracker, UsageReport } from '../budget/tracker.js';
+import type { ConversationHandler } from '../conversation/handler.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,6 +48,7 @@ export class TelegramReporter implements DaemonModule {
   private controlHandler: PauseResumeHandler | null = null;
   private projectManager: ProjectManager | null = null;
   private budgetTracker: BudgetTracker | null = null;
+  private conversationHandler: ConversationHandler | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -71,6 +73,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the budget tracker for usage commands. */
   onBudget(tracker: BudgetTracker): void {
     this.budgetTracker = tracker;
+  }
+
+  /** Register the conversation handler for natural language messages. */
+  onConversation(handler: ConversationHandler): void {
+    this.conversationHandler = handler;
   }
 
   async start(): Promise<void> {
@@ -194,6 +201,22 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(formatUsageReport(report), { parse_mode: 'HTML' });
     });
 
+    // Catch-all: natural language messages → conversation handler
+    this.bot.on('message:text', async (ctx) => {
+      if (!this.conversationHandler) {
+        await ctx.reply("I'm running but conversation mode isn't set up yet. Use /status for daemon info.");
+        return;
+      }
+
+      try {
+        const response = await this.conversationHandler.handleMessage(ctx.message.text);
+        await ctx.reply(response.text);
+      } catch (error) {
+        this.logger.error({ error }, 'Conversation handler error');
+        await ctx.reply("Sorry, I had trouble processing that. Try again or use /status.");
+      }
+    });
+
     // Start polling (long polling — no webhooks needed for Pi)
     this.bot.start({
       onStart: () => {
@@ -249,7 +272,8 @@ export class TelegramReporter implements DaemonModule {
     await this.sendMessage(message);
   }
 
-  private async sendMessage(text: string): Promise<void> {
+  /** Send a message to the configured Telegram chat. */
+  async sendMessage(text: string): Promise<void> {
     if (!this.bot) {
       this.logger.warn('Bot not started — cannot send message');
       return;

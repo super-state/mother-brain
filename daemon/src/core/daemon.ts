@@ -17,6 +17,9 @@ import type { LLMExecutor } from '../llm/router.js';
 import { applyFileChanges } from '../workspace/file-writer.js';
 import { verify } from '../verifier/verifier.js';
 import { BudgetTracker } from '../budget/tracker.js';
+import { loadPersona } from '../conversation/persona.js';
+import { ConversationMemory } from '../conversation/memory.js';
+import { ConversationHandler } from '../conversation/handler.js';
 import type { DaemonModule, DaemonState } from './lifecycle.js';
 import type { DaemonConfig } from './config.js';
 
@@ -144,6 +147,23 @@ export class Daemon {
 
     // Wire up usage tracking via Telegram
     reporter?.onBudget(budgetTracker);
+
+    // Wire up conversational onboarding
+    const persona = loadPersona(this.logger);
+    const conversationMemory = new ConversationMemory(db.connection, this.logger);
+    const conversationHandler = new ConversationHandler(
+      this.config, persona, conversationMemory, projectManager, this.logger,
+      budgetTracker, this.sessionId,
+    );
+    reporter?.onConversation(conversationHandler);
+
+    // Send greeting if new user
+    if (conversationMemory.isNewUser() && reporter) {
+      const greeting = conversationHandler.getGreeting();
+      reporter.sendMessage(greeting).catch((err) => {
+        this.logger.warn({ error: err }, 'Failed to send greeting');
+      });
+    }
 
     // Wire up Telegram control commands
     reporter?.onControl((action) => {

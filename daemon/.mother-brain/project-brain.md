@@ -43,6 +43,12 @@
 **Impact**: Init wizard defaults changed from `anthropic/claude-*` to `openai/gpt-*`. Pricing labels updated. All code comments reference Copilot as provider.
 **Check Added**: Never recommend or default to model IDs that haven't been confirmed working on GitHub Models API.
 
+### The Daemon IS Mother Brain (Not a Chat Wrapper)
+**Trigger**: User tested Telegram conversation and gave critical feedback: "It asks too many questions at once" and "It should BE Mother Brain — all of these rules, every part of the skills should be in this assistant"
+**Learning**: The conversation handler must not be a generic LLM chat wrapper with a persona prompt. It must implement the actual Mother Brain guided process: state-tracked phases (greeting → discovery → vision → planning → active), one question at a time, phase-specific system prompts that constrain the LLM, entity extraction, and state persistence across sessions. The daemon doesn't "talk like" Mother Brain — it IS Mother Brain running over Telegram.
+**Impact**: Complete rewrite of conversation handler. Added Brain Runtime state machine, phase-specific system prompts, SQLite state persistence, entity extraction, and automatic phase transitions.
+**Check Added**: The daemon's conversation must follow a guided process with state tracking. Never freestyle LLM chat.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
@@ -50,3 +56,5 @@
 - [ ] Autonomous tracking systems must include automatic analysis/optimization, not just data collection
 - [ ] Never default to model IDs not confirmed working on GitHub Models API
 - [ ] All models are accessed via Copilot — never label as "Anthropic" or "OpenAI" provider directly
+- [ ] Conversation handler must use state-tracked phases, not freestyle LLM chat
+- [ ] Every message must ask at most ONE question — never multiple questions at once

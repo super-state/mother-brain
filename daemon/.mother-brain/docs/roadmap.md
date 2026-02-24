@@ -23,6 +23,7 @@
 | Ability to monitor from phone | Outcome 6 |
 | Ability to have natural conversational onboarding | **Outcome 7** |
 | Ability to self-optimize token spending | **Outcome 8** |
+| Ability to run the full Mother Brain process over Telegram | **Outcome 9** |
 | Ability to configure via web dashboard | Phase 2 |
 | Ability to see agents and cron jobs | Phase 2 |
 
@@ -260,6 +261,37 @@
 
 ---
 
+### 📋 Outcome 9: Ability to run the full Mother Brain process over Telegram
+
+> So the daemon IS Mother Brain — not a chatbot wrapper, but the actual guided workflow running over Telegram. Each conversation follows the Mother Brain process: discovery → vision → planning → execution → learning. One question at a time, phase-tracked, state-persistent.
+
+**Acceptance Criteria:**
+- [ ] Conversation handler uses a state machine (Brain Runtime) not freestyle LLM chat
+- [ ] Each phase has a dedicated system prompt that constrains the LLM to follow Mother Brain's process
+- [ ] The daemon asks ONE question per message (enforced by prompt constraints)
+- [ ] Phase transitions happen automatically based on conversation progress
+- [ ] Brain state persists in SQLite across daemon restarts
+- [ ] Discovery data (project names, paths, needs) is extracted and accumulated across messages
+- [ ] Active phase uses project context for relevant responses
+- [ ] Brainstorm mode available for freeform thinking without formal process
+
+**Demo / Proof:**
+- Send first message → daemon introduces itself and asks ONE question
+- Through 3-5 messages → daemon transitions from greeting → discovery → vision naturally
+- Restart daemon → conversation resumes from the same phase
+- Type "brainstorm" → daemon enters thinking partner mode
+- Daemon never asks multiple questions at once
+
+**Priority Score:** 140 (Vision: 5, Reliability: 4, Token Efficiency: 4, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 037: Brain Runtime state machine — phase definitions, system prompts, transition logic
+- Task 038: Brain state persistence — SQLite table, state manager, cross-restart continuity
+- Task 039: Entity extraction — project names, paths, user needs from conversation
+- Task 040: Phase-aware handler — rewrite conversation handler to route through Brain Runtime
+
+---
+
 ## MVP Checkpoint (End of Phase 1)
 
 ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
@@ -271,6 +303,7 @@
 - Outcome 6: Telegram communication
 - Outcome 7: Conversational onboarding & identity
 - Outcome 8: Self-optimization of token usage
+- Outcome 9: Brain Runtime — full Mother Brain process over Telegram
 
 **Validation Method**: Run the daemon overnight. Wake up to a Telegram morning report showing verified, committed work within budget.
 
@@ -383,6 +416,10 @@
 | 034 | Outcome 8: Self-optimization | ✅ |
 | 035 | Outcome 8: Self-optimization | ✅ |
 | 036 | Outcome 8: Self-optimization | ✅ |
+| 037 | Outcome 9: Brain Runtime | ✅ |
+| 038 | Outcome 9: Brain Runtime | ✅ |
+| 039 | Outcome 9: Brain Runtime | ✅ |
+| 040 | Outcome 9: Brain Runtime | ✅ |
 
 ---
 
@@ -398,6 +435,6 @@
 
 ---
 
-**Total Tasks**: 36  
-**Phase 1 (MVP) Tasks**: 36 (all complete)  
+**Total Tasks**: 40  
+**Phase 1 (MVP) Tasks**: 40 (all complete)  
 **Post-MVP Tasks**: TBD based on usage experience

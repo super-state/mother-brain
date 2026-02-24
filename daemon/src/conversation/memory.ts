@@ -22,6 +22,11 @@ export class ConversationMemory {
     this.ensureTable();
   }
 
+  /** Expose the underlying database for shared use by BrainStateManager. */
+  getDb(): Database.Database {
+    return this.db;
+  }
+
   private ensureTable(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS conversation_history (

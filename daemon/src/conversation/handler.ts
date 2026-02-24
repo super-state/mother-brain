@@ -3,12 +3,18 @@ import type { Logger } from 'pino';
 import type { DaemonConfig } from '../core/config.js';
 import type { ConversationMemory } from './memory.js';
 import type { PersonaConfig } from './persona.js';
-import { buildPersonaSystemPrompt } from './persona.js';
 import type { BudgetTracker } from '../budget/tracker.js';
 import type { ProjectManager } from '../db/projects.js';
+import {
+  BrainStateManager,
+  getPhasePrompt,
+  buildDiscoveryContext,
+  detectTransition,
+} from './brain-runtime.js';
+import type { ConversationPhase, DiscoveryData } from './brain-runtime.js';
 
 // ---------------------------------------------------------------------------
-// Intent Classification
+// Intent Classification (lightweight, $0 — no LLM call)
 // ---------------------------------------------------------------------------
 
 export type MessageIntent =
@@ -19,59 +25,35 @@ export type MessageIntent =
   | 'casual_chat'          // General conversation
   | 'command';             // Explicit command (fallback to bot commands)
 
-/**
- * Classify user intent using keyword patterns.
- * This is the $0 classification layer — no LLM calls needed.
- */
 export function classifyIntent(text: string): MessageIntent {
   const lower = text.toLowerCase().trim();
-
-  // Command-like messages
   if (lower.startsWith('/')) return 'command';
-
-  // Project description patterns
-  const projectPatterns = [
-    /(?:working on|building|creating|developing|my project|my repo|my app)/,
-    /(?:github\.com|gitlab\.com|bitbucket\.org)/,
-    /(?:repo(?:sitory)?|codebase|workspace).*(?:at|in|is)/,
-    /(?:c:|d:|\/home\/|\/users\/|~\/).*(?:\.git|src|package\.json)/i,
-  ];
-  if (projectPatterns.some(p => p.test(lower))) return 'project_description';
-
-  // Vision/goal patterns
-  const visionPatterns = [
-    /(?:i want|i need|i'd like|goal is|vision is|plan is|idea is)/,
-    /(?:should be able to|needs to|must be able to)/,
-    /(?:the end result|ultimately|the product should|the app should)/,
-    /(?:imagine|picture this|what if|how about)/,
-  ];
-  if (visionPatterns.some(p => p.test(lower))) return 'vision_statement';
-
-  // Help request patterns
-  const helpPatterns = [
-    /(?:help me|can you|how do i|how to|what's the best way)/,
-    /(?:stuck on|struggling with|having trouble|can't figure)/,
-    /(?:fix|debug|solve|resolve)/,
-  ];
-  if (helpPatterns.some(p => p.test(lower))) return 'help_request';
-
-  // Status query patterns
-  const statusPatterns = [
-    /(?:status|progress|how's it going|what are you doing|what did you do)/,
-    /(?:update|report|results|anything new)/,
-  ];
-  if (statusPatterns.some(p => p.test(lower))) return 'status_query';
-
+  if ([/(?:working on|building|creating|developing|my project|my repo|my app)/,
+       /(?:github\.com|gitlab\.com|bitbucket\.org)/,
+       /(?:repo(?:sitory)?|codebase|workspace).*(?:at|in|is)/,
+       /(?:c:|d:|\/home\/|\/users\/|~\/).*(?:\.git|src|package\.json)/i,
+  ].some(p => p.test(lower))) return 'project_description';
+  if ([/(?:i want|i need|i'd like|goal is|vision is|plan is|idea is)/,
+       /(?:should be able to|needs to|must be able to)/,
+       /(?:the end result|ultimately|the product should|the app should)/,
+  ].some(p => p.test(lower))) return 'vision_statement';
+  if ([/(?:help me|can you|how do i|how to|what's the best way)/,
+       /(?:stuck on|struggling with|having trouble|can't figure)/,
+  ].some(p => p.test(lower))) return 'help_request';
+  if ([/(?:status|progress|how's it going|what are you doing|what did you do)/,
+       /(?:update|report|results|anything new)/,
+  ].some(p => p.test(lower))) return 'status_query';
   return 'casual_chat';
 }
 
 // ---------------------------------------------------------------------------
-// Conversation Handler — processes natural language messages
+// Conversation Handler — routes through Brain Runtime
 // ---------------------------------------------------------------------------
 
 export interface ConversationResponse {
   text: string;
   intent: MessageIntent;
+  phase: ConversationPhase;
   extractedProject?: { name: string; path: string };
   inputTokens: number;
   outputTokens: number;
@@ -82,10 +64,11 @@ const GITHUB_MODELS_BASE_URL = 'https://models.github.ai/inference';
 export class ConversationHandler {
   private client: OpenAI;
   private model: string;
+  private brainState: BrainStateManager;
 
   constructor(
     config: DaemonConfig,
-    private persona: PersonaConfig,
+    private _persona: PersonaConfig,
     private memory: ConversationMemory,
     private projectManager: ProjectManager,
     private logger: Logger,
@@ -108,43 +91,76 @@ export class ConversationHandler {
       });
       this.model = config.llm.copilot?.model ?? 'openai/gpt-4.1';
     } else {
-      throw new Error('No LLM provider available for conversation. Configure llm.tiers.chat or llm.copilot.');
+      throw new Error('No LLM provider available for conversation.');
+    }
+
+    // Initialize brain state manager (uses same DB as conversation memory)
+    this.brainState = new BrainStateManager(this.memory.getDb(), this.logger);
+
+    // If there are existing projects, start in active phase
+    const projects = this.projectManager.listProjects();
+    if (projects.length > 0) {
+      const state = this.brainState.getState();
+      if (state.phase === 'greeting') {
+        this.brainState.updateState('active', state.discoveryData);
+      }
     }
   }
 
   /**
-   * Handle an incoming user message.
-   * Classifies intent, builds context, calls LLM, stores in memory.
+   * Handle an incoming user message through the Brain Runtime.
+   * The runtime tracks which phase of Mother Brain's process we're in
+   * and constrains the LLM to follow that phase's rules.
    */
   async handleMessage(userMessage: string): Promise<ConversationResponse> {
     const intent = classifyIntent(userMessage);
-
-    // Store user message
     this.memory.addMessage('user', userMessage, intent);
 
-    // Build context-aware system prompt
-    const systemPrompt = this.buildContextualPrompt(intent);
+    // Get current brain state
+    let state = this.brainState.getState();
 
-    // Get conversation context (system + recent history)
-    const messages = this.memory.buildLLMContext(systemPrompt, 10);
+    // Extract entities from user message and update discovery data
+    const updatedData = this.extractEntities(userMessage, state.discoveryData);
 
-    this.logger.debug({ intent, messageCount: messages.length }, 'Processing conversation');
+    // Check for phase transition
+    const newPhase = detectTransition(state.phase, userMessage, updatedData);
+    if (newPhase) {
+      this.logger.info({ from: state.phase, to: newPhase }, 'Phase transition');
+      this.brainState.updateState(newPhase, updatedData);
+      state = { phase: newPhase, discoveryData: updatedData, updatedAt: new Date().toISOString() };
+    } else {
+      // Update discovery data without phase change
+      this.brainState.updateState(state.phase, updatedData);
+    }
 
-    // Call LLM
+    // Increment questions counter
+    this.brainState.incrementQuestions(state);
+
+    // Build phase-specific system prompt
+    const systemPrompt = this.buildPhasePrompt(state.phase, updatedData);
+
+    // Get conversation context
+    const messages = this.memory.buildLLMContext(systemPrompt, 8);
+
+    this.logger.debug(
+      { phase: state.phase, intent, messageCount: messages.length },
+      'Processing message through brain runtime',
+    );
+
+    // Call LLM with constrained prompt
     const response = await this.client.chat.completions.create({
       model: this.model,
-      max_tokens: 1024,
+      max_tokens: 512, // Enforced brevity for Telegram
       messages: messages as OpenAI.ChatCompletionMessageParam[],
     });
 
-    const reply = response.choices[0]?.message?.content ?? "I'm not sure how to respond to that.";
+    const reply = response.choices[0]?.message?.content ?? "Let me think about that...";
     const inputTokens = response.usage?.prompt_tokens ?? 0;
     const outputTokens = response.usage?.completion_tokens ?? 0;
 
-    // Store assistant response
     this.memory.addMessage('assistant', reply, intent);
 
-    // Record token usage in budget tracker
+    // Record token usage
     if (this.budgetTracker && this.sessionId) {
       const activeProject = this.projectManager.getActiveProject();
       this.budgetTracker.recordUsage(
@@ -154,13 +170,14 @@ export class ConversationHandler {
     }
 
     this.logger.info(
-      { intent, inputTokens, outputTokens, model: this.model },
-      'Conversation response generated',
+      { phase: state.phase, intent, inputTokens, outputTokens },
+      'Brain runtime response generated',
     );
 
     return {
       text: reply,
       intent,
+      phase: state.phase,
       inputTokens,
       outputTokens,
     };
@@ -171,48 +188,76 @@ export class ConversationHandler {
     return this.memory.isNewUser();
   }
 
-  /** Get the greeting message (no LLM call needed). */
+  /** Get the greeting message (no LLM call). */
   getGreeting(): string {
-    return this.memory.isNewUser()
-      ? this.persona.greeting
-      : this.persona.returningGreeting;
+    return this._persona.greeting;
   }
 
-  private buildContextualPrompt(intent: MessageIntent): string {
-    const base = buildPersonaSystemPrompt(this.persona);
+  /** Get current phase for status reporting. */
+  getCurrentPhase(): ConversationPhase {
+    return this.brainState.getState().phase;
+  }
 
-    // Add project context
-    const projects = this.projectManager.listProjects();
-    let projectContext = '';
-    if (projects.length > 0) {
-      const projectList = projects
-        .map(p => `- ${p.name} (${p.repoPath})${p.active ? ' [ACTIVE]' : ''}`)
-        .join('\n');
-      projectContext = `\n\nKnown projects:\n${projectList}`;
-    } else {
-      projectContext = '\n\nNo projects registered yet. Help the user get their first project set up.';
+  // -------------------------------------------------------------------------
+  // Private
+  // -------------------------------------------------------------------------
+
+  /** Build phase-aware system prompt with project context. */
+  private buildPhasePrompt(phase: ConversationPhase, data: DiscoveryData): string {
+    let prompt = getPhasePrompt(phase);
+
+    // Add discovery context
+    prompt += buildDiscoveryContext(data);
+
+    // Add project context for active phase
+    if (phase === 'active') {
+      const projects = this.projectManager.listProjects();
+      if (projects.length > 0) {
+        const projectList = projects
+          .map(p => `- ${p.name}${p.active ? ' [ACTIVE]' : ''}: ${p.repoPath}`)
+          .join('\n');
+        prompt += `\n\nRegistered projects:\n${projectList}`;
+      }
     }
 
-    // Add intent-specific guidance
-    let intentGuide = '';
-    switch (intent) {
-      case 'project_description':
-        intentGuide = '\n\nThe user is describing a project. Listen carefully for repo paths, project names, and what the project does. Ask clarifying questions to understand the project better before suggesting to register it.';
-        break;
-      case 'vision_statement':
-        intentGuide = '\n\nThe user is expressing goals or vision. Help them crystallize these into clear outcomes. Ask what success looks like.';
-        break;
-      case 'help_request':
-        intentGuide = '\n\nThe user needs help. Be practical and solution-oriented.';
-        break;
-      case 'status_query':
-        intentGuide = '\n\nThe user is asking about status. Reference known projects and recent activity.';
-        break;
-      case 'casual_chat':
-        intentGuide = '\n\nThis is casual conversation. Be friendly and natural. If appropriate, steer toward understanding their projects.';
-        break;
+    return prompt;
+  }
+
+  /** Extract project entities from user message to build discovery data. */
+  private extractEntities(message: string, current: DiscoveryData): DiscoveryData {
+    const updated = { ...current, userNeeds: [...current.userNeeds], visionNotes: [...current.visionNotes] };
+
+    // Extract project name (heuristic)
+    const nameMatch = message.match(/(?:called|named|it's|project is)\s+"?([A-Za-z][\w-]*)"?/i)
+      ?? message.match(/(?:working on|building)\s+"?([A-Za-z][\w-]*)"?/i);
+    if (nameMatch && !updated.projectName) {
+      updated.projectName = nameMatch[1];
     }
 
-    return base + projectContext + intentGuide;
+    // Extract paths
+    const pathMatch = message.match(/((?:[A-Z]:\\|\/home\/|\/Users\/|~\/)\S+)/);
+    if (pathMatch && !updated.projectPath) {
+      updated.projectPath = pathMatch[1];
+    }
+
+    // Extract GitHub URLs
+    const githubMatch = message.match(/(https?:\/\/github\.com\/\S+)/i);
+    if (githubMatch && !updated.projectPath) {
+      updated.projectPath = githubMatch[1];
+    }
+
+    // Extract user needs (vision-level statements)
+    const needPatterns = [
+      /(?:i want|i need|should be able to|must be able to|needs to)\s+(.{10,80})/i,
+      /(?:ability to|able to)\s+(.{10,60})/i,
+    ];
+    for (const pattern of needPatterns) {
+      const match = message.match(pattern);
+      if (match && !updated.userNeeds.includes(match[1])) {
+        updated.userNeeds.push(match[1].trim());
+      }
+    }
+
+    return updated;
   }
 }

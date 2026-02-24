@@ -139,29 +139,44 @@ export class ConversationHandler {
     // Build phase-specific system prompt
     const systemPrompt = this.buildPhasePrompt(state.phase, updatedData);
 
-    // Get conversation context
-    const messages = this.memory.buildLLMContext(systemPrompt, 8);
+    // Get conversation context — enough history for continuity
+    const messages = this.memory.buildLLMContext(systemPrompt, 12);
 
     this.logger.debug(
       { phase: state.phase, intent, messageCount: messages.length },
       'Processing message through brain runtime',
     );
 
-    // Call LLM with constrained prompt
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      max_tokens: 512, // Enforced brevity for Telegram
-      messages: messages as OpenAI.ChatCompletionMessageParam[],
-    });
+    // Call LLM with constrained prompt — handle content filter errors
+    let reply: string;
+    let inputTokens = 0;
+    let outputTokens = 0;
 
-    const reply = response.choices[0]?.message?.content ?? "Let me think about that...";
-    const inputTokens = response.usage?.prompt_tokens ?? 0;
-    const outputTokens = response.usage?.completion_tokens ?? 0;
+    try {
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        max_tokens: 512,
+        messages: messages as OpenAI.ChatCompletionMessageParam[],
+      });
+
+      reply = response.choices[0]?.message?.content ?? "Let me think about that...";
+      inputTokens = response.usage?.prompt_tokens ?? 0;
+      outputTokens = response.usage?.completion_tokens ?? 0;
+    } catch (error: unknown) {
+      // Handle Azure content filter or other API errors gracefully
+      const errorCode = (error as { code?: string })?.code;
+      if (errorCode === 'content_filter') {
+        this.logger.warn({ error: errorCode }, 'Content filter triggered — sending graceful response');
+        reply = "I understand! Let me think about the best way to approach that. Could you tell me a bit more about what you'd like to focus on?";
+      } else {
+        throw error;
+      }
+    }
 
     this.memory.addMessage('assistant', reply, intent);
 
     // Record token usage
-    if (this.budgetTracker && this.sessionId) {
+    if (this.budgetTracker && this.sessionId && (inputTokens > 0 || outputTokens > 0)) {
       const activeProject = this.projectManager.getActiveProject();
       this.budgetTracker.recordUsage(
         this.sessionId, 'copilot', this.model, inputTokens, outputTokens,
@@ -196,6 +211,12 @@ export class ConversationHandler {
   /** Get current phase for status reporting. */
   getCurrentPhase(): ConversationPhase {
     return this.brainState.getState().phase;
+  }
+
+  /** Reset conversation state to start fresh. */
+  resetConversation(): void {
+    this.brainState.reset();
+    this.logger.info('Conversation state reset by user');
   }
 
   // -------------------------------------------------------------------------

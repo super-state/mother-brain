@@ -219,6 +219,16 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(formatOptimizationReport(report), { parse_mode: 'HTML' });
     });
 
+    // /reset — reset conversation state to start fresh
+    this.bot.command('reset', async (ctx) => {
+      if (!this.conversationHandler) {
+        await ctx.reply('Conversation handler not available.');
+        return;
+      }
+      this.conversationHandler.resetConversation();
+      await ctx.reply("🔄 Conversation reset. Let's start fresh! What are you working on?");
+    });
+
     // Catch-all: natural language messages → conversation handler
     this.bot.on('message:text', async (ctx) => {
       if (!this.conversationHandler) {

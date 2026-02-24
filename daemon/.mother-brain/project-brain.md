@@ -58,3 +58,6 @@
 - [ ] All models are accessed via Copilot — never label as "Anthropic" or "OpenAI" provider directly
 - [ ] Conversation handler must use state-tracked phases, not freestyle LLM chat
 - [ ] Every message must ask at most ONE question — never multiple questions at once
+- [ ] System prompts must not reference "overnight work" during onboarding phases
+- [ ] LLM API calls must have content filter error handling (Azure false positives)
+- [ ] Phase transitions must have safety valves — never let a phase get stuck indefinitely

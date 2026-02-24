@@ -208,10 +208,15 @@ export async function runInitWizard(): Promise<void> {
 
   // --- Step 5: Budget ---
   step(5, 'Budget');
-  hint('With Copilot subscription, costs are flat. This tracks API-level usage.');
-  const budgetStr = (await rl.question('  Max spend per night in USD (default: 5.00): ')).trim() || '5.00';
+  hint('Track and cap all token usage across the daemon.');
+  const budgetStr = (await rl.question('  Max spend per session in USD (default: 5.00): ')).trim() || '5.00';
   const budget = parseFloat(budgetStr);
-  success(`Budget: $${budget.toFixed(2)} per night`);
+  success(`Session cap: $${budget.toFixed(2)}`);
+
+  hint('Global lifetime cap prevents runaway costs across all sessions.');
+  const globalCapStr = (await rl.question('  Global lifetime cap in USD (default: 100.00): ')).trim() || '100.00';
+  const globalCap = parseFloat(globalCapStr);
+  success(`Global cap: $${globalCap.toFixed(2)}`);
 
   // --- Write config ---
   header('Writing configuration...');
@@ -219,7 +224,7 @@ export async function runInitWizard(): Promise<void> {
   const config: Record<string, unknown> = {
     activeHours: { start: startHour, end: endHour },
     timezone,
-    budget: { perNight: budget, currency: 'USD' },
+    budget: { perNight: budget, globalCap, currency: 'USD' },
     telegram: { botToken, chatId, wakeTime: `${endHour.toString().padStart(2, '0')}:00` },
     llm: {
       githubToken,

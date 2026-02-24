@@ -69,6 +69,7 @@ export interface LLMConfig {
 
 export interface BudgetConfig {
   perNight: number;    // Max spend per session in currency units
+  globalCap?: number;  // Absolute lifetime cap — hard stop across all sessions
   currency: string;    // e.g., "GBP", "USD"
 }
 

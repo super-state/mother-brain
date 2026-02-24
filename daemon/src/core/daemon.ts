@@ -116,12 +116,13 @@ export class Daemon {
       `INSERT INTO sessions (id, started_at, status) VALUES (?, datetime('now'), 'active')`,
     ).run(this.sessionId);
 
-    // Set up budget tracker
+    // Set up budget tracker with session + global caps
     const budgetTracker = new BudgetTracker(
       db.connection,
       this.config.budget.perNight,
       this.config.budget.currency,
       this.logger,
+      this.config.budget.globalCap,
     );
 
     // LLM clients — three-tier model routing
@@ -139,6 +140,9 @@ export class Daemon {
 
     // Wire up project management via Telegram
     reporter?.onProjects(projectManager);
+
+    // Wire up usage tracking via Telegram
+    reporter?.onBudget(budgetTracker);
 
     // Wire up Telegram control commands
     reporter?.onControl((action) => {

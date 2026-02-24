@@ -3,6 +3,7 @@ import type { Logger } from 'pino';
 import type { DaemonModule } from '../core/lifecycle.js';
 import type { TelegramConfig } from '../core/config.js';
 import type { ProjectManager, Project } from '../db/projects.js';
+import type { BudgetTracker, UsageReport } from '../budget/tracker.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,6 +46,7 @@ export class TelegramReporter implements DaemonModule {
   private statusProvider: StatusProvider | null = null;
   private controlHandler: PauseResumeHandler | null = null;
   private projectManager: ProjectManager | null = null;
+  private budgetTracker: BudgetTracker | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -64,6 +66,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the project manager for project commands. */
   onProjects(manager: ProjectManager): void {
     this.projectManager = manager;
+  }
+
+  /** Register the budget tracker for usage commands. */
+  onBudget(tracker: BudgetTracker): void {
+    this.budgetTracker = tracker;
   }
 
   async start(): Promise<void> {
@@ -175,6 +182,16 @@ export class TelegramReporter implements DaemonModule {
       } else {
         await ctx.reply(`❌ Project not found: ${name}`);
       }
+    });
+
+    // /usage — comprehensive token usage report
+    this.bot.command('usage', async (ctx) => {
+      if (!this.budgetTracker) {
+        await ctx.reply('Budget tracker not available.');
+        return;
+      }
+      const report = this.budgetTracker.getUsageReport();
+      await ctx.reply(formatUsageReport(report), { parse_mode: 'HTML' });
     });
 
     // Start polling (long polling — no webhooks needed for Pi)
@@ -319,4 +336,65 @@ function formatProjectsList(projects: Project[]): string {
   }
   lines.push('', 'Use /work &lt;name&gt; to switch projects');
   return lines.join('\n');
+}
+
+function formatUsageReport(report: UsageReport): string {
+  const lines = [
+    `📊 <b>Token Usage Report</b>`,
+    ``,
+    `<b>All-Time:</b>`,
+    `  Tokens: ${report.allTime.totalTokens.toLocaleString()}`,
+    `  Cost: $${report.allTime.totalCost.toFixed(4)}`,
+    `  Requests: ${report.allTime.requestCount}`,
+  ];
+
+  // Global budget
+  if (report.globalBudget.cap !== Infinity) {
+    const bar = makeProgressBar(report.globalBudget.percentUsed);
+    lines.push(
+      ``,
+      `<b>Global Budget:</b>`,
+      `  ${bar} ${report.globalBudget.percentUsed.toFixed(1)}%`,
+      `  $${report.globalBudget.spent.toFixed(4)} / $${report.globalBudget.cap.toFixed(2)}`,
+    );
+  }
+
+  // By tier
+  const tiers = Object.entries(report.byTier);
+  if (tiers.length > 0) {
+    lines.push('', '<b>By Tier:</b>');
+    const tierEmoji: Record<string, string> = {
+      background: '🔧', chat: '💬', planning: '📋', coding: '🏗️', review: '🔍',
+    };
+    for (const [tier, data] of tiers) {
+      const emoji = tierEmoji[tier] ?? '•';
+      lines.push(`  ${emoji} ${tier}: ${data.tokens.toLocaleString()} tokens ($${data.cost.toFixed(4)}) [${data.requests} req]`);
+    }
+  }
+
+  // By model
+  const models = Object.entries(report.byModel);
+  if (models.length > 0) {
+    lines.push('', '<b>By Model:</b>');
+    for (const [model, data] of models) {
+      lines.push(`  • ${model}: $${data.cost.toFixed(4)} [${data.requests} req]`);
+    }
+  }
+
+  // By project
+  const projects = Object.entries(report.byProject);
+  if (projects.length > 0) {
+    lines.push('', '<b>By Project:</b>');
+    for (const [project, data] of projects) {
+      lines.push(`  • ${project}: $${data.cost.toFixed(4)} (${data.tokens.toLocaleString()} tokens)`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+function makeProgressBar(percent: number): string {
+  const filled = Math.round(percent / 10);
+  const empty = 10 - filled;
+  return '▓'.repeat(filled) + '░'.repeat(empty);
 }

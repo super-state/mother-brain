@@ -16,11 +16,13 @@ export interface LLMExecutor {
 /**
  * LLM tier — determines which model to use for what purpose.
  *
- *   system → lightweight tasks (heartbeat, classification, summarization) — local/free
- *   chat   → Telegram conversations, status queries — mid-tier quality
- *   coding → code generation & outcome delivery — premium quality
+ *   background → mindless tasks, heartbeat, classification — local/free
+ *   chat       → Telegram conversations, organising — mid-tier (Sonnet)
+ *   planning   → planning, approach breakdown — reasoning (Codex)
+ *   coding     → implementation — premium (Opus)
+ *   review     → code review — reasoning (Codex)
  */
-export type LLMTier = 'system' | 'chat' | 'coding';
+export type LLMTier = 'background' | 'chat' | 'planning' | 'coding' | 'review';
 
 /**
  * Create an LLM client for a specific tier.

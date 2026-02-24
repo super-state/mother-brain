@@ -71,55 +71,74 @@ export async function runInitWizard(): Promise<void> {
     success('Token accepted');
   }
 
-  // --- Step 2: Model selection (three-tier) ---
+  // --- Step 2: Model selection (five-tier) ---
   step(2, 'LLM Model Tiers');
-  hint('The daemon uses three model tiers for different jobs:');
-  hint('  🔧 System — heartbeat, classification (local = $0)');
-  hint('  💬 Chat   — Telegram conversations (mid-tier)');
-  hint('  🏗️  Coding — code generation & outcomes (premium)');
+  hint('The daemon uses five model tiers, each optimized for its job:');
+  hint('  🔧 Background — heartbeat, classification (local = $0)');
+  hint('  💬 Chat       — understanding, conversing, organising');
+  hint('  📋 Planning   — planning, breaking down approaches');
+  hint('  🏗️  Coding     — implementation (premium)');
+  hint('  🔍 Review     — code review');
   console.log();
 
-  // System tier
-  header('  🔧 System Tier (lightweight tasks)');
+  // Background tier
+  header('  🔧 Background Tier (mindless tasks)');
   console.log('  1. Local Ollama (recommended — free, runs on your machine)');
   console.log('  2. Copilot (uses subscription)');
-  console.log('  3. Skip (use Copilot for everything)');
   console.log();
-  const sysChoice = await rl.question('  Select (1-3): ');
+  const bgChoice = await rl.question('  Select (1-2): ');
 
-  let systemTier: { provider: string; model: string };
+  let backgroundTier: { provider: string; model: string };
   let localBaseUrl = 'http://localhost:11434';
-  if (sysChoice.trim() === '1') {
-    const localModel = (await rl.question('  Ollama model name (default: llama3.2:3b): ')).trim() || 'llama3.2:3b';
+  if (bgChoice.trim() === '1') {
+    const localModel = (await rl.question('  Ollama model name (default: qwen3:14b): ')).trim() || 'qwen3:14b';
     localBaseUrl = (await rl.question(`  Ollama URL (default: ${localBaseUrl}): `)).trim() || localBaseUrl;
-    systemTier = { provider: 'local', model: localModel };
-    success(`System: local/${localModel}`);
+    backgroundTier = { provider: 'local', model: localModel };
+    success(`Background: local/${localModel}`);
   } else {
-    systemTier = { provider: 'copilot', model: 'openai/gpt-4.1-mini' };
-    success(`System: copilot/gpt-4.1-mini`);
+    backgroundTier = { provider: 'copilot', model: 'openai/gpt-4.1-mini' };
+    success(`Background: copilot/gpt-4.1-mini`);
   }
 
   // Chat tier
   console.log();
-  header('  💬 Chat Tier (Telegram conversations)');
-  console.log('  1. openai/gpt-4.1 (recommended — fast, good quality)');
-  console.log('  2. openai/gpt-4o');
+  header('  💬 Chat Tier (understanding, conversing, organising)');
+  console.log('  1. anthropic/claude-sonnet-4-20250514 (recommended)');
+  console.log('  2. openai/gpt-4.1');
   console.log('  3. Custom');
   console.log();
   const chatChoice = await rl.question('  Select (1-3): ');
 
   let chatModel: string;
   switch (chatChoice.trim()) {
-    case '1': chatModel = 'openai/gpt-4.1'; break;
-    case '2': chatModel = 'openai/gpt-4o'; break;
+    case '1': chatModel = 'anthropic/claude-sonnet-4-20250514'; break;
+    case '2': chatModel = 'openai/gpt-4.1'; break;
     case '3': chatModel = await rl.question('  Enter model ID: '); break;
-    default: chatModel = 'openai/gpt-4.1';
+    default: chatModel = 'anthropic/claude-sonnet-4-20250514';
   }
   success(`Chat: copilot/${chatModel}`);
 
+  // Planning tier
+  console.log();
+  header('  📋 Planning Tier (planning, breaking down approaches)');
+  console.log('  1. openai/gpt-5.3-codex (recommended)');
+  console.log('  2. openai/gpt-4.1');
+  console.log('  3. Custom');
+  console.log();
+  const planChoice = await rl.question('  Select (1-3): ');
+
+  let planningModel: string;
+  switch (planChoice.trim()) {
+    case '1': planningModel = 'openai/gpt-5.3-codex'; break;
+    case '2': planningModel = 'openai/gpt-4.1'; break;
+    case '3': planningModel = await rl.question('  Enter model ID: '); break;
+    default: planningModel = 'openai/gpt-5.3-codex';
+  }
+  success(`Planning: copilot/${planningModel}`);
+
   // Coding tier
   console.log();
-  header('  🏗️  Coding Tier (code generation & outcomes)');
+  header('  🏗️  Coding Tier (implementation — premium)');
   console.log('  1. anthropic/claude-opus-4-20250514 (recommended — best coder)');
   console.log('  2. anthropic/claude-sonnet-4-20250514');
   console.log('  3. openai/gpt-4.1');
@@ -136,6 +155,24 @@ export async function runInitWizard(): Promise<void> {
     default: codingModel = 'anthropic/claude-opus-4-20250514';
   }
   success(`Coding: copilot/${codingModel}`);
+
+  // Review tier
+  console.log();
+  header('  🔍 Review Tier (code review)');
+  console.log('  1. openai/gpt-5.3-codex (recommended)');
+  console.log('  2. openai/gpt-4.1');
+  console.log('  3. Custom');
+  console.log();
+  const revChoice = await rl.question('  Select (1-3): ');
+
+  let reviewModel: string;
+  switch (revChoice.trim()) {
+    case '1': reviewModel = 'openai/gpt-5.3-codex'; break;
+    case '2': reviewModel = 'openai/gpt-4.1'; break;
+    case '3': reviewModel = await rl.question('  Enter model ID: '); break;
+    default: reviewModel = 'openai/gpt-5.3-codex';
+  }
+  success(`Review: copilot/${reviewModel}`);
 
   // --- Step 3: Telegram ---
   step(3, 'Telegram Bot');
@@ -203,11 +240,13 @@ export async function runInitWizard(): Promise<void> {
     telegram: { botToken, chatId, wakeTime: `${endHour.toString().padStart(2, '0')}:00` },
     llm: {
       githubToken,
-      ...(systemTier.provider === 'local' ? { local: { enabled: true, baseUrl: localBaseUrl, model: systemTier.model } } : {}),
+      ...(backgroundTier.provider === 'local' ? { local: { enabled: true, baseUrl: localBaseUrl, model: backgroundTier.model } } : {}),
       tiers: {
-        system: systemTier,
+        background: backgroundTier,
         chat: { provider: 'copilot', model: chatModel },
+        planning: { provider: 'copilot', model: planningModel },
         coding: { provider: 'copilot', model: codingModel },
+        review: { provider: 'copilot', model: reviewModel },
       },
     },
     workspace: { repoPath, branch },
@@ -272,9 +311,11 @@ export async function runInitWizard(): Promise<void> {
   console.log();
   console.log(`  Config: ${configPath}`);
   console.log(`  Repo:   ${repoPath}`);
-  console.log(`  🔧 System: ${systemTier.provider}/${systemTier.model}`);
-  console.log(`  💬 Chat:   copilot/${chatModel}`);
-  console.log(`  🏗️  Coding: copilot/${codingModel}`);
+  console.log(`  🔧 Background: ${backgroundTier.provider}/${backgroundTier.model}`);
+  console.log(`  💬 Chat:       copilot/${chatModel}`);
+  console.log(`  📋 Planning:   copilot/${planningModel}`);
+  console.log(`  🏗️  Coding:     copilot/${codingModel}`);
+  console.log(`  🔍 Review:     copilot/${reviewModel}`);
   console.log(`  Hours:  ${startHour}:00 — ${endHour}:00 ${timezone}`);
   console.log();
   console.log(`  ${BOLD}Start the daemon:${RESET}`);

@@ -36,11 +36,13 @@ export interface CopilotLLMConfig {
 }
 
 /**
- * Three-tier model routing.
- * Each tier can use a different provider/model combination:
- *   system → lightweight tasks (heartbeat, classification) — ideally local/free
- *   chat   → Telegram conversations — mid-tier quality
- *   coding → code generation & outcome delivery — premium quality
+ * Five-tier model routing.
+ * Each tier uses a different provider/model combination optimized for its purpose:
+ *   background → mindless tasks, simple operations — local/free
+ *   chat       → understanding, conversing, organising — mid-tier
+ *   planning   → planning, approach breakdown — codex/reasoning
+ *   coding     → implementation — premium coder
+ *   review     → code review — codex/reasoning
  */
 export type LLMTierProvider = 'local' | 'copilot' | 'cloud';
 
@@ -50,9 +52,11 @@ export interface LLMTierConfig {
 }
 
 export interface LLMTiers {
-  system: LLMTierConfig;  // Heartbeat, classification, summarization
-  chat: LLMTierConfig;    // Telegram conversations
-  coding: LLMTierConfig;  // Code generation & outcome delivery
+  background: LLMTierConfig;  // Mindless background tasks (local Ollama)
+  chat: LLMTierConfig;        // Understanding, conversing, organising
+  planning: LLMTierConfig;    // Planning, breaking down approaches
+  coding: LLMTierConfig;      // Implementation
+  review: LLMTierConfig;      // Code review
 }
 
 export interface LLMConfig {
@@ -182,9 +186,11 @@ function validateLLM(raw: unknown): LLMConfig {
   if (hasTiers) {
     const t = obj['tiers'] as Record<string, unknown>;
     tiers = {
-      system: validateTierConfig(t['system'], 'system'),
+      background: validateTierConfig(t['background'], 'background'),
       chat: validateTierConfig(t['chat'], 'chat'),
+      planning: validateTierConfig(t['planning'], 'planning'),
       coding: validateTierConfig(t['coding'], 'coding'),
+      review: validateTierConfig(t['review'], 'review'),
     };
   }
 

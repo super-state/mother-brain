@@ -87,6 +87,8 @@ export class ConversationHandler {
   private toolRegistry: ToolRegistry | null = null;
   private taskLedger: TaskLedger | null = null;
   private blockerMemory: BlockerMemory | null = null;
+  private plannerModel: string | undefined;
+  private verifierModel: string | undefined;
 
   constructor(
     config: DaemonConfig,
@@ -115,6 +117,16 @@ export class ConversationHandler {
     } else {
       throw new Error('No LLM provider available for conversation.');
     }
+
+    // Use separate models for planning and verification if configured
+    this.plannerModel = config.llm.tiers?.planning?.model;
+    this.verifierModel = config.llm.tiers?.review?.model;
+
+    this.logger.info({
+      chatModel: this.model,
+      plannerModel: this.plannerModel ?? '(same as chat)',
+      verifierModel: this.verifierModel ?? '(same as chat)',
+    }, 'LLM model routing configured');
 
     // Initialize brain state manager (uses same DB as conversation memory)
     this.brainState = new BrainStateManager(this.memory.getDb(), this.logger);
@@ -342,6 +354,8 @@ export class ConversationHandler {
     return runPipeline(taskId, {
       client: this.client,
       model: this.model,
+      plannerModel: this.plannerModel,
+      verifierModel: this.verifierModel,
       toolRegistry: this.toolRegistry,
       taskLedger: this.taskLedger,
       logger: this.logger,

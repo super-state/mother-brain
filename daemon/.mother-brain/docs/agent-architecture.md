@@ -23,7 +23,11 @@ The agent must have actual ways to act — not just generate text.
 
 **Key detail**: Tools need typed inputs/outputs (schemas), not freeform text.
 
-**Current status**: ✅ Typed tool registry with 4 built-in tools (web_fetch, file_read, file_write, shell_exec). OpenAI function-calling integrated in conversation handler.
+**Current status**: ✅ Typed tool registry with 4 built-in tools (web_fetch, file_read, file_write, shell_exec). OpenAI function-calling integrated with multi-turn tool loop (up to 5 rounds).
+
+**Web access hierarchy**: API/RSS first → Playwright browser second → human-assisted for MFA/CAPTCHA. Never bypass protections.
+
+**Phase 2 — Browser Worker**: Separate service accepting jobs (URL + goal), running Playwright, producing artifacts (screenshots, extracted data). Per-domain site adapters (adapters/ign.ts, adapters/gmail.ts) encode selectors — LLMs don't guess selectors.
 
 ---
 

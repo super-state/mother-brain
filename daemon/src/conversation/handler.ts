@@ -6,7 +6,7 @@ import type { PersonaConfig } from './persona.js';
 import type { BudgetTracker } from '../budget/tracker.js';
 import type { ProjectManager } from '../db/projects.js';
 import { detectCommitments } from '../commitment/detector.js';
-import type { DetectedCommitment } from '../commitment/detector.js';
+import type { DetectedCommitment, CommitmentLLMClient } from '../commitment/detector.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -178,8 +178,9 @@ export class ConversationHandler {
 
     this.memory.addMessage('assistant', reply, intent);
 
-    // Scan LLM output for commitment intent ($0 — regex only)
-    const detectedCommitments = detectCommitments(reply, this.logger);
+    // Two-stage commitment detection: regex filter → LLM classification
+    const commitmentLLM: CommitmentLLMClient = { client: this.client, model: this.model };
+    const detectedCommitments = await detectCommitments(reply, this.logger, commitmentLLM);
 
     // Record token usage
     if (this.budgetTracker && this.sessionId && (inputTokens > 0 || outputTokens > 0)) {

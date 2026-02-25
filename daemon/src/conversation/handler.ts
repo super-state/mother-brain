@@ -11,6 +11,7 @@ import type { ToolRegistry } from '../tools/index.js';
 import type { TaskLedger } from '../tasks/index.js';
 import { runPipeline } from '../tasks/index.js';
 import type { PipelineResult } from '../tasks/index.js';
+import type { BlockerMemory } from '../tasks/index.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -74,6 +75,7 @@ export class ConversationHandler {
   private brainState: BrainStateManager;
   private toolRegistry: ToolRegistry | null = null;
   private taskLedger: TaskLedger | null = null;
+  private blockerMemory: BlockerMemory | null = null;
 
   constructor(
     config: DaemonConfig,
@@ -291,6 +293,11 @@ export class ConversationHandler {
     this.taskLedger = ledger;
   }
 
+  /** Attach blocker memory for self-learning. */
+  setBlockerMemory(memory: BlockerMemory): void {
+    this.blockerMemory = memory;
+  }
+
   /** Run a task through the full planner/executor/verifier pipeline. */
   async executeTask(taskId: string): Promise<PipelineResult | null> {
     if (!this.toolRegistry || !this.taskLedger) {
@@ -303,6 +310,7 @@ export class ConversationHandler {
       toolRegistry: this.toolRegistry,
       taskLedger: this.taskLedger,
       logger: this.logger,
+      blockerMemory: this.blockerMemory ?? undefined,
     });
   }
 

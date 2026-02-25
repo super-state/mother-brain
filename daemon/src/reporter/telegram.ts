@@ -9,6 +9,7 @@ import type { ConversationHandler } from '../conversation/handler.js';
 import type { CommitmentStore, Commitment, CommitmentResult } from '../commitment/index.js';
 import type { ToolRegistry } from '../tools/index.js';
 import type { TaskLedger, Task } from '../tasks/index.js';
+import type { BlockerMemory } from '../tasks/index.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,6 +59,7 @@ export class TelegramReporter implements DaemonModule {
   private commitmentScheduler: import('../commitment/scheduler.js').CommitmentScheduler | null = null;
   private toolRegistry: ToolRegistry | null = null;
   private taskLedger: TaskLedger | null = null;
+  private blockerMemory: BlockerMemory | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -102,6 +104,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the task ledger for task commands. */
   onTaskLedger(ledger: TaskLedger): void {
     this.taskLedger = ledger;
+  }
+
+  /** Register blocker memory for self-learning commands. */
+  onBlockerMemory(memory: BlockerMemory): void {
+    this.blockerMemory = memory;
   }
 
   /** Register the commitment store for commitment commands. */
@@ -404,6 +411,35 @@ export class TelegramReporter implements DaemonModule {
         this.logger.error({ taskId: task.id, error }, 'Pipeline error');
         await ctx.reply(`❌ Error: ${escapeHtml(error instanceof Error ? error.message : String(error))}`);
       }
+    });
+
+    // /blockers — show self-learning blocker memory
+    this.bot.command('blockers', async (ctx) => {
+      if (!this.blockerMemory) {
+        await ctx.reply('Blocker memory not available.');
+        return;
+      }
+
+      const stats = this.blockerMemory.stats();
+      if (stats.total === 0) {
+        await ctx.reply('🧠 No blocker resolutions recorded yet. The daemon learns from failures during /run tasks.');
+        return;
+      }
+
+      const recent = this.blockerMemory.recent(5);
+      const recentLines = recent.map(r =>
+        `• <b>${escapeHtml(r.originalTool)}</b> → <b>${escapeHtml(r.resolutionTool)}</b> (${escapeHtml(r.blockerType)})`
+      ).join('\n');
+
+      const topBlockers = stats.topBlockers.map(b => `${escapeHtml(b.type)}: ${b.count}`).join(', ');
+
+      await ctx.reply(
+        `🧠 <b>Blocker Memory</b>\n\n` +
+        `📊 ${stats.total} resolutions, ${Math.round(stats.successRate * 100)}% success rate\n` +
+        `🔝 Top blockers: ${topBlockers}\n\n` +
+        `<b>Recent Resolutions:</b>\n${recentLines}`,
+        { parse_mode: 'HTML' },
+      );
     });
 
     // Catch-all: natural language messages → conversation handler

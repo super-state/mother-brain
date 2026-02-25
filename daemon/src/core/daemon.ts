@@ -23,7 +23,7 @@ import { ConversationMemory } from '../conversation/memory.js';
 import { ConversationHandler } from '../conversation/handler.js';
 import { ToolRegistry } from '../tools/index.js';
 import { registerBuiltinTools } from '../tools/builtin/index.js';
-import { TaskLedger } from '../tasks/index.js';
+import { TaskLedger, BlockerMemory } from '../tasks/index.js';
 import { CommitmentStore } from '../commitment/store.js';
 import { CommitmentScheduler } from '../commitment/scheduler.js';
 import type { DaemonModule, DaemonState } from './lifecycle.js';
@@ -179,6 +179,11 @@ export class Daemon {
     const taskLedger = new TaskLedger(db.connection, this.logger);
     reporter?.onTaskLedger(taskLedger);
     conversationHandler.setTaskLedger(taskLedger);
+
+    // Blocker memory — self-learning from resolved blockers
+    const blockerMemory = new BlockerMemory(db.connection, this.logger);
+    conversationHandler.setBlockerMemory(blockerMemory);
+    reporter?.onBlockerMemory?.(blockerMemory);
 
     // Restart recovery — handle tasks that were running when daemon last stopped
     const interrupted = taskLedger.findInterrupted();

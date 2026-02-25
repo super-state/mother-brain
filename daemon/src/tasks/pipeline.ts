@@ -3,6 +3,7 @@ import type OpenAI from 'openai';
 import type { ToolRegistry } from '../tools/index.js';
 import type { TaskLedger, Task } from './ledger.js';
 import type { Plan, PlanStep, VerificationResult, BlockerType } from './plan.js';
+import { BlockerMemory } from './blocker-memory.js';
 
 // ---------------------------------------------------------------------------
 // Planner — LLM generates a structured plan given a task and tools
@@ -108,6 +109,7 @@ export async function executeSteps(
   taskLedger: TaskLedger,
   taskId: string,
   logger: Logger,
+  blockerMemory?: BlockerMemory,
 ): Promise<Plan> {
   plan.status = 'executing';
 
@@ -134,6 +136,7 @@ export async function executeSteps(
       }
 
       try {
+        const originalTool = step.tool;
         const result = await toolRegistry.execute(step.tool, step.args, logger);
         step.completedAt = new Date().toISOString();
 
@@ -142,13 +145,43 @@ export async function executeSteps(
           step.outcome = 'done';
           step.output = result.output;
           logger.info({ step: step.name, durationMs: result.durationMs }, 'Step done');
+
+          // If this was a fallback/retry, record the resolution for future learning
+          if ((step.retryCount ?? 0) > 0 && blockerMemory && step.error) {
+            blockerMemory.record({
+              originalTool,
+              originalError: step.error,
+              blockerType: step.blockerType ?? 'bad_plan',
+              resolutionTool: step.tool,
+              resolutionArgs: step.args,
+              taskId,
+            });
+          }
+
           resolved = true;
         } else {
           // Classify the failure
           const errorStr = result.error ?? 'Unknown error';
           step.blockerType = classifyBlocker(errorStr, step.tool);
+          step.error = errorStr;
 
-          // Try fallback tool
+          // 1. Consult memory for a known resolution
+          if (blockerMemory) {
+            const learned = blockerMemory.lookup(step.tool, errorStr);
+            if (learned && toolRegistry.get(learned.tool)) {
+              logger.info(
+                { step: step.name, from: step.tool, to: learned.tool, source: 'memory' },
+                'Step using learned resolution',
+              );
+              step.tool = learned.tool;
+              if (Object.keys(learned.args).length > 0) step.args = { ...step.args, ...learned.args };
+              step.outcome = 'retry';
+              step.retryCount = (step.retryCount ?? 0) + 1;
+              continue;
+            }
+          }
+
+          // 2. Try generic fallback
           const fallback = suggestFallback(step.blockerType, step.tool);
           if (fallback && toolRegistry.get(fallback.tool)) {
             logger.info(
@@ -159,13 +192,22 @@ export async function executeSteps(
             if (fallback.args) step.args = { ...step.args, ...fallback.args };
             step.outcome = 'fallback';
             step.retryCount = (step.retryCount ?? 0) + 1;
-            continue; // Retry with new tool
+            continue;
           }
 
-          // No fallback available
+          // 3. No resolution — blocked
+          if (blockerMemory) {
+            blockerMemory.recordFailure({
+              originalTool: step.tool,
+              originalError: errorStr,
+              blockerType: step.blockerType,
+              resolutionTool: step.tool,
+              taskId,
+            });
+          }
+
           step.status = 'failed';
           step.outcome = 'blocked';
-          step.error = errorStr;
           logger.warn({ step: step.name, error: errorStr, blocker: step.blockerType }, 'Step failed — no fallback');
           resolved = true;
         }
@@ -276,6 +318,7 @@ export interface PipelineConfig {
   toolRegistry: ToolRegistry;
   taskLedger: TaskLedger;
   logger: Logger;
+  blockerMemory?: BlockerMemory;
 }
 
 export interface PipelineResult {
@@ -292,7 +335,7 @@ export async function runPipeline(
   taskId: string,
   config: PipelineConfig,
 ): Promise<PipelineResult | null> {
-  const { client, model, toolRegistry, taskLedger, logger } = config;
+  const { client, model, toolRegistry, taskLedger, logger, blockerMemory } = config;
 
   // Start the task
   const task = taskLedger.start(taskId);
@@ -315,7 +358,7 @@ export async function runPipeline(
   taskLedger.checkpoint(taskId, { plan, phase: 'planned' });
 
   // Phase 2: Execute
-  const executedPlan = await executeSteps(plan, toolRegistry, taskLedger, taskId, logger);
+  const executedPlan = await executeSteps(plan, toolRegistry, taskLedger, taskId, logger, blockerMemory);
   taskLedger.checkpoint(taskId, { plan: executedPlan, phase: 'executed' });
 
   // Phase 3: Verify

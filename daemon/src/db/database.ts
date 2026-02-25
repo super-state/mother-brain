@@ -176,4 +176,24 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_tasks_parent ON tasks(parent_task_id);
     `,
   },
+  {
+    name: '004_blocker_resolutions',
+    sql: `
+      CREATE TABLE blocker_resolutions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symptom TEXT NOT NULL,
+        blocker_type TEXT NOT NULL,
+        original_tool TEXT NOT NULL,
+        original_error TEXT NOT NULL,
+        resolution_tool TEXT NOT NULL,
+        resolution_args TEXT DEFAULT '{}',
+        success INTEGER NOT NULL DEFAULT 1,
+        task_id TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX idx_blocker_symptom ON blocker_resolutions(symptom);
+      CREATE INDEX idx_blocker_type ON blocker_resolutions(blocker_type);
+    `,
+  },
 ];

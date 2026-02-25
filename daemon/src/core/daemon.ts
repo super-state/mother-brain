@@ -175,17 +175,10 @@ export class Daemon {
     await commitmentScheduler.start();
     this.register(commitmentScheduler);
 
-    // Commitment executor — uses background LLM tier to fulfill promises
-    const backgroundClient = createLLMClient(this.config, this.logger, 'background');
+    // Commitment executor — reminders just pass through, complex tasks use LLM
     commitmentScheduler.onExecute(async (commitment) => {
-      const result = await backgroundClient.executeTask(
-        'You are an autonomous assistant fulfilling a scheduled commitment. Be concise and helpful.',
-        `Fulfill this commitment: ${commitment.actionDescription}\n\nProvide the result directly.`,
-      );
-      // Return the LLM output as the commitment result
-      return result.changes.length > 0
-        ? result.changes.map(c => c.content).join('\n')
-        : 'Commitment processed.';
+      // Simple reminders don't need an LLM — the notification IS the fulfillment
+      return `⏰ Reminder: ${commitment.actionDescription}`;
     });
 
     // Commitment notifier — sends results via Telegram

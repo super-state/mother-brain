@@ -66,10 +66,11 @@ const RECURRING_PATTERNS: Array<{
 ];
 
 // One-time promise patterns: "I'll do X", "I will send you X", "Let me do X"
+// Note: match both straight (') and curly (\u2019) apostrophes from LLM output
 const PROMISE_PATTERNS: RegExp[] = [
-  /I'?ll\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
+  /I['\u2019]?ll\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
   /I\s+will\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
-  /(?:Let me|I'm going to|I'll go ahead and)\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
+  /(?:Let me|I['\u2019]m going to|I['\u2019]ll go ahead and)\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
 ];
 
 // Time references for one-time commitments
@@ -78,13 +79,25 @@ const TIME_PATTERNS: Array<{
   toTimestamp: (match: RegExpMatchArray) => string;
 }> = [
   {
-    // "at 7am" / "at 3:30pm"
+    // "at 7am" / "at 3:30pm" (12-hour format)
     regex: /at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i,
     toTimestamp: (m) => {
       let hour = parseInt(m[1], 10);
       const minute = m[2] ? parseInt(m[2], 10) : 0;
       if (m[3]?.toLowerCase() === 'pm' && hour < 12) hour += 12;
       if (m[3]?.toLowerCase() === 'am' && hour === 12) hour = 0;
+      const now = new Date();
+      now.setHours(hour, minute, 0, 0);
+      if (now.getTime() < Date.now()) now.setDate(now.getDate() + 1);
+      return now.toISOString();
+    },
+  },
+  {
+    // "at 18:07" / "at 14:30" (24-hour format)
+    regex: /at\s+(\d{1,2}):(\d{2})(?!\s*(?:am|pm))/i,
+    toTimestamp: (m) => {
+      const hour = parseInt(m[1], 10);
+      const minute = parseInt(m[2], 10);
       const now = new Date();
       now.setHours(hour, minute, 0, 0);
       if (now.getTime() < Date.now()) now.setDate(now.getDate() + 1);

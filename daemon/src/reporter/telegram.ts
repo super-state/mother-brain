@@ -28,6 +28,28 @@ export type StatusProvider = () => DaemonStatus;
 export type PauseResumeHandler = (action: 'pause' | 'resume' | 'stop') => void;
 
 // ---------------------------------------------------------------------------
+// Intent Detection — classify messages as actionable vs conversational
+// ---------------------------------------------------------------------------
+
+/** Imperative verbs that signal the user wants the daemon to DO something. */
+const ACTION_VERBS = /^(fetch|get|find|search|check|look up|compile|summarize|summarise|download|scrape|collect|gather|list|show me|tell me|give me|pull|grab|run|execute|build|deploy|install|create|write|generate|update|monitor|scan|analyze|analyse|compare|calculate|count|test|verify|read)\b/i;
+
+/** Short conversational patterns that should NOT be treated as tasks. */
+const CONVERSATIONAL = /^(hi|hello|hey|yo|thanks|thank you|ok|okay|sure|yes|no|what|who|why|when|where|how are|how's|good morning|good evening|good night)\b/i;
+
+/** Questions should go to conversation, not pipeline. */
+const QUESTION = /\?\s*$/;
+
+function detectActionableIntent(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 10) return false;          // Too short to be a task
+  if (CONVERSATIONAL.test(trimmed)) return false;  // Greeting/conversational
+  if (QUESTION.test(trimmed)) return false;        // Questions → conversation
+  if (ACTION_VERBS.test(trimmed)) return true;     // Imperative verb → task
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // Telegram Reporter
 // ---------------------------------------------------------------------------
 
@@ -468,26 +490,88 @@ export class TelegramReporter implements DaemonModule {
       );
     });
 
-    // Catch-all: natural language messages → conversation handler
+    // Catch-all: natural language messages → intent classification → route
     this.bot.on('message:text', async (ctx) => {
       if (!this.conversationHandler) {
         await ctx.reply("I'm running but conversation mode isn't set up yet. Use /status for daemon info.");
         return;
       }
 
+      const text = ctx.message.text;
+
+      // Detect actionable intent: imperative verb = task, not conversation
+      const isActionable = this.taskLedger && detectActionableIntent(text);
+
+      if (isActionable && this.taskLedger) {
+        // Route through pipeline: create task → plan → execute → verify → report
+        const task = this.taskLedger.create({ title: text, type: 'general', priority: 5 });
+        await ctx.reply(`📋 Task created. Working on it...`);
+
+        const typingInterval = setInterval(() => {
+          ctx.replyWithChatAction('typing').catch(() => {});
+        }, 4000);
+
+        try {
+          const phaseEmoji: Record<string, string> = {
+            planning: '🧠', executing: '⚡', verifying: '🔍', complete: '✅', failed: '❌',
+          };
+          let lastMsg = '';
+
+          const onHeartbeat = async (hb: ProgressHeartbeat) => {
+            const emoji = phaseEmoji[hb.phase] ?? '📌';
+            const stepInfo = hb.stepIndex && hb.totalSteps ? ` [${hb.stepIndex}/${hb.totalSteps}]` : '';
+            const blockerInfo = hb.blockers?.length ? `\n🚧 ${hb.blockers.join(', ')}` : '';
+            const msg = `${emoji}${stepInfo} ${hb.action}${blockerInfo}`;
+            if (msg === lastMsg) return;
+            lastMsg = msg;
+            try { await ctx.reply(msg); } catch { /* ignore */ }
+          };
+
+          const result = await this.conversationHandler.executeTask(task.id, onHeartbeat);
+          clearInterval(typingInterval);
+
+          if (!result) {
+            await ctx.reply(`❌ Pipeline couldn't generate a plan for this. Try being more specific, or use /run <description>.`);
+            return;
+          }
+
+          const { verification, plan } = result;
+          const stepSummary = plan.steps.map(s => {
+            const emoji = s.status === 'done' ? '✅' : s.status === 'failed' ? '❌' : '⏭️';
+            return `${emoji} ${escapeHtml(s.name)}`;
+          }).join('\n');
+
+          if (verification.verified) {
+            await ctx.reply(
+              `✅ <b>Done</b>\n\n${stepSummary}\n\n📊 ${escapeHtml(verification.evidence)}`,
+              { parse_mode: 'HTML' },
+            );
+          } else {
+            await ctx.reply(
+              `❌ <b>Partial Result</b>\n\n${stepSummary}\n\n⚠️ ${escapeHtml(verification.failedCriteria ?? 'Some steps failed')}`,
+              { parse_mode: 'HTML' },
+            );
+          }
+        } catch (error) {
+          clearInterval(typingInterval);
+          this.logger.error({ taskId: task.id, error }, 'Pipeline error from natural language');
+          await ctx.reply(`❌ Error running task: ${escapeHtml(error instanceof Error ? error.message : String(error))}`);
+        }
+        return;
+      }
+
+      // Not actionable → normal conversation flow
       try {
-        // Show typing indicator while processing
         await ctx.replyWithChatAction('typing');
         const typingInterval = setInterval(() => {
           ctx.replyWithChatAction('typing').catch(() => {});
         }, 4000);
 
         try {
-          const response = await this.conversationHandler.handleMessage(ctx.message.text);
+          const response = await this.conversationHandler.handleMessage(text);
           clearInterval(typingInterval);
           await ctx.reply(response.text);
 
-          // If commitments were detected, store and schedule them
           if (response.detectedCommitments?.length && this.commitmentStore && this.commitmentScheduler) {
             for (const detected of response.detectedCommitments) {
               const commitment = this.commitmentStore.create(detected);
@@ -501,7 +585,14 @@ export class TelegramReporter implements DaemonModule {
         }
       } catch (error) {
         this.logger.error({ error }, 'Conversation handler error');
-        await ctx.reply("Sorry, I had trouble processing that. Try again or use /status.");
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('tokens_limit') || errorMsg.includes('too large')) {
+          await ctx.reply("📦 The data I fetched was too large to process. Try a more specific request.");
+        } else if (errorMsg.includes('content_filter')) {
+          await ctx.reply("⚠️ Content filter triggered. Could you rephrase that?");
+        } else {
+          await ctx.reply(`⚠️ Error: ${escapeHtml(errorMsg.slice(0, 200))}\n\nTry /status to check daemon health.`);
+        }
       }
     });
 

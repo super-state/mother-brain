@@ -67,6 +67,18 @@
 **Impact**: All future outcome presentations must be actionable user instructions.
 **Check Added**: Outcome completion must include step-by-step user instructions, not code or abstract descriptions.
 
+### Verify Runtime Dependencies After Deploy
+**Trigger**: Commitment executor failed with "404 model 'qwen3:14b' not found" — model was configured but not installed on Pi
+**Learning**: After deploying new functionality that depends on external services (Ollama models, APIs, configs), always verify the dependencies exist on the target. Don't assume config matches reality. For Ollama specifically, `ollama list` should be checked before relying on a model.
+**Impact**: Added deployment checklist item. Reminder execution redesigned to not require LLM.
+**Check Added**: After deploy, verify runtime dependencies exist on target environment.
+
+### Simple Actions Don't Need LLM
+**Trigger**: Commitment executor unnecessarily routed reminders through background LLM tier
+**Learning**: Simple actions like reminders and notifications should be direct — the notification IS the fulfillment. Only use LLM for commitments that genuinely need reasoning (research, summarization, analysis). Over-engineering with LLM calls adds cost, latency, and failure modes for zero value.
+**Impact**: Executor changed from LLM-based to direct notification for reminders.
+**Check Added**: Token efficiency — never use an LLM call when direct code execution suffices.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
@@ -82,3 +94,7 @@
 - [ ] Never use "overnight" or "while you sleep" as daemon's primary identity — it's always-on
 - [ ] Default local model is qwen3 — always check Project Brain preferences before using research-based defaults
 - [ ] Outcome completion must include step-by-step user instructions showing new capabilities, never code/file changes
+- [ ] After deploying, verify runtime dependencies (Ollama models, configs) exist on target environment
+- [ ] Reminders and simple notifications must NOT use LLM calls — direct notification is the fulfillment
+- [ ] Regex matching LLM output must handle Unicode variants (curly quotes U+2019, em-dashes, etc.)
+- [ ] Time parsing must support both 12h (3:00pm) and 24h (15:00) formats — LLMs use both

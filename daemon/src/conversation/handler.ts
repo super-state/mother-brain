@@ -239,8 +239,28 @@ export class ConversationHandler {
         this.logger.warn({ error: errorCode }, 'Content filter triggered — sending graceful response');
         reply = "I understand! Let me think about the best way to approach that. Could you tell me a bit more about what you'd like to focus on?";
       } else if (errorCode === 'tokens_limit_reached' || errorMessage.includes('too large')) {
-        this.logger.warn({ error: errorCode }, 'Token limit reached — tool outputs were too large');
-        reply = "I fetched the data but it was too large to process in one go. Let me try a more focused approach — could you be more specific about what you'd like?";
+        // Self-healing: aggressively reduce tool outputs and retry once
+        this.logger.warn('Token limit reached — auto-reducing and retrying');
+        try {
+          // Find all tool messages and aggressively truncate
+          const reducedMessages = messages.map(m => {
+            if (m.role === 'tool' && typeof m.content === 'string' && m.content.length > 500) {
+              return { ...m, content: m.content.slice(0, 500) + '\n[reduced due to size]' };
+            }
+            return m;
+          }) as OpenAI.ChatCompletionMessageParam[];
+
+          const retryResponse = await this.client.chat.completions.create({
+            model: this.model,
+            max_tokens: 512,
+            messages: reducedMessages,
+          });
+          reply = retryResponse.choices[0]?.message?.content ?? "I fetched data but it was too large. Try a more specific request.";
+          inputTokens += retryResponse.usage?.prompt_tokens ?? 0;
+          outputTokens += retryResponse.usage?.completion_tokens ?? 0;
+        } catch {
+          reply = "I fetched the data but it was too large to process. Try a more specific request.";
+        }
       } else {
         throw error;
       }

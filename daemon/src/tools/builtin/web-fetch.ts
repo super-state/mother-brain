@@ -1,12 +1,84 @@
 import type { Tool, ToolResult } from '../types.js';
 
 // ---------------------------------------------------------------------------
-// web_fetch — HTTP GET/POST for fetching web content
+// web_fetch — HTTP GET/POST with intelligent content extraction
 // ---------------------------------------------------------------------------
+
+// Rule: tools return data, not documents.
+// RSS → items array. HTML → text snippets. JSON → pass through.
+
+const MAX_ITEMS = 10;
+const MAX_FIELD_LENGTH = 300;
+const MAX_TOTAL_OUTPUT = 4000;
+
+/** Extract structured items from RSS/Atom XML. */
+function extractRSS(xml: string): Array<{ title: string; link: string; published?: string; excerpt?: string }> {
+  const items: Array<{ title: string; link: string; published?: string; excerpt?: string }> = [];
+  // Match <item> or <entry> blocks
+  const itemPattern = /<(?:item|entry)[\s>]([\s\S]*?)<\/(?:item|entry)>/gi;
+  let match;
+  while ((match = itemPattern.exec(xml)) !== null && items.length < MAX_ITEMS) {
+    const block = match[1];
+    const title = block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim() ?? '';
+    const link = block.match(/<link[^>]*href="([^"]*)"[^>]*>/i)?.[1]
+      ?? block.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1]?.trim() ?? '';
+    const published = block.match(/<(?:pubDate|published|updated)[^>]*>([\s\S]*?)<\/(?:pubDate|published|updated)>/i)?.[1]?.trim();
+    const desc = block.match(/<(?:description|summary|content)[^>]*>([\s\S]*?)<\/(?:description|summary|content)>/i)?.[1]
+      ?.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
+      ?.replace(/<[^>]+>/g, '')
+      ?.trim();
+    const excerpt = desc ? desc.slice(0, MAX_FIELD_LENGTH) : undefined;
+
+    if (title) items.push({ title: title.slice(0, MAX_FIELD_LENGTH), link, published, excerpt });
+  }
+  return items;
+}
+
+/** Extract readable text from HTML, stripping tags. */
+function extractHTML(html: string): { title: string; text: string } {
+  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? '';
+  // Strip scripts, styles, tags
+  const text = html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, MAX_TOTAL_OUTPUT);
+  return { title, text };
+}
+
+/** Auto-detect content type and extract structured data. */
+function extractContent(body: string, contentType: string | null): unknown {
+  const ct = (contentType ?? '').toLowerCase();
+
+  // RSS/Atom
+  if (ct.includes('xml') || ct.includes('rss') || ct.includes('atom') || body.trimStart().startsWith('<?xml')) {
+    const items = extractRSS(body);
+    if (items.length > 0) return { type: 'rss', itemCount: items.length, items };
+  }
+
+  // JSON
+  if (ct.includes('json')) {
+    try {
+      const parsed = JSON.parse(body);
+      const json = JSON.stringify(parsed);
+      return { type: 'json', data: json.length > MAX_TOTAL_OUTPUT ? json.slice(0, MAX_TOTAL_OUTPUT) : parsed };
+    } catch { /* fall through */ }
+  }
+
+  // HTML → extract readable text
+  if (ct.includes('html') || body.trimStart().startsWith('<!') || body.trimStart().startsWith('<html')) {
+    return { type: 'html', ...extractHTML(body) };
+  }
+
+  // Plain text
+  return { type: 'text', text: body.slice(0, MAX_TOTAL_OUTPUT) };
+}
 
 export const webFetchTool: Tool = {
   name: 'web_fetch',
-  description: 'Fetch content from a URL via HTTP GET or POST. Returns the response body as text. Use for APIs, web pages, RSS feeds, etc.',
+  description: 'Fetch content from a URL. Automatically extracts structured data: RSS→items, HTML→text, JSON→data. Returns clean, reduced output.',
   inputSchema: {
     parameters: {
       url: { type: 'string', description: 'The URL to fetch', required: true },
@@ -39,22 +111,23 @@ export const webFetchTool: Tool = {
 
       const text = await response.text();
       const durationMs = Date.now() - start;
+      const contentType = response.headers.get('content-type');
 
       if (!response.ok) {
         return {
           success: false,
-          output: { status: response.status, statusText: response.statusText, body: text.slice(0, 1000) },
+          output: { status: response.status, statusText: response.statusText, body: text.slice(0, 500) },
           error: `HTTP ${response.status}: ${response.statusText}`,
           durationMs,
         };
       }
 
-      // Truncate very large responses
-      const truncated = text.length > 10_000 ? text.slice(0, 10_000) + '\n... (truncated)' : text;
+      // Smart extraction: RSS→items, HTML→text, JSON→data
+      const extracted = extractContent(text, contentType);
 
       return {
         success: true,
-        output: { status: response.status, body: truncated, contentType: response.headers.get('content-type') },
+        output: { status: response.status, url, contentType, data: extracted },
         durationMs,
       };
     } catch (error) {

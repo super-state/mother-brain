@@ -171,6 +171,8 @@ export class Daemon {
     const commitmentScheduler = new CommitmentScheduler(
       commitmentStore, this.logger, this.config.timezone,
     );
+    // Start commitment scheduler directly (lifecycle.startAll() already ran)
+    await commitmentScheduler.start();
     this.register(commitmentScheduler);
 
     // Commitment executor — uses background LLM tier to fulfill promises

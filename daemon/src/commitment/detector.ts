@@ -165,7 +165,13 @@ export function detectCommitments(llmOutput: string, logger: Logger): DetectedCo
     for (const promiseRegex of PROMISE_PATTERNS) {
       const match = llmOutput.match(promiseRegex);
       if (match) {
-        const actionDesc = match[1]?.trim() || match[0];
+        // Clean up the action description: trim at sentence boundary, include verb
+        const rawAction = match[1]?.trim() || match[0];
+        const sentenceEnd = rawAction.search(/[.!?](?:\s|$)/);
+        const cleanAction = sentenceEnd > 0 ? rawAction.slice(0, sentenceEnd) : rawAction;
+        // Prepend the verb for readability (e.g., "send you a reminder..." not "you a reminder...")
+        const verbMatch = match[0].match(/(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)/i);
+        const actionDesc = verbMatch ? `${verbMatch[0]} ${cleanAction}` : cleanAction;
 
         // Try to find a time reference
         let executeAt = 'now';

@@ -361,6 +361,51 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(`🛠️ <b>Available Tools (${tools.length})</b>\n\n${lines.join('\n')}`, { parse_mode: 'HTML' });
     });
 
+    // /run <description> — create a task and run it through the pipeline
+    this.bot.command('run', async (ctx) => {
+      if (!this.taskLedger || !this.conversationHandler) {
+        await ctx.reply('Pipeline not available.');
+        return;
+      }
+      const description = ctx.message?.text?.replace(/^\/run\s*/i, '').trim();
+      if (!description) {
+        await ctx.reply('Usage: /run &lt;task description&gt;');
+        return;
+      }
+
+      const task = this.taskLedger.create({ title: description, type: 'general', priority: 5 });
+      await ctx.reply(`📋 Task <b>${escapeHtml(task.id)}</b> created. Running pipeline...`, { parse_mode: 'HTML' });
+
+      try {
+        const result = await this.conversationHandler.executeTask(task.id);
+        if (!result) {
+          await ctx.reply(`❌ Pipeline failed for task ${escapeHtml(task.id)}`);
+          return;
+        }
+
+        const { verification, plan } = result;
+        const stepSummary = plan.steps.map(s => {
+          const emoji = s.status === 'done' ? '✅' : s.status === 'failed' ? '❌' : '⏭️';
+          return `${emoji} ${escapeHtml(s.name)}`;
+        }).join('\n');
+
+        if (verification.verified) {
+          await ctx.reply(
+            `✅ <b>Task Complete</b>\n\n${stepSummary}\n\n📊 ${escapeHtml(verification.evidence)}`,
+            { parse_mode: 'HTML' },
+          );
+        } else {
+          await ctx.reply(
+            `❌ <b>Task Failed</b>\n\n${stepSummary}\n\n⚠️ ${escapeHtml(verification.failedCriteria ?? 'Unknown failure')}`,
+            { parse_mode: 'HTML' },
+          );
+        }
+      } catch (error) {
+        this.logger.error({ taskId: task.id, error }, 'Pipeline error');
+        await ctx.reply(`❌ Error: ${escapeHtml(error instanceof Error ? error.message : String(error))}`);
+      }
+    });
+
     // Catch-all: natural language messages → conversation handler
     this.bot.on('message:text', async (ctx) => {
       if (!this.conversationHandler) {

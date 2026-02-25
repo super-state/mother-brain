@@ -8,6 +8,9 @@ import type { ProjectManager } from '../db/projects.js';
 import { detectCommitments } from '../commitment/detector.js';
 import type { DetectedCommitment, CommitmentLLMClient } from '../commitment/detector.js';
 import type { ToolRegistry } from '../tools/index.js';
+import type { TaskLedger } from '../tasks/index.js';
+import { runPipeline } from '../tasks/index.js';
+import type { PipelineResult } from '../tasks/index.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -70,6 +73,7 @@ export class ConversationHandler {
   private model: string;
   private brainState: BrainStateManager;
   private toolRegistry: ToolRegistry | null = null;
+  private taskLedger: TaskLedger | null = null;
 
   constructor(
     config: DaemonConfig,
@@ -277,6 +281,26 @@ export class ConversationHandler {
   setToolRegistry(registry: ToolRegistry): void {
     this.toolRegistry = registry;
     this.logger.info({ tools: registry.size }, 'Tool registry attached to conversation handler');
+  }
+
+  /** Attach a task ledger for pipeline execution. */
+  setTaskLedger(ledger: TaskLedger): void {
+    this.taskLedger = ledger;
+  }
+
+  /** Run a task through the full planner/executor/verifier pipeline. */
+  async executeTask(taskId: string): Promise<PipelineResult | null> {
+    if (!this.toolRegistry || !this.taskLedger) {
+      this.logger.error('Cannot run pipeline — tool registry or task ledger not set');
+      return null;
+    }
+    return runPipeline(taskId, {
+      client: this.client,
+      model: this.model,
+      toolRegistry: this.toolRegistry,
+      taskLedger: this.taskLedger,
+      logger: this.logger,
+    });
   }
 
   // -------------------------------------------------------------------------

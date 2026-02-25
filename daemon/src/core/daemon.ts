@@ -178,6 +178,7 @@ export class Daemon {
     // Task ledger — durable task management with checkpoint/resume
     const taskLedger = new TaskLedger(db.connection, this.logger);
     reporter?.onTaskLedger(taskLedger);
+    conversationHandler.setTaskLedger(taskLedger);
 
     // Restart recovery — handle tasks that were running when daemon last stopped
     const interrupted = taskLedger.findInterrupted();

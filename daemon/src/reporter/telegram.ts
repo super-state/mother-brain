@@ -383,6 +383,11 @@ export class TelegramReporter implements DaemonModule {
       const task = this.taskLedger.create({ title: description, type: 'general', priority: 5 });
       await ctx.reply(`📋 Task <b>${escapeHtml(task.id)}</b> created. Running pipeline...`, { parse_mode: 'HTML' });
 
+      // Keep typing indicator active during pipeline execution
+      const typingInterval = setInterval(() => {
+        ctx.replyWithChatAction('typing').catch(() => {});
+      }, 4000);
+
       try {
         // Heartbeat: send live progress updates as the pipeline runs
         const phaseEmoji: Record<string, string> = {
@@ -404,6 +409,7 @@ export class TelegramReporter implements DaemonModule {
         };
 
         const result = await this.conversationHandler.executeTask(task.id, onHeartbeat);
+        clearInterval(typingInterval);
         if (!result) {
           await ctx.reply(`❌ Pipeline failed for task ${escapeHtml(task.id)}`);
           return;
@@ -427,6 +433,7 @@ export class TelegramReporter implements DaemonModule {
           );
         }
       } catch (error) {
+        clearInterval(typingInterval);
         this.logger.error({ taskId: task.id, error }, 'Pipeline error');
         await ctx.reply(`❌ Error: ${escapeHtml(error instanceof Error ? error.message : String(error))}`);
       }
@@ -469,16 +476,28 @@ export class TelegramReporter implements DaemonModule {
       }
 
       try {
-        const response = await this.conversationHandler.handleMessage(ctx.message.text);
-        await ctx.reply(response.text);
+        // Show typing indicator while processing
+        await ctx.replyWithChatAction('typing');
+        const typingInterval = setInterval(() => {
+          ctx.replyWithChatAction('typing').catch(() => {});
+        }, 4000);
 
-        // If commitments were detected, store and schedule them
-        if (response.detectedCommitments?.length && this.commitmentStore && this.commitmentScheduler) {
-          for (const detected of response.detectedCommitments) {
-            const commitment = this.commitmentStore.create(detected);
-            this.commitmentScheduler.scheduleCommitment(commitment);
-            await this.notifyCommitmentCreated(commitment);
+        try {
+          const response = await this.conversationHandler.handleMessage(ctx.message.text);
+          clearInterval(typingInterval);
+          await ctx.reply(response.text);
+
+          // If commitments were detected, store and schedule them
+          if (response.detectedCommitments?.length && this.commitmentStore && this.commitmentScheduler) {
+            for (const detected of response.detectedCommitments) {
+              const commitment = this.commitmentStore.create(detected);
+              this.commitmentScheduler.scheduleCommitment(commitment);
+              await this.notifyCommitmentCreated(commitment);
+            }
           }
+        } catch (error) {
+          clearInterval(typingInterval);
+          throw error;
         }
       } catch (error) {
         this.logger.error({ error }, 'Conversation handler error');

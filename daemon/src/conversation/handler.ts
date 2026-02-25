@@ -10,7 +10,7 @@ import type { DetectedCommitment, CommitmentLLMClient } from '../commitment/dete
 import type { ToolRegistry } from '../tools/index.js';
 import type { TaskLedger } from '../tasks/index.js';
 import { runPipeline } from '../tasks/index.js';
-import type { PipelineResult } from '../tasks/index.js';
+import type { PipelineResult, HeartbeatCallback } from '../tasks/index.js';
 import type { BlockerMemory } from '../tasks/index.js';
 import {
   BrainStateManager,
@@ -299,7 +299,7 @@ export class ConversationHandler {
   }
 
   /** Run a task through the full planner/executor/verifier pipeline. */
-  async executeTask(taskId: string): Promise<PipelineResult | null> {
+  async executeTask(taskId: string, onHeartbeat?: HeartbeatCallback): Promise<PipelineResult | null> {
     if (!this.toolRegistry || !this.taskLedger) {
       this.logger.error('Cannot run pipeline — tool registry or task ledger not set');
       return null;
@@ -311,6 +311,7 @@ export class ConversationHandler {
       taskLedger: this.taskLedger,
       logger: this.logger,
       blockerMemory: this.blockerMemory ?? undefined,
+      onHeartbeat,
     });
   }
 

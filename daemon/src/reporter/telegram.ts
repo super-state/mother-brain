@@ -8,7 +8,7 @@ import type { UsageOptimizer, OptimizationReport } from '../budget/optimizer.js'
 import type { ConversationHandler } from '../conversation/handler.js';
 import type { CommitmentStore, Commitment, CommitmentResult } from '../commitment/index.js';
 import type { ToolRegistry } from '../tools/index.js';
-import type { TaskLedger, Task } from '../tasks/index.js';
+import type { TaskLedger, Task, ProgressHeartbeat } from '../tasks/index.js';
 import type { BlockerMemory } from '../tasks/index.js';
 
 // ---------------------------------------------------------------------------
@@ -384,7 +384,26 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(`📋 Task <b>${escapeHtml(task.id)}</b> created. Running pipeline...`, { parse_mode: 'HTML' });
 
       try {
-        const result = await this.conversationHandler.executeTask(task.id);
+        // Heartbeat: send live progress updates as the pipeline runs
+        const phaseEmoji: Record<string, string> = {
+          planning: '🧠', executing: '⚡', verifying: '🔍', complete: '✅', failed: '❌',
+        };
+        let lastHeartbeatMsg = '';
+
+        const onHeartbeat = async (hb: ProgressHeartbeat) => {
+          const emoji = phaseEmoji[hb.phase] ?? '📌';
+          const stepInfo = hb.stepIndex && hb.totalSteps ? ` [${hb.stepIndex}/${hb.totalSteps}]` : '';
+          const blockerInfo = hb.blockers?.length ? `\n🚧 ${hb.blockers.join(', ')}` : '';
+          const msg = `${emoji}${stepInfo} ${hb.action}${blockerInfo}`;
+
+          // Avoid sending duplicate messages
+          if (msg === lastHeartbeatMsg) return;
+          lastHeartbeatMsg = msg;
+
+          try { await ctx.reply(msg); } catch { /* Telegram send errors shouldn't break pipeline */ }
+        };
+
+        const result = await this.conversationHandler.executeTask(task.id, onHeartbeat);
         if (!result) {
           await ctx.reply(`❌ Pipeline failed for task ${escapeHtml(task.id)}`);
           return;

@@ -6,6 +6,27 @@ import type { Plan, PlanStep, VerificationResult, BlockerType } from './plan.js'
 import { BlockerMemory } from './blocker-memory.js';
 
 // ---------------------------------------------------------------------------
+// Progress Heartbeat — structured updates emitted during pipeline execution
+// ---------------------------------------------------------------------------
+
+export type HeartbeatPhase = 'planning' | 'executing' | 'verifying' | 'complete' | 'failed';
+
+export interface ProgressHeartbeat {
+  taskId: string;
+  phase: HeartbeatPhase;
+  stepIndex?: number;
+  totalSteps?: number;
+  currentStep?: string;
+  action: string;       // What we're doing right now
+  result?: string;      // What happened (after step completes)
+  next?: string;        // What comes next
+  blockers?: string[];  // Active blockers
+  timestamp: string;
+}
+
+export type HeartbeatCallback = (heartbeat: ProgressHeartbeat) => void | Promise<void>;
+
+// ---------------------------------------------------------------------------
 // Planner — LLM generates a structured plan given a task and tools
 // ---------------------------------------------------------------------------
 
@@ -110,15 +131,34 @@ export async function executeSteps(
   taskId: string,
   logger: Logger,
   blockerMemory?: BlockerMemory,
+  onHeartbeat?: HeartbeatCallback,
 ): Promise<Plan> {
   plan.status = 'executing';
 
-  for (const step of plan.steps) {
+  const emit = (hb: Omit<ProgressHeartbeat, 'taskId' | 'timestamp' | 'totalSteps'>) => {
+    if (!onHeartbeat) return;
+    try {
+      onHeartbeat({ ...hb, taskId, totalSteps: plan.steps.length, timestamp: new Date().toISOString() });
+    } catch { /* heartbeat failures must not break the pipeline */ }
+  };
+
+  for (let i = 0; i < plan.steps.length; i++) {
+    const step = plan.steps[i];
+    const nextStepName = i + 1 < plan.steps.length ? plan.steps[i + 1].name : 'verify results';
+
     step.status = 'running';
     step.startedAt = new Date().toISOString();
     step.retryCount = 0;
 
     taskLedger.checkpoint(taskId, { plan });
+
+    emit({
+      phase: 'executing',
+      stepIndex: i + 1,
+      currentStep: step.name,
+      action: `Running: ${step.name} (${step.tool})`,
+      next: nextStepName,
+    });
 
     let resolved = false;
 
@@ -145,6 +185,15 @@ export async function executeSteps(
           step.outcome = 'done';
           step.output = result.output;
           logger.info({ step: step.name, durationMs: result.durationMs }, 'Step done');
+
+          emit({
+            phase: 'executing',
+            stepIndex: i + 1,
+            currentStep: step.name,
+            action: `Completed: ${step.name}`,
+            result: 'Success',
+            next: nextStepName,
+          });
 
           // If this was a fallback/retry, record the resolution for future learning
           if ((step.retryCount ?? 0) > 0 && blockerMemory && step.error) {
@@ -173,6 +222,14 @@ export async function executeSteps(
                 { step: step.name, from: step.tool, to: learned.tool, source: 'memory' },
                 'Step using learned resolution',
               );
+              emit({
+                phase: 'executing',
+                stepIndex: i + 1,
+                currentStep: step.name,
+                action: `Retrying with learned fix: ${learned.tool}`,
+                result: `Failed with ${step.tool}: ${errorStr.slice(0, 100)}`,
+                blockers: [step.blockerType],
+              });
               step.tool = learned.tool;
               if (Object.keys(learned.args).length > 0) step.args = { ...step.args, ...learned.args };
               step.outcome = 'retry';
@@ -188,6 +245,14 @@ export async function executeSteps(
               { step: step.name, from: step.tool, to: fallback.tool, blocker: step.blockerType },
               'Step falling back to alternative tool',
             );
+            emit({
+              phase: 'executing',
+              stepIndex: i + 1,
+              currentStep: step.name,
+              action: `Falling back: ${step.tool} → ${fallback.tool}`,
+              result: `Blocked: ${errorStr.slice(0, 100)}`,
+              blockers: [step.blockerType],
+            });
             step.tool = fallback.tool;
             if (fallback.args) step.args = { ...step.args, ...fallback.args };
             step.outcome = 'fallback';
@@ -209,6 +274,14 @@ export async function executeSteps(
           step.status = 'failed';
           step.outcome = 'blocked';
           logger.warn({ step: step.name, error: errorStr, blocker: step.blockerType }, 'Step failed — no fallback');
+          emit({
+            phase: 'executing',
+            stepIndex: i + 1,
+            currentStep: step.name,
+            action: `Blocked: ${step.name}`,
+            result: errorStr.slice(0, 150),
+            blockers: [step.blockerType],
+          });
           resolved = true;
         }
       } catch (error) {
@@ -319,6 +392,7 @@ export interface PipelineConfig {
   taskLedger: TaskLedger;
   logger: Logger;
   blockerMemory?: BlockerMemory;
+  onHeartbeat?: HeartbeatCallback;
 }
 
 export interface PipelineResult {
@@ -335,7 +409,12 @@ export async function runPipeline(
   taskId: string,
   config: PipelineConfig,
 ): Promise<PipelineResult | null> {
-  const { client, model, toolRegistry, taskLedger, logger, blockerMemory } = config;
+  const { client, model, toolRegistry, taskLedger, logger, blockerMemory, onHeartbeat } = config;
+
+  const emit = (hb: Omit<ProgressHeartbeat, 'taskId' | 'timestamp'>) => {
+    if (!onHeartbeat) return;
+    try { onHeartbeat({ ...hb, taskId, timestamp: new Date().toISOString() }); } catch { /* ignore */ }
+  };
 
   // Start the task
   const task = taskLedger.start(taskId);
@@ -347,21 +426,30 @@ export async function runPipeline(
   logger.info({ taskId, title: task.title }, 'Pipeline started');
 
   // Phase 1: Plan
+  emit({ phase: 'planning', action: `Planning: ${task.title}` });
   const toolManifest = toolRegistry.generateManifest();
   const plan = await generatePlan(task.title, toolManifest, client, model, logger);
 
   if (!plan || plan.steps.length === 0) {
+    emit({ phase: 'failed', action: 'Planning failed — no valid plan generated' });
     taskLedger.fail(taskId, 'Planner failed to generate a valid plan');
     return null;
   }
 
+  emit({
+    phase: 'planning',
+    action: `Plan ready: ${plan.steps.length} steps`,
+    next: plan.steps[0]?.name ?? 'execute',
+  });
+
   taskLedger.checkpoint(taskId, { plan, phase: 'planned' });
 
   // Phase 2: Execute
-  const executedPlan = await executeSteps(plan, toolRegistry, taskLedger, taskId, logger, blockerMemory);
+  const executedPlan = await executeSteps(plan, toolRegistry, taskLedger, taskId, logger, blockerMemory, onHeartbeat);
   taskLedger.checkpoint(taskId, { plan: executedPlan, phase: 'executed' });
 
   // Phase 3: Verify
+  emit({ phase: 'verifying', action: 'Verifying results against success criteria' });
   const verification = await verifyPlan(executedPlan, client, model, logger);
 
   if (verification.verified) {
@@ -370,9 +458,11 @@ export async function runPipeline(
       .filter(s => s.output)
       .map(s => ({ type: 'json' as const, label: s.name, value: JSON.stringify(s.output).slice(0, 2000) }));
     taskLedger.complete(taskId, artifacts);
+    emit({ phase: 'complete', action: 'Task verified and complete', result: verification.evidence });
   } else {
     executedPlan.status = 'failed';
     taskLedger.fail(taskId, verification.failedCriteria ?? 'Verification failed');
+    emit({ phase: 'failed', action: 'Verification failed', result: verification.failedCriteria });
   }
 
   const updatedTask = taskLedger.getById(taskId)!;

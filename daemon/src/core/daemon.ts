@@ -21,6 +21,8 @@ import { UsageOptimizer } from '../budget/optimizer.js';
 import { loadPersona } from '../conversation/persona.js';
 import { ConversationMemory } from '../conversation/memory.js';
 import { ConversationHandler } from '../conversation/handler.js';
+import { ToolRegistry } from '../tools/index.js';
+import { registerBuiltinTools } from '../tools/builtin/index.js';
 import { CommitmentStore } from '../commitment/store.js';
 import { CommitmentScheduler } from '../commitment/scheduler.js';
 import type { DaemonModule, DaemonState } from './lifecycle.js';
@@ -165,6 +167,12 @@ export class Daemon {
       budgetTracker, this.sessionId,
     );
     reporter?.onConversation(conversationHandler);
+
+    // Tool registry — typed tool layer for function-calling
+    const toolRegistry = new ToolRegistry(this.logger);
+    registerBuiltinTools(toolRegistry, this.logger);
+    conversationHandler.setToolRegistry(toolRegistry);
+    reporter?.onTools(toolRegistry);
 
     // Commitment engine — tracks and executes promises from conversation
     const commitmentStore = new CommitmentStore(db.connection, this.logger);

@@ -7,6 +7,7 @@ import type { BudgetTracker, UsageReport } from '../budget/tracker.js';
 import type { UsageOptimizer, OptimizationReport } from '../budget/optimizer.js';
 import type { ConversationHandler } from '../conversation/handler.js';
 import type { CommitmentStore, Commitment, CommitmentResult } from '../commitment/index.js';
+import type { ToolRegistry } from '../tools/index.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,6 +55,7 @@ export class TelegramReporter implements DaemonModule {
   private conversationHandler: ConversationHandler | null = null;
   private commitmentStore: CommitmentStore | null = null;
   private commitmentScheduler: import('../commitment/scheduler.js').CommitmentScheduler | null = null;
+  private toolRegistry: ToolRegistry | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -88,6 +90,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the conversation handler for natural language messages. */
   onConversation(handler: ConversationHandler): void {
     this.conversationHandler = handler;
+  }
+
+  /** Register the tool registry for tool commands. */
+  onTools(registry: ToolRegistry): void {
+    this.toolRegistry = registry;
   }
 
   /** Register the commitment store for commitment commands. */
@@ -274,6 +281,20 @@ export class TelegramReporter implements DaemonModule {
       }
       this.conversationHandler.resetConversation();
       await ctx.reply("🔄 Conversation reset. Let's start fresh! What are you working on?");
+    });
+
+    // /tools — list available tools and their risk levels
+    this.bot.command('tools', async (ctx) => {
+      if (!this.toolRegistry || this.toolRegistry.size === 0) {
+        await ctx.reply('No tools registered.');
+        return;
+      }
+      const tools = this.toolRegistry.list();
+      const riskEmoji = { low: '🟢', medium: '🟡', high: '🔴' } as const;
+      const lines = tools.map(t =>
+        `${riskEmoji[t.riskLevel]} <b>${escapeHtml(t.name)}</b> — ${escapeHtml(t.description)}`
+      );
+      await ctx.reply(`🛠️ <b>Available Tools (${tools.length})</b>\n\n${lines.join('\n')}`, { parse_mode: 'HTML' });
     });
 
     // Catch-all: natural language messages → conversation handler

@@ -7,6 +7,7 @@ import type { BudgetTracker } from '../budget/tracker.js';
 import type { ProjectManager } from '../db/projects.js';
 import { detectCommitments } from '../commitment/detector.js';
 import type { DetectedCommitment, CommitmentLLMClient } from '../commitment/detector.js';
+import type { ToolRegistry } from '../tools/index.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -68,6 +69,7 @@ export class ConversationHandler {
   private client: OpenAI;
   private model: string;
   private brainState: BrainStateManager;
+  private toolRegistry: ToolRegistry | null = null;
 
   constructor(
     config: DaemonConfig,
@@ -151,20 +153,64 @@ export class ConversationHandler {
     );
 
     // Call LLM with constrained prompt — handle content filter errors
+    // If tools are available, include them and handle tool-call responses.
     let reply: string;
     let inputTokens = 0;
     let outputTokens = 0;
+
+    const openAITools = this.toolRegistry && this.toolRegistry.size > 0
+      ? this.toolRegistry.toOpenAITools() as OpenAI.ChatCompletionTool[]
+      : undefined;
 
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
         max_tokens: 512,
         messages: messages as OpenAI.ChatCompletionMessageParam[],
+        ...(openAITools ? { tools: openAITools } : {}),
       });
 
-      reply = response.choices[0]?.message?.content ?? "Let me think about that...";
-      inputTokens = response.usage?.prompt_tokens ?? 0;
-      outputTokens = response.usage?.completion_tokens ?? 0;
+      inputTokens += response.usage?.prompt_tokens ?? 0;
+      outputTokens += response.usage?.completion_tokens ?? 0;
+      const choice = response.choices[0];
+
+      // Tool-use loop: execute tool calls and let LLM generate final answer
+      if (choice?.finish_reason === 'tool_calls' && choice.message.tool_calls?.length && this.toolRegistry) {
+        const toolMessages: OpenAI.ChatCompletionMessageParam[] = [
+          ...messages as OpenAI.ChatCompletionMessageParam[],
+          choice.message as OpenAI.ChatCompletionAssistantMessageParam,
+        ];
+
+        for (const toolCall of choice.message.tool_calls) {
+          const toolName = toolCall.function.name;
+          let args: Record<string, unknown> = {};
+          try { args = JSON.parse(toolCall.function.arguments); } catch { /* empty args */ }
+
+          this.logger.info({ tool: toolName, args }, 'Executing tool call from LLM');
+          const result = await this.toolRegistry.execute(toolName, args, this.logger);
+
+          toolMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: result.success
+              ? JSON.stringify(result.output)
+              : `Error: ${result.error ?? 'Unknown error'}`,
+          });
+        }
+
+        // Second LLM call to generate final text response using tool results
+        const followUp = await this.client.chat.completions.create({
+          model: this.model,
+          max_tokens: 512,
+          messages: toolMessages,
+        });
+
+        inputTokens += followUp.usage?.prompt_tokens ?? 0;
+        outputTokens += followUp.usage?.completion_tokens ?? 0;
+        reply = followUp.choices[0]?.message?.content ?? "I ran those tools but couldn't summarize the results.";
+      } else {
+        reply = choice?.message?.content ?? "Let me think about that...";
+      }
     } catch (error: unknown) {
       // Handle Azure content filter or other API errors gracefully
       const errorCode = (error as { code?: string })?.code;
@@ -227,6 +273,12 @@ export class ConversationHandler {
     this.logger.info('Conversation state reset by user');
   }
 
+  /** Attach a tool registry for function-calling in conversations. */
+  setToolRegistry(registry: ToolRegistry): void {
+    this.toolRegistry = registry;
+    this.logger.info({ tools: registry.size }, 'Tool registry attached to conversation handler');
+  }
+
   // -------------------------------------------------------------------------
   // Private
   // -------------------------------------------------------------------------
@@ -246,6 +298,12 @@ export class ConversationHandler {
           .map(p => `- ${p.name}${p.active ? ' [ACTIVE]' : ''}: ${p.repoPath}`)
           .join('\n');
         prompt += `\n\nRegistered projects:\n${projectList}`;
+      }
+
+      // Append tool manifest so the LLM knows what tools are available
+      if (this.toolRegistry && this.toolRegistry.size > 0) {
+        prompt += `\n\nAVAILABLE TOOLS:\n${this.toolRegistry.generateManifest()}`;
+        prompt += '\nYou may call these tools via function calling when the user asks you to perform actions.';
       }
     }
 

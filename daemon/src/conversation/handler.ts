@@ -54,6 +54,17 @@ export function classifyIntent(text: string): MessageIntent {
 }
 
 // ---------------------------------------------------------------------------
+// Tool Output Truncation — prevent token overflow
+// ---------------------------------------------------------------------------
+
+const MAX_TOOL_OUTPUT_CHARS = 3000; // ~750 tokens — safe for 8k context
+
+function truncateToolOutput(output: string): string {
+  if (output.length <= MAX_TOOL_OUTPUT_CHARS) return output;
+  return output.slice(0, MAX_TOOL_OUTPUT_CHARS) + `\n\n[... truncated, ${output.length} total chars]`;
+}
+
+// ---------------------------------------------------------------------------
 // Conversation Handler — routes through Brain Runtime
 // ---------------------------------------------------------------------------
 
@@ -204,7 +215,7 @@ export class ConversationHandler {
               role: 'tool',
               tool_call_id: toolCall.id,
               content: result.success
-                ? JSON.stringify(result.output)
+                ? truncateToolOutput(JSON.stringify(result.output))
                 : `Error: ${result.error ?? 'Unknown error'}`,
             });
           }
@@ -223,9 +234,13 @@ export class ConversationHandler {
     } catch (error: unknown) {
       // Handle Azure content filter or other API errors gracefully
       const errorCode = (error as { code?: string })?.code;
+      const errorMessage = (error as { error?: { message?: string } })?.error?.message ?? '';
       if (errorCode === 'content_filter') {
         this.logger.warn({ error: errorCode }, 'Content filter triggered — sending graceful response');
         reply = "I understand! Let me think about the best way to approach that. Could you tell me a bit more about what you'd like to focus on?";
+      } else if (errorCode === 'tokens_limit_reached' || errorMessage.includes('too large')) {
+        this.logger.warn({ error: errorCode }, 'Token limit reached — tool outputs were too large');
+        reply = "I fetched the data but it was too large to process in one go. Let me try a more focused approach — could you be more specific about what you'd like?";
       } else {
         throw error;
       }

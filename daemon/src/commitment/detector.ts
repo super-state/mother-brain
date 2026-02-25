@@ -194,14 +194,17 @@ interface CommitmentClassification {
   confidence: number;
 }
 
-const CLASSIFICATION_PROMPT = `You are a commitment classifier. Analyze if the AI assistant's message contains a real, actionable commitment (a promise to DO something specific for the user).
+const CLASSIFICATION_PROMPT = `You are a commitment classifier. Analyze if the AI assistant's message contains a real, actionable commitment to do something IN THE FUTURE for the user.
 
 Return ONLY valid JSON:
 {"isCommitment":bool,"task":"concise description","deliverable":"what user receives or null","when":"immediate|scheduled|recurring|ambiguous|none","timeExpression":"extracted time or null","confidence":0.0-1.0}
 
 Rules:
-- isCommitment=true ONLY for concrete actions (fetch data, send report, create something, set reminder)
-- isCommitment=false for conversational intent ("I'll keep that in mind", "I'll think about it", "I'll let you know")
+- isCommitment=true ONLY for FUTURE actions with a clear time component (remind at 3pm, every morning, tomorrow, etc.)
+- isCommitment=false for things the assistant is doing RIGHT NOW in the conversation ("I'll fetch that", "Let me check", "I'll try an alternative")
+- isCommitment=false for in-flight actions the assistant is currently performing
+- isCommitment=false for conversational intent ("I'll keep that in mind", "I'll think about it")
+- "when":"immediate" should ONLY be true if the user explicitly asked for a reminder or scheduled action
 - confidence < 0.5 means probably not a real commitment`;
 
 async function classifyCommitment(

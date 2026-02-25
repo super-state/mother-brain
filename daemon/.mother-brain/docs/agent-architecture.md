@@ -23,7 +23,7 @@ The agent must have actual ways to act — not just generate text.
 
 **Key detail**: Tools need typed inputs/outputs (schemas), not freeform text.
 
-**Current status**: 🟡 LLM calls only. No web fetch, email, calendar, or browser.
+**Current status**: ✅ Typed tool registry with 4 built-in tools (web_fetch, file_read, file_write, shell_exec). OpenAI function-calling integrated in conversation handler.
 
 ---
 
@@ -53,7 +53,7 @@ This is the big one most "agents" lack. A persistent store of:
 
 If the process restarts, tasks must survive.
 
-**Current status**: 🟡 Commitments table exists but isn't a general-purpose task system.
+**Current status**: ✅ SQLite task ledger with full lifecycle (queued/running/blocked/done/failed), checkpoints, artifacts, restart recovery.
 
 ---
 
@@ -80,7 +80,7 @@ If the same model both plans and acts, it overpromises, skips steps, and halluci
 
 Even if it's all the same LLM, keep the roles separate in code.
 
-**Current status**: 🟡 Brain Runtime has phases, but no explicit planner/executor/verifier separation for tasks.
+**Current status**: ✅ Planner (LLM → structured JSON plan), step executor (tool calls with checkpoints), evidence verifier (LLM-based criteria checking). Full pipeline orchestrator.
 
 ---
 
@@ -93,7 +93,7 @@ Agents must be grounded in reality, not vibes.
 - Tests for code tasks; "open the page and confirm" for web tasks
 - This stops "I did it" when nothing happened.
 
-**Current status**: 🟡 Verification engine exists for code tasks. Nothing for general tasks.
+**Current status**: ✅ Verification engine for code + evidence verifier for general tasks (LLM checks success criteria against outputs).
 
 ---
 
@@ -179,7 +179,7 @@ Even minimal:
 
 Without this, autonomy feels like chaos.
 
-**Current status**: 🟡 Telegram /status, /pause, /resume. No "what's running/blocked" view.
+**Current status**: 🟡 Telegram /status, /tasks, /task <id>, /tools, /run. Missing "what's blocked" and approval workflows.
 
 ---
 
@@ -187,10 +187,44 @@ Without this, autonomy feels like chaos.
 
 The simplest "agent that actually works":
 
-1. **Tool layer** (typed)
-2. **Task ledger** (durable)
-3. **Executor loop** (scheduler + retries)
-4. **Verifier** ("done" requires evidence)
+1. **Tool layer** (typed) ✅
+2. **Task ledger** (durable) ✅
+3. **Executor loop** (scheduler + retries) ✅
+4. **Verifier** ("done" requires evidence) ✅
 5. **Permissions + approvals**
 
 Everything else is improvements.
+
+---
+
+## Advanced Agent Capabilities (Phase 2+)
+
+### Task Contracts
+Every request must be converted into a contract with:
+- **Goal** (one sentence)
+- **Deliverables** (files/links/artifacts)
+- **Constraints** (stack, budget, policies, deadlines)
+- **Definition of Done** (evidence-based, not vibes)
+- **Acceptance tests** (how success will be verified)
+
+If the agent can't restate the task as a contract, it can't reliably finish it.
+
+### DoD-to-Checks Compiler
+Translate Definition of Done into automated checks:
+- "Tests pass" → run test command + capture output
+- "Feature works" → run integration flow + capture evidence
+- "Deployment is live" → ping endpoint + confirm response
+- "Doc is ready" → lint/validate + ensure file exists
+
+### Workflow Graph (State Machine)
+Real tasks branch and loop. Model as DAG:
+`spec → scaffold → implement → test → deploy → verify → package → done`
+
+Each node has: entry criteria, actions, exit criteria (evidence).
+
+### Self-Learning Systems
+- **Postmortem → Playbook memory**: After failures, store symptom + root cause + fix + prevention
+- **Retrieval before action (RAG)**: Before planning, query past similar tasks and known pitfalls
+- **Regression tests for agent behavior**: Lock improvements into software tests
+- **Metrics-driven tuning**: Track DoD success rate, retries, cost per task, human interventions
+- **Versioned prompts/policies**: Treat prompts as code — version, test, gate updates

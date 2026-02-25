@@ -169,7 +169,7 @@ export class ConversationHandler {
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
-        max_tokens: 512,
+        max_tokens: openAITools ? 1024 : 512,
         messages: messages as OpenAI.ChatCompletionMessageParam[],
         ...(openAITools ? { tools: openAITools } : {}),
       });
@@ -179,7 +179,7 @@ export class ConversationHandler {
       const choice = response.choices[0];
 
       // Tool-use loop: execute tool calls and let LLM generate final answer
-      if (choice?.finish_reason === 'tool_calls' && choice.message.tool_calls?.length && this.toolRegistry) {
+      if (choice?.message?.tool_calls?.length && this.toolRegistry) {
         const toolMessages: OpenAI.ChatCompletionMessageParam[] = [
           ...messages as OpenAI.ChatCompletionMessageParam[],
           choice.message as OpenAI.ChatCompletionAssistantMessageParam,

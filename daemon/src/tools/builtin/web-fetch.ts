@@ -28,7 +28,11 @@ export const webFetchTool: Tool = {
     try {
       const response = await fetch(url, {
         method,
-        headers: { 'User-Agent': 'MotherBrain-Daemon/0.1', ...headers },
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; MotherBrain/0.1; +https://github.com/super-state/mother-brain)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          ...headers,
+        },
         body: method === 'POST' ? body : undefined,
         signal: AbortSignal.timeout(30_000),
       });

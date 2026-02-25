@@ -167,53 +167,56 @@ export class ConversationHandler {
       : undefined;
 
     try {
-      const response = await this.client.chat.completions.create({
-        model: this.model,
-        max_tokens: openAITools ? 1024 : 512,
-        messages: messages as OpenAI.ChatCompletionMessageParam[],
-        ...(openAITools ? { tools: openAITools } : {}),
-      });
+      let currentMessages = [...messages as OpenAI.ChatCompletionMessageParam[]];
+      const MAX_TOOL_ROUNDS = 5;
+      let toolRound = 0;
+      reply = '';
 
-      inputTokens += response.usage?.prompt_tokens ?? 0;
-      outputTokens += response.usage?.completion_tokens ?? 0;
-      const choice = response.choices[0];
-
-      // Tool-use loop: execute tool calls and let LLM generate final answer
-      if (choice?.message?.tool_calls?.length && this.toolRegistry) {
-        const toolMessages: OpenAI.ChatCompletionMessageParam[] = [
-          ...messages as OpenAI.ChatCompletionMessageParam[],
-          choice.message as OpenAI.ChatCompletionAssistantMessageParam,
-        ];
-
-        for (const toolCall of choice.message.tool_calls) {
-          const toolName = toolCall.function.name;
-          let args: Record<string, unknown> = {};
-          try { args = JSON.parse(toolCall.function.arguments); } catch { /* empty args */ }
-
-          this.logger.info({ tool: toolName, args }, 'Executing tool call from LLM');
-          const result = await this.toolRegistry.execute(toolName, args, this.logger);
-
-          toolMessages.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: result.success
-              ? JSON.stringify(result.output)
-              : `Error: ${result.error ?? 'Unknown error'}`,
-          });
-        }
-
-        // Second LLM call to generate final text response using tool results
-        const followUp = await this.client.chat.completions.create({
+      // Multi-turn tool-use loop: LLM can call tools multiple times
+      while (toolRound <= MAX_TOOL_ROUNDS) {
+        const response = await this.client.chat.completions.create({
           model: this.model,
-          max_tokens: 512,
-          messages: toolMessages,
+          max_tokens: openAITools ? 1024 : 512,
+          messages: currentMessages,
+          ...(openAITools ? { tools: openAITools } : {}),
         });
 
-        inputTokens += followUp.usage?.prompt_tokens ?? 0;
-        outputTokens += followUp.usage?.completion_tokens ?? 0;
-        reply = followUp.choices[0]?.message?.content ?? "I ran those tools but couldn't summarize the results.";
-      } else {
+        inputTokens += response.usage?.prompt_tokens ?? 0;
+        outputTokens += response.usage?.completion_tokens ?? 0;
+        const choice = response.choices[0];
+
+        // If the LLM wants to call tools, execute them and loop
+        if (choice?.message?.tool_calls?.length && this.toolRegistry) {
+          toolRound++;
+          currentMessages.push(choice.message as OpenAI.ChatCompletionAssistantMessageParam);
+
+          for (const toolCall of choice.message.tool_calls) {
+            const toolName = toolCall.function.name;
+            let args: Record<string, unknown> = {};
+            try { args = JSON.parse(toolCall.function.arguments); } catch { /* empty args */ }
+
+            this.logger.info({ tool: toolName, args, round: toolRound }, 'Executing tool call from LLM');
+            const result = await this.toolRegistry.execute(toolName, args, this.logger);
+
+            currentMessages.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: result.success
+                ? JSON.stringify(result.output)
+                : `Error: ${result.error ?? 'Unknown error'}`,
+            });
+          }
+          // Continue loop — LLM will see tool results and either call more tools or respond
+          continue;
+        }
+
+        // No tool calls — LLM is done, extract text response
         reply = choice?.message?.content ?? "Let me think about that...";
+        break;
+      }
+
+      if (!reply) {
+        reply = "I used several tools but ran out of rounds. Here's what I found so far — please ask again if you need more.";
       }
     } catch (error: unknown) {
       // Handle Azure content filter or other API errors gracefully

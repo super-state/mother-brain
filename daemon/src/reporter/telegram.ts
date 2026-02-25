@@ -6,6 +6,7 @@ import type { ProjectManager, Project } from '../db/projects.js';
 import type { BudgetTracker, UsageReport } from '../budget/tracker.js';
 import type { UsageOptimizer, OptimizationReport } from '../budget/optimizer.js';
 import type { ConversationHandler } from '../conversation/handler.js';
+import type { CommitmentStore, Commitment, CommitmentResult } from '../commitment/index.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +52,8 @@ export class TelegramReporter implements DaemonModule {
   private budgetTracker: BudgetTracker | null = null;
   private usageOptimizer: UsageOptimizer | null = null;
   private conversationHandler: ConversationHandler | null = null;
+  private commitmentStore: CommitmentStore | null = null;
+  private commitmentScheduler: import('../commitment/scheduler.js').CommitmentScheduler | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -85,6 +88,17 @@ export class TelegramReporter implements DaemonModule {
   /** Register the conversation handler for natural language messages. */
   onConversation(handler: ConversationHandler): void {
     this.conversationHandler = handler;
+  }
+
+  /** Register the commitment store for commitment commands. */
+  onCommitments(store: CommitmentStore): void {
+    this.commitmentStore = store;
+  }
+
+  /** Register commitment detection for conversation flow. */
+  onConversationCommitments(store: CommitmentStore, scheduler: import('../commitment/scheduler.js').CommitmentScheduler): void {
+    this.commitmentStore = store;
+    this.commitmentScheduler = scheduler;
   }
 
   async start(): Promise<void> {
@@ -219,6 +233,39 @@ export class TelegramReporter implements DaemonModule {
       await ctx.reply(formatOptimizationReport(report), { parse_mode: 'HTML' });
     });
 
+    // /commitments — list active commitments
+    this.bot.command('commitments', async (ctx) => {
+      if (!this.commitmentStore) {
+        await ctx.reply('Commitment engine not available.');
+        return;
+      }
+      const active = this.commitmentStore.listActive();
+      if (active.length === 0) {
+        await ctx.reply("📋 No active commitments. I haven't promised anything yet!");
+        return;
+      }
+      await ctx.reply(formatCommitmentsList(active), { parse_mode: 'HTML' });
+    });
+
+    // /cancel <query> — cancel a commitment by description
+    this.bot.command('cancel', async (ctx) => {
+      if (!this.commitmentStore) {
+        await ctx.reply('Commitment engine not available.');
+        return;
+      }
+      const query = ctx.match?.toString().trim();
+      if (!query) {
+        await ctx.reply('Usage: /cancel &lt;description&gt;\nExample: /cancel daily news');
+        return;
+      }
+      const cancelled = this.commitmentStore.cancelByDescription(query);
+      if (cancelled) {
+        await ctx.reply(`✅ Cancelled: "${escapeHtml(cancelled.actionDescription)}"`);
+      } else {
+        await ctx.reply(`❌ No active commitment matching "${escapeHtml(query)}". Use /commitments to see active ones.`);
+      }
+    });
+
     // /reset — reset conversation state to start fresh
     this.bot.command('reset', async (ctx) => {
       if (!this.conversationHandler) {
@@ -239,6 +286,15 @@ export class TelegramReporter implements DaemonModule {
       try {
         const response = await this.conversationHandler.handleMessage(ctx.message.text);
         await ctx.reply(response.text);
+
+        // If commitments were detected, store and schedule them
+        if (response.detectedCommitments?.length && this.commitmentStore && this.commitmentScheduler) {
+          for (const detected of response.detectedCommitments) {
+            const commitment = this.commitmentStore.create(detected);
+            this.commitmentScheduler.scheduleCommitment(commitment);
+            await this.notifyCommitmentCreated(commitment);
+          }
+        }
       } catch (error) {
         this.logger.error({ error }, 'Conversation handler error');
         await ctx.reply("Sorry, I had trouble processing that. Try again or use /status.");
@@ -303,6 +359,42 @@ export class TelegramReporter implements DaemonModule {
   /** Send an optimization analysis report. */
   async sendOptimizationReport(report: OptimizationReport): Promise<void> {
     await this.sendMessage(formatOptimizationReport(report));
+  }
+
+  /** Notify about a commitment result (success or failure). */
+  async notifyCommitmentResult(commitment: Commitment, result: CommitmentResult): Promise<void> {
+    if (result.success) {
+      const lines = [
+        `📌 <b>Commitment Fulfilled</b>`,
+        `<i>${escapeHtml(commitment.actionDescription)}</i>`,
+        '',
+        result.output ? escapeHtml(result.output.slice(0, 500)) : 'Done!',
+      ];
+      if (commitment.type === 'recurring') {
+        lines.push('', `🔁 Recurring — next run scheduled`);
+      }
+      await this.sendMessage(lines.join('\n'));
+    } else {
+      const lines = [
+        `⚠️ <b>Commitment Failed</b>`,
+        `<i>${escapeHtml(commitment.actionDescription)}</i>`,
+        '',
+        `Error: <code>${escapeHtml(result.error?.slice(0, 300) ?? 'Unknown error')}</code>`,
+        '',
+        `Use /commitments to see status or /cancel to remove it.`,
+      ];
+      await this.sendMessage(lines.join('\n'));
+    }
+  }
+
+  /** Notify that a new commitment was detected and scheduled. */
+  async notifyCommitmentCreated(commitment: Commitment): Promise<void> {
+    const typeLabel = commitment.type === 'recurring'
+      ? `🔁 Recurring (${commitment.schedule})`
+      : `⏰ One-time`;
+    await this.sendMessage(
+      `📌 <b>Commitment Tracked</b>\n${typeLabel}\n<i>${escapeHtml(commitment.actionDescription)}</i>\n\nUse /commitments to see all, /cancel to remove.`,
+    );
   }
 
   /** Send a message to the configured Telegram chat. */
@@ -481,4 +573,25 @@ function makeProgressBar(percent: number): string {
   const filled = Math.round(percent / 10);
   const empty = 10 - filled;
   return '▓'.repeat(filled) + '░'.repeat(empty);
+}
+
+function formatCommitmentsList(commitments: Commitment[]): string {
+  const lines = [`📋 <b>Active Commitments</b> (${commitments.length})\n`];
+  for (const c of commitments) {
+    const typeEmoji = c.type === 'recurring' ? '🔁' : '⏰';
+    const statusEmoji = c.status === 'executing' ? '⏳' : c.status === 'failed' ? '❌' : '✅';
+    lines.push(`${typeEmoji}${statusEmoji} <b>${escapeHtml(c.actionDescription)}</b>`);
+    if (c.type === 'recurring' && c.schedule) {
+      lines.push(`  Schedule: <code>${c.schedule}</code>`);
+    }
+    if (c.executionCount > 0) {
+      lines.push(`  Executed: ${c.executionCount} time${c.executionCount > 1 ? 's' : ''}`);
+    }
+    if (c.failureReason) {
+      lines.push(`  ⚠️ Last error: ${escapeHtml(c.failureReason.slice(0, 100))}`);
+    }
+    lines.push('');
+  }
+  lines.push('Use /cancel &lt;description&gt; to remove a commitment.');
+  return lines.join('\n');
 }

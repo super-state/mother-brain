@@ -83,56 +83,60 @@ export async function runInitWizard(): Promise<void> {
 
   // Background tier
   header('  🔧 Background Tier (mindless tasks)');
-  console.log('  1. Local Ollama (recommended — free, runs on your machine)');
-  console.log('  2. Copilot (uses subscription)');
+  console.log('  1. Local Ollama with Copilot fallback (recommended — free when available)');
+  console.log('  2. Copilot only (uses subscription)');
   console.log();
   const bgChoice = await rl.question('  Select (1-2): ');
 
-  let backgroundTier: { provider: string; model: string };
+  let backgroundTier: { provider: string; model: string; fallback?: { provider: string; model: string } };
   let localBaseUrl = 'http://localhost:11434';
-  if (bgChoice.trim() === '1') {
-    const localModel = (await rl.question('  Ollama model name (default: qwen3:14b): ')).trim() || 'qwen3:14b';
-    localBaseUrl = (await rl.question(`  Ollama URL (default: ${localBaseUrl}): `)).trim() || localBaseUrl;
-    backgroundTier = { provider: 'local', model: localModel };
-    success(`Background: local/${localModel}`);
-  } else {
+  if (bgChoice.trim() === '2') {
     backgroundTier = { provider: 'copilot', model: 'openai/gpt-4.1-mini' };
     success(`Background: copilot/gpt-4.1-mini`);
+  } else {
+    const localModel = (await rl.question('  Ollama model name (default: qwen3): ')).trim() || 'qwen3';
+    localBaseUrl = (await rl.question(`  Ollama URL (default: ${localBaseUrl}): `)).trim() || localBaseUrl;
+    backgroundTier = {
+      provider: 'local',
+      model: localModel,
+      fallback: { provider: 'copilot', model: 'openai/gpt-4.1-mini' },
+    };
+    success(`Background: local/${localModel} → fallback: copilot/gpt-4.1-mini`);
   }
 
   // Chat tier
   console.log();
   header('  💬 Chat Tier (understanding, conversing, organising)');
-  console.log('  1. openai/gpt-4.1 (recommended)');
-  console.log('  2. openai/gpt-4.1-mini (budget-friendly)');
+  console.log('  1. openai/gpt-5.3-codex (recommended)');
+  console.log('  2. openai/gpt-4.1');
   console.log('  3. Custom');
   console.log();
   const chatChoice = await rl.question('  Select (1-3): ');
 
   let chatModel: string;
   switch (chatChoice.trim()) {
-    case '1': chatModel = 'openai/gpt-4.1'; break;
-    case '2': chatModel = 'openai/gpt-4.1-mini'; break;
+    case '1': chatModel = 'openai/gpt-5.3-codex'; break;
+    case '2': chatModel = 'openai/gpt-4.1'; break;
     case '3': chatModel = await rl.question('  Enter model ID: '); break;
-    default: chatModel = 'openai/gpt-4.1';
+    default: chatModel = 'openai/gpt-5.3-codex';
   }
   success(`Chat: copilot/${chatModel}`);
 
   // Planning tier
   console.log();
   header('  📋 Planning Tier (planning, breaking down approaches)');
-  console.log('  1. openai/gpt-5.3-codex (recommended)');
-  console.log('  2. openai/gpt-4.1');
+  console.log('  1. claude-opus-4.6 (recommended — best reasoning)');
+  console.log('  2. openai/gpt-5.3-codex');
   console.log('  3. Custom');
   console.log();
   const planChoice = await rl.question('  Select (1-3): ');
 
   let planningModel: string;
   switch (planChoice.trim()) {
-    case '1': planningModel = 'openai/gpt-5.3-codex'; break;
-    case '2': planningModel = 'openai/gpt-4.1'; break;
+    case '1': planningModel = 'claude-opus-4.6'; break;
+    case '2': planningModel = 'openai/gpt-5.3-codex'; break;
     case '3': planningModel = await rl.question('  Enter model ID: '); break;
-    default: planningModel = 'openai/gpt-5.3-codex';
+    default: planningModel = 'claude-opus-4.6';
   }
   success(`Planning: copilot/${planningModel}`);
 
@@ -247,28 +251,38 @@ export async function runInitWizard(): Promise<void> {
   // --- Test connection ---
   header('Testing connections...');
 
-  // Test GitHub Models API
-  try {
-    const res = await fetch(`https://models.github.ai/inference/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${githubToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: codingModel,
-        messages: [{ role: 'user', content: 'Say "hello" and nothing else.' }],
-        max_tokens: 10,
-      }),
-    });
-    if (res.ok) {
-      success('GitHub Models API — connected');
-    } else {
-      const body = await res.text();
-      warn(`GitHub Models API — ${res.status}: ${body.slice(0, 100)}`);
+  // Test each unique model on GitHub Models API
+  const modelsToTest = new Set<string>();
+  if (backgroundTier.provider === 'copilot') modelsToTest.add(backgroundTier.model);
+  if (backgroundTier.fallback) modelsToTest.add(backgroundTier.fallback.model);
+  modelsToTest.add(chatModel);
+  modelsToTest.add(planningModel);
+  modelsToTest.add(codingModel);
+  modelsToTest.add(reviewModel);
+
+  for (const model of modelsToTest) {
+    try {
+      const res = await fetch(`https://models.github.ai/inference/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: 'Say "hello" and nothing else.' }],
+          max_tokens: 10,
+        }),
+      });
+      if (res.ok) {
+        success(`${model} — connected`);
+      } else {
+        const body = await res.text();
+        warn(`${model} — ${res.status}: ${body.slice(0, 100)}`);
+      }
+    } catch (error) {
+      warn(`${model} — failed: ${error}`);
     }
-  } catch (error) {
-    warn(`GitHub Models API — failed: ${error}`);
   }
 
   // Test Telegram bot
@@ -295,7 +309,7 @@ export async function runInitWizard(): Promise<void> {
   header('🎉 Setup Complete!');
   console.log();
   console.log(`  Config: ${configPath}`);
-  console.log(`  🔧 Background: ${backgroundTier.provider}/${backgroundTier.model}`);
+  console.log(`  🔧 Background: ${backgroundTier.provider}/${backgroundTier.model}${backgroundTier.fallback ? ` → fallback: ${backgroundTier.fallback.provider}/${backgroundTier.fallback.model}` : ''}`);
   console.log(`  💬 Chat:       copilot/${chatModel}`);
   console.log(`  📋 Planning:   copilot/${planningModel}`);
   console.log(`  🏗️  Coding:     copilot/${codingModel}`);

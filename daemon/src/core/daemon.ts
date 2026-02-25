@@ -21,6 +21,8 @@ import { UsageOptimizer } from '../budget/optimizer.js';
 import { loadPersona } from '../conversation/persona.js';
 import { ConversationMemory } from '../conversation/memory.js';
 import { ConversationHandler } from '../conversation/handler.js';
+import { CommitmentStore } from '../commitment/store.js';
+import { CommitmentScheduler } from '../commitment/scheduler.js';
 import type { DaemonModule, DaemonState } from './lifecycle.js';
 import type { DaemonConfig } from './config.js';
 
@@ -163,6 +165,34 @@ export class Daemon {
       budgetTracker, this.sessionId,
     );
     reporter?.onConversation(conversationHandler);
+
+    // Commitment engine — tracks and executes promises from conversation
+    const commitmentStore = new CommitmentStore(db.connection, this.logger);
+    const commitmentScheduler = new CommitmentScheduler(
+      commitmentStore, this.logger, this.config.timezone,
+    );
+    this.register(commitmentScheduler);
+
+    // Commitment executor — uses background LLM tier to fulfill promises
+    const backgroundClient = createLLMClient(this.config, this.logger, 'background');
+    commitmentScheduler.onExecute(async (commitment) => {
+      const result = await backgroundClient.executeTask(
+        'You are an autonomous assistant fulfilling a scheduled commitment. Be concise and helpful.',
+        `Fulfill this commitment: ${commitment.actionDescription}\n\nProvide the result directly.`,
+      );
+      // Return the LLM output as the commitment result
+      return result.changes.length > 0
+        ? result.changes.map(c => c.content).join('\n')
+        : 'Commitment processed.';
+    });
+
+    // Commitment notifier — sends results via Telegram
+    commitmentScheduler.onNotify(async (commitment, result) => {
+      await reporter?.notifyCommitmentResult(commitment, result);
+    });
+
+    // Wire commitment store + scheduler to Telegram for commands and conversation detection
+    reporter?.onConversationCommitments(commitmentStore, commitmentScheduler);
 
     // Send greeting if new user
     if (conversationMemory.isNewUser() && reporter) {

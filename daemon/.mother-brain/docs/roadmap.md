@@ -24,6 +24,9 @@
 | Ability to have natural conversational onboarding | **Outcome 7** |
 | Ability to self-optimize token spending | **Outcome 8** |
 | Ability to run the full Mother Brain process over Telegram | **Outcome 9** |
+| Ability to figure out and do things it doesn't know how to do yet | **Outcome 10** |
+| Ability to have conversation commitments become real scheduled actions | **Outcome 11** |
+| Ability to configure correct LLM tier model assignments | **Outcome 12** |
 | Ability to configure via web dashboard | Phase 2 |
 | Ability to see agents and cron jobs | Phase 2 |
 
@@ -292,6 +295,98 @@
 
 ---
 
+### 📋 Outcome 10: Ability to have the daemon figure out and do things it doesn't know how to do yet
+
+> So the daemon is a growing intelligence — when asked to do something new (curate news, fetch data, automate a task), it researches how, builds the capability, executes the request, and remembers for next time. It never just says "I can't do that."
+
+**Acceptance Criteria:**
+- [ ] When asked to do something outside its current capabilities, the daemon researches how to accomplish it (web search / Elder Brain)
+- [ ] The daemon builds a lightweight capability (script, API integration, cron job) and registers it
+- [ ] The original request is executed using the new capability
+- [ ] The capability persists — asking for the same thing again uses the existing capability, not rebuilding
+- [ ] The daemon reports what it learned: "I figured out how to do this — here's what I built"
+- [ ] A capability manifest is maintained and injected into Brain Runtime system prompts so the LLM knows what it can do right now
+- [ ] If a capability truly can't be built (needs hardware, physical access, etc.), the daemon says why honestly instead of promising
+
+**Demo / Proof:**
+- Ask the daemon "Send me AI news at 7am daily"
+- Watch it research, find RSS feeds/APIs, build a fetcher+summarizer, schedule it
+- Receive the first roundup as proof, then again the next morning automatically
+
+**Priority Score:** 124 (Vision: 5, Reliability: 3, Token Efficiency: 3, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 041: Capability manifest system — registry of installed capabilities, dynamic generation, system prompt injection
+- Task 042: Capability gap detection — intercept LLM responses, detect promises outside manifest
+- Task 043: Self-extension research loop — web search for how to accomplish unknown tasks
+- Task 044: Capability builder — create lightweight scripts/integrations from research findings
+- Task 045: Capability persistence — store built capabilities, make them available for future requests
+
+---
+
+### 📋 Outcome 11: Ability to have conversation commitments become real scheduled actions
+
+> So when the daemon says "I'll do X at Y time," it actually happens. Every promise from conversation becomes a tracked, scheduled, executable action — not just words.
+
+**Acceptance Criteria:**
+- [x] When the LLM commits to a timed action ("I'll send you X at Y"), a real cron job is created in the scheduler
+- [x] One-time commitments ("I'll do this now") are tracked and executed immediately
+- [x] Recurring commitments ("every day at 7am") are stored in SQLite and managed by the scheduler
+- [x] The user can list active commitments (e.g., "what have you promised me?")
+- [x] The user can cancel commitments ("stop the daily news")
+- [x] If a commitment fails to execute, the daemon notifies the user with what went wrong
+- [x] Commitment intent is detected by the conversation handler — the LLM can't silently promise things
+
+**Demo / Proof:**
+- Ask for a daily reminder → see it created as a real scheduled job
+- Ask "what have you promised me?" → see the active commitments list
+- Cancel a commitment → confirmed removed, no more messages
+
+**Priority Score:** 136 (Vision: 5, Reliability: 4, Token Efficiency: 4, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 046: Commitment intent detector — parse LLM output for timed action promises
+- Task 047: Commitment storage — SQLite table for tracked commitments (one-time + recurring)
+- Task 048: Commitment scheduler — integrate with croner to execute commitments at scheduled times
+- Task 049: Commitment management — list, cancel, and status reporting for active commitments
+- Task 050: Commitment failure handling — detect and notify when commitments fail to execute
+
+---
+
+### 📋 Outcome 12: Ability to configure LLM tiers with correct model assignments
+
+> So the daemon uses the right model for each job — cheap/local for background with fallback, Codex for conversation/coding/review, and Opus for planning.
+
+**Tier Map:**
+- Background: local Ollama (e.g., qwen3) → fallback to cheap Copilot model if Ollama unavailable
+- Chat: openai/gpt-5.3-codex (via Copilot)
+- Planning: claude-opus-4.6 (via Copilot)
+- Coding: openai/gpt-5.3-codex (via Copilot)
+- Review: openai/gpt-5.3-codex (via Copilot)
+
+**Acceptance Criteria:**
+- [ ] Background tier attempts local Ollama first, falls back to cheap Copilot model if unavailable
+- [ ] Chat, coding, and review tiers use Codex 5.3 via GitHub Models API
+- [ ] Planning tier uses Opus 4.6 via Copilot
+- [ ] Init wizard defaults to these tier assignments
+- [ ] Fallback logic is transparent in logs ("Ollama unavailable, using Copilot fallback")
+- [ ] Budget tracker correctly calculates cost per tier/model
+
+**Demo / Proof:**
+- Run init wizard, see correct model defaults per tier
+- Start daemon with Ollama stopped, see transparent fallback in logs
+- Verify all tiers route to correct models
+
+**Priority Score:** 120 (Vision: 4, Reliability: 4, Token Efficiency: 5, MVP: 4)
+
+**🔧 Tasks (internal):**
+- Task 051: Background tier fallback — local Ollama → cheap Copilot fallback logic in router
+- Task 052: Update default tier config — Codex 5.3 for chat/coding/review, Opus 4.6 for planning
+- Task 053: Init wizard update — new default model recommendations per tier
+- Task 054: Model availability verification — test endpoint before saving config
+
+---
+
 ## MVP Checkpoint (End of Phase 1)
 
 ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
@@ -304,8 +399,11 @@
 - Outcome 7: Conversational onboarding & identity
 - Outcome 8: Self-optimization of token usage
 - Outcome 9: Brain Runtime — full Mother Brain process over Telegram
+- Outcome 10: Self-extending capabilities (figure it out)
+- Outcome 11: Commitment engine (promises → actions)
+- Outcome 12: LLM tier configuration (correct model assignments)
 
-**Validation Method**: Run the daemon overnight. Wake up to a Telegram morning report showing verified, committed work within budget.
+**Validation Method**: Run the daemon, ask it to do something new — it figures it out and delivers. Commitments become real scheduled actions. Wake up to results.
 
 **Next Step After MVP**: Begin Phase 2 based on real usage experience.
 
@@ -420,6 +518,20 @@
 | 038 | Outcome 9: Brain Runtime | ✅ |
 | 039 | Outcome 9: Brain Runtime | ✅ |
 | 040 | Outcome 9: Brain Runtime | ✅ |
+| 041 | Outcome 10: Self-extension | ⬜ |
+| 042 | Outcome 10: Self-extension | ⬜ |
+| 043 | Outcome 10: Self-extension | ⬜ |
+| 044 | Outcome 10: Self-extension | ⬜ |
+| 045 | Outcome 10: Self-extension | ⬜ |
+| 046 | Outcome 11: Commitment engine | ✅ |
+| 047 | Outcome 11: Commitment engine | ✅ |
+| 048 | Outcome 11: Commitment engine | ✅ |
+| 049 | Outcome 11: Commitment engine | ✅ |
+| 050 | Outcome 11: Commitment engine | ✅ |
+| 051 | Outcome 12: LLM tier config | ✅ |
+| 052 | Outcome 12: LLM tier config | ✅ |
+| 053 | Outcome 12: LLM tier config | ✅ |
+| 054 | Outcome 12: LLM tier config | ✅ |
 
 ---
 
@@ -435,6 +547,6 @@
 
 ---
 
-**Total Tasks**: 40  
-**Phase 1 (MVP) Tasks**: 40 (all complete)  
+**Total Tasks**: 54  
+**Phase 1 (MVP) Tasks**: 54 (40 complete, 14 remaining)  
 **Post-MVP Tasks**: TBD based on usage experience

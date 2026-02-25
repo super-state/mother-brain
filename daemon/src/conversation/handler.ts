@@ -5,6 +5,8 @@ import type { ConversationMemory } from './memory.js';
 import type { PersonaConfig } from './persona.js';
 import type { BudgetTracker } from '../budget/tracker.js';
 import type { ProjectManager } from '../db/projects.js';
+import { detectCommitments } from '../commitment/detector.js';
+import type { DetectedCommitment } from '../commitment/detector.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -55,6 +57,7 @@ export interface ConversationResponse {
   intent: MessageIntent;
   phase: ConversationPhase;
   extractedProject?: { name: string; path: string };
+  detectedCommitments?: DetectedCommitment[];
   inputTokens: number;
   outputTokens: number;
 }
@@ -175,6 +178,9 @@ export class ConversationHandler {
 
     this.memory.addMessage('assistant', reply, intent);
 
+    // Scan LLM output for commitment intent ($0 — regex only)
+    const detectedCommitments = detectCommitments(reply, this.logger);
+
     // Record token usage
     if (this.budgetTracker && this.sessionId && (inputTokens > 0 || outputTokens > 0)) {
       const activeProject = this.projectManager.getActiveProject();
@@ -193,6 +199,7 @@ export class ConversationHandler {
       text: reply,
       intent,
       phase: state.phase,
+      detectedCommitments: detectedCommitments.length > 0 ? detectedCommitments : undefined,
       inputTokens,
       outputTokens,
     };

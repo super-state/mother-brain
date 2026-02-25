@@ -16,19 +16,44 @@ export interface LLMExecutor {
 /**
  * LLM tier — determines which model to use for what purpose.
  *
- *   background → mindless tasks, heartbeat, classification — local/free
- *   chat       → Telegram conversations, organising — mid-tier (GPT-4.1)
- *   planning   → planning, approach breakdown — reasoning (Codex)
- *   coding     → implementation — premium (GPT-5.3-Codex)
- *   review     → code review — reasoning (Codex)
+ *   background → mindless tasks, heartbeat, classification — local/free (fallback: cheap copilot)
+ *   chat       → Telegram conversations, organising — Codex 5.3
+ *   planning   → planning, approach breakdown — Opus 4.6
+ *   coding     → implementation — Codex 5.3
+ *   review     → code review — Codex 5.3
  */
 export type LLMTier = 'background' | 'chat' | 'planning' | 'coding' | 'review';
+
+/**
+ * Wraps a primary LLM client with automatic fallback on failure.
+ * Used for the background tier: tries local Ollama first, falls back to Copilot.
+ */
+class FallbackLLMClient implements LLMExecutor {
+  constructor(
+    private primary: LLMExecutor,
+    private fallback: LLMExecutor,
+    private logger: Logger,
+    private tier: LLMTier,
+  ) {}
+
+  async executeTask(systemPrompt: string, taskPrompt: string): Promise<LLMResult> {
+    try {
+      return await this.primary.executeTask(systemPrompt, taskPrompt);
+    } catch (error) {
+      this.logger.warn(
+        { tier: this.tier, error: String(error) },
+        'Primary LLM unavailable, using fallback',
+      );
+      return this.fallback.executeTask(systemPrompt, taskPrompt);
+    }
+  }
+}
 
 /**
  * Create an LLM client for a specific tier.
  *
  * Resolution order for each tier:
- * 1. If tiers config exists → use the tier's provider+model
+ * 1. If tiers config exists → use the tier's provider+model (with optional fallback)
  * 2. If copilot config exists → use copilot (legacy single-tier)
  * 3. If cloud config exists → use cloud (legacy fallback)
  */
@@ -39,10 +64,28 @@ export function createLLMClient(
 ): LLMExecutor {
   const { llm } = config;
 
-  // Three-tier routing (new config format)
+  // Five-tier routing (new config format)
   if (llm.tiers) {
     const tierConfig = llm.tiers[tier];
-    return createClientForProvider(tierConfig.provider, tierConfig.model, config, logger, tier);
+    const primary = createClientForProvider(tierConfig.provider, tierConfig.model, config, logger, tier);
+
+    // If this tier has a fallback, wrap with FallbackLLMClient
+    if (tierConfig.fallback) {
+      const fallback = createClientForProvider(
+        tierConfig.fallback.provider,
+        tierConfig.fallback.model,
+        config,
+        logger,
+        tier,
+      );
+      logger.info(
+        { tier, primary: `${tierConfig.provider}/${tierConfig.model}`, fallback: `${tierConfig.fallback.provider}/${tierConfig.fallback.model}` },
+        'Tier configured with fallback',
+      );
+      return new FallbackLLMClient(primary, fallback, logger, tier);
+    }
+
+    return primary;
   }
 
   // Legacy single-tier: prefer Copilot, then cloud

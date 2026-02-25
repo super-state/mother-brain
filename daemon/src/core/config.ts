@@ -49,14 +49,18 @@ export type LLMTierProvider = 'local' | 'copilot' | 'cloud';
 export interface LLMTierConfig {
   provider: LLMTierProvider;
   model: string;
+  fallback?: {             // Optional fallback — used when primary provider is unavailable
+    provider: LLMTierProvider;
+    model: string;
+  };
 }
 
 export interface LLMTiers {
-  background: LLMTierConfig;  // Mindless background tasks (local Ollama)
-  chat: LLMTierConfig;        // Understanding, conversing, organising
-  planning: LLMTierConfig;    // Planning, breaking down approaches
-  coding: LLMTierConfig;      // Implementation
-  review: LLMTierConfig;      // Code review
+  background: LLMTierConfig;  // Mindless background tasks (local Ollama, fallback to cheap Copilot)
+  chat: LLMTierConfig;        // Understanding, conversing, organising (Codex 5.3)
+  planning: LLMTierConfig;    // Planning, breaking down approaches (Opus 4.6)
+  coding: LLMTierConfig;      // Implementation (Codex 5.3)
+  review: LLMTierConfig;      // Code review (Codex 5.3)
 }
 
 export interface LLMConfig {
@@ -212,9 +216,21 @@ function validateTierConfig(raw: unknown, tierName: string): LLMTierConfig {
   if (!['local', 'copilot', 'cloud'].includes(provider)) {
     throw new ConfigError(`llm.tiers.${tierName}.provider must be local, copilot, or cloud`);
   }
+
+  let fallback: LLMTierConfig['fallback'];
+  if (obj['fallback'] && typeof obj['fallback'] === 'object') {
+    const fb = obj['fallback'] as Record<string, unknown>;
+    const fbProvider = assertString(fb, 'provider') as LLMTierProvider;
+    if (!['local', 'copilot', 'cloud'].includes(fbProvider)) {
+      throw new ConfigError(`llm.tiers.${tierName}.fallback.provider must be local, copilot, or cloud`);
+    }
+    fallback = { provider: fbProvider, model: assertString(fb, 'model') };
+  }
+
   return {
     provider,
     model: assertString(obj, 'model'),
+    fallback,
   };
 }
 

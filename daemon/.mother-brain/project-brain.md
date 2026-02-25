@@ -55,6 +55,18 @@
 **Impact**: Reframed all system prompts, persona greeting, and tagline from "overnight worker" to "always-on partner."
 **Check Added**: Never use "overnight", "while you sleep", or time-bound language as the daemon's primary identity.
 
+### Local Model Preference is qwen3
+**Trigger**: User corrected default local model from gemma2:2b to qwen3
+**Learning**: The default local Ollama model should be qwen3 (or other open-source models), not gemma. When setting configurable defaults, always check user's previously stated preferences before falling back to benchmark-based recommendations.
+**Impact**: Init wizard default changed from gemma2:2b to qwen3.
+**Check Added**: Always check Project Brain for user-stated preferences before setting defaults from research data.
+
+### Outcomes Must Be Demo-Ready, Not Code-Ready
+**Trigger**: User said "You should always craft outcomes so that the user can demo them - I never ever should be presented code" and refined: "I need specific instructions on how to use and see what you built — not the code, but what I can now do that I couldn't do before — user value"
+**Learning**: When presenting completed outcomes for approval, provide specific step-by-step instructions the user can follow RIGHT NOW to experience the new capability. Frame as "what you can now do that you couldn't before." Include exact commands, messages to send, and expected responses. Never present file lists, code snippets, or abstract feature descriptions.
+**Impact**: All future outcome presentations must be actionable user instructions.
+**Check Added**: Outcome completion must include step-by-step user instructions, not code or abstract descriptions.
+
 ## Validation Checks
 - [ ] User-facing features should prefer conversational discovery over explicit commands
 - [ ] Onboarding flows should feel natural, not require reading documentation
@@ -68,3 +80,5 @@
 - [ ] LLM API calls must have content filter error handling (Azure false positives)
 - [ ] Phase transitions must have safety valves — never let a phase get stuck indefinitely
 - [ ] Never use "overnight" or "while you sleep" as daemon's primary identity — it's always-on
+- [ ] Default local model is qwen3 — always check Project Brain preferences before using research-based defaults
+- [ ] Outcome completion must include step-by-step user instructions showing new capabilities, never code/file changes

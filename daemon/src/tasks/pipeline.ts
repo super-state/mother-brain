@@ -2,7 +2,7 @@ import type { Logger } from 'pino';
 import type OpenAI from 'openai';
 import type { ToolRegistry } from '../tools/index.js';
 import type { TaskLedger, Task } from './ledger.js';
-import type { Plan, PlanStep, VerificationResult } from './plan.js';
+import type { Plan, PlanStep, VerificationResult, BlockerType } from './plan.js';
 
 // ---------------------------------------------------------------------------
 // Planner — LLM generates a structured plan given a task and tools
@@ -73,8 +73,34 @@ export async function generatePlan(
 }
 
 // ---------------------------------------------------------------------------
-// Step Executor — runs plan steps sequentially using the tool registry
+// Blocker Classifier — categorize failures for remediation
 // ---------------------------------------------------------------------------
+
+function classifyBlocker(error: string, tool: string): BlockerType {
+  const e = error.toLowerCase();
+  if (e.includes('403') || e.includes('forbidden') || e.includes('access denied') || e.includes('blocked')) return 'access_denied';
+  if (e.includes('401') || e.includes('unauthorized') || e.includes('auth')) return 'missing_permission';
+  if (e.includes('api key') || e.includes('token') || e.includes('credential')) return 'missing_secret';
+  if (e.includes('not found') && (e.includes('binary') || e.includes('command'))) return 'missing_capability';
+  if (e.includes('captcha') || e.includes('mfa') || e.includes('two-factor')) return 'external_gate';
+  if (e.includes('enoent') || e.includes('no such file')) return 'environment_mismatch';
+  if (e.includes('timeout') || e.includes('timed out')) return 'access_denied';
+  return 'bad_plan';
+}
+
+/** Suggest a fallback tool based on blocker type and current tool. */
+function suggestFallback(blockerType: BlockerType, currentTool: string): { tool: string; args?: Record<string, unknown> } | null {
+  if (blockerType === 'access_denied' && currentTool === 'web_fetch') {
+    return { tool: 'browser_fetch' }; // Use real browser for blocked sites
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Step Executor — runs plan steps with retry/fallback on failure
+// ---------------------------------------------------------------------------
+
+const MAX_RETRIES = 2;
 
 export async function executeSteps(
   plan: Plan,
@@ -88,40 +114,72 @@ export async function executeSteps(
   for (const step of plan.steps) {
     step.status = 'running';
     step.startedAt = new Date().toISOString();
+    step.retryCount = 0;
 
-    // Save checkpoint after each step starts
     taskLedger.checkpoint(taskId, { plan });
 
-    const tool = toolRegistry.get(step.tool);
-    if (!tool) {
-      step.status = 'failed';
-      step.error = `Tool "${step.tool}" not found`;
-      step.completedAt = new Date().toISOString();
-      logger.warn({ step: step.name, tool: step.tool }, 'Step failed — tool not found');
-      continue;
-    }
+    let resolved = false;
 
-    try {
-      const result = await toolRegistry.execute(step.tool, step.args, logger);
-      step.completedAt = new Date().toISOString();
-
-      if (result.success) {
-        step.status = 'done';
-        step.output = result.output;
-        logger.info({ step: step.name, durationMs: result.durationMs }, 'Step completed');
-      } else {
+    while (!resolved && (step.retryCount ?? 0) <= MAX_RETRIES) {
+      const tool = toolRegistry.get(step.tool);
+      if (!tool) {
         step.status = 'failed';
-        step.error = result.error ?? 'Unknown error';
-        logger.warn({ step: step.name, error: step.error }, 'Step failed');
+        step.error = `Tool "${step.tool}" not found`;
+        step.outcome = 'blocked';
+        step.blockerType = 'missing_capability';
+        step.completedAt = new Date().toISOString();
+        logger.warn({ step: step.name, tool: step.tool }, 'Step blocked — tool not found');
+        resolved = true;
+        break;
       }
-    } catch (error) {
-      step.status = 'failed';
-      step.error = error instanceof Error ? error.message : String(error);
-      step.completedAt = new Date().toISOString();
-      logger.error({ step: step.name, error: step.error }, 'Step threw exception');
+
+      try {
+        const result = await toolRegistry.execute(step.tool, step.args, logger);
+        step.completedAt = new Date().toISOString();
+
+        if (result.success) {
+          step.status = 'done';
+          step.outcome = 'done';
+          step.output = result.output;
+          logger.info({ step: step.name, durationMs: result.durationMs }, 'Step done');
+          resolved = true;
+        } else {
+          // Classify the failure
+          const errorStr = result.error ?? 'Unknown error';
+          step.blockerType = classifyBlocker(errorStr, step.tool);
+
+          // Try fallback tool
+          const fallback = suggestFallback(step.blockerType, step.tool);
+          if (fallback && toolRegistry.get(fallback.tool)) {
+            logger.info(
+              { step: step.name, from: step.tool, to: fallback.tool, blocker: step.blockerType },
+              'Step falling back to alternative tool',
+            );
+            step.tool = fallback.tool;
+            if (fallback.args) step.args = { ...step.args, ...fallback.args };
+            step.outcome = 'fallback';
+            step.retryCount = (step.retryCount ?? 0) + 1;
+            continue; // Retry with new tool
+          }
+
+          // No fallback available
+          step.status = 'failed';
+          step.outcome = 'blocked';
+          step.error = errorStr;
+          logger.warn({ step: step.name, error: errorStr, blocker: step.blockerType }, 'Step failed — no fallback');
+          resolved = true;
+        }
+      } catch (error) {
+        step.status = 'failed';
+        step.error = error instanceof Error ? error.message : String(error);
+        step.outcome = 'blocked';
+        step.blockerType = classifyBlocker(step.error, step.tool);
+        step.completedAt = new Date().toISOString();
+        logger.error({ step: step.name, error: step.error, blocker: step.blockerType }, 'Step threw exception');
+        resolved = true;
+      }
     }
 
-    // Checkpoint after each step
     taskLedger.checkpoint(taskId, { plan });
   }
 

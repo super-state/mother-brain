@@ -1,5 +1,5 @@
 export { TaskLedger } from './ledger.js';
 export type { Task, TaskType, TaskStatus, TaskArtifact, CreateTaskInput } from './ledger.js';
-export type { Plan, PlanStep, PlanStepStatus, VerificationResult } from './plan.js';
+export type { Plan, PlanStep, PlanStepStatus, VerificationResult, StepOutcome, BlockerType } from './plan.js';
 export { generatePlan, executeSteps, verifyPlan, runPipeline } from './pipeline.js';
 export type { PipelineConfig, PipelineResult } from './pipeline.js';

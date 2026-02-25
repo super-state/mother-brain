@@ -3,6 +3,10 @@
 > Project-specific learnings, preferences, and skill tracking.
 > Managed by Child Brain. Read by Mother Brain at task start.
 
+## Vision Alignment
+
+The daemon is a real agent — not a chat model that talks like it's doing stuff. It needs 12 core systems (see `agent-architecture.md`), of which the minimum viable stack is: typed tool layer, durable task ledger, executor loop, evidence verifier, and permissions/approvals.
+
 ## Skills Created
 - `daemon-architect` — Architecture patterns, module structure, coding conventions
 - `telegram-integrator` — grammy bot, commands, notifications, morning reports

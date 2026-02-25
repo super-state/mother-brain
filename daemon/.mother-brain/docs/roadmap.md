@@ -24,9 +24,12 @@
 | Ability to have natural conversational onboarding | **Outcome 7** |
 | Ability to self-optimize token spending | **Outcome 8** |
 | Ability to run the full Mother Brain process over Telegram | **Outcome 9** |
-| Ability to figure out and do things it doesn't know how to do yet | **Outcome 10** |
+| Ability to figure out and do things it doesn't know how to do yet | **Outcome 10** (Tool Layer) |
 | Ability to have conversation commitments become real scheduled actions | **Outcome 11** |
 | Ability to configure correct LLM tier model assignments | **Outcome 12** |
+| Ability to track and manage tasks durably | **Outcome 13** |
+| Ability to plan, execute, and verify work with evidence | **Outcome 14** |
+| Ability to gate risky actions with human approval | **Outcome 15** |
 | Ability to configure via web dashboard | Phase 2 |
 | Ability to see agents and cron jobs | Phase 2 |
 
@@ -295,32 +298,129 @@
 
 ---
 
-### 📋 Outcome 10: Ability to have the daemon figure out and do things it doesn't know how to do yet
+### 📋 Outcome 10: Typed Tool Layer — The Agent's Hands
 
-> So the daemon is a growing intelligence — when asked to do something new (curate news, fetch data, automate a task), it researches how, builds the capability, executes the request, and remembers for next time. It never just says "I can't do that."
+> So the daemon can actually DO things in the real world — not just generate text. Every tool has a typed schema, the LLM knows what tools are available, and new tools can be built and registered dynamically.
+
+**Agent System**: #1 (Tooling Layer) + #10 (Self-Extension)
 
 **Acceptance Criteria:**
-- [ ] When asked to do something outside its current capabilities, the daemon researches how to accomplish it (web search / Elder Brain)
-- [ ] The daemon builds a lightweight capability (script, API integration, cron job) and registers it
-- [ ] The original request is executed using the new capability
-- [ ] The capability persists — asking for the same thing again uses the existing capability, not rebuilding
-- [ ] The daemon reports what it learned: "I figured out how to do this — here's what I built"
-- [ ] A capability manifest is maintained and injected into Brain Runtime system prompts so the LLM knows what it can do right now
-- [ ] If a capability truly can't be built (needs hardware, physical access, etc.), the daemon says why honestly instead of promising
+- [ ] Tool registry with typed schemas (name, description, input schema, output schema)
+- [ ] Built-in tools: web_fetch (HTTP GET/POST), file_read, file_write, shell_exec
+- [ ] Tool manifest injected into Brain Runtime system prompts (LLM knows what it can do)
+- [ ] LLM can invoke tools via structured tool-use calls (not freeform text)
+- [ ] Tool execution is sandboxed — tools run with scoped permissions
+- [ ] When asked to do something with no matching tool, daemon reports the gap honestly
+- [ ] New tools can be registered at runtime (dynamic capability extension)
 
 **Demo / Proof:**
-- Ask the daemon "Send me AI news at 7am daily"
-- Watch it research, find RSS feeds/APIs, build a fetcher+summarizer, schedule it
-- Receive the first roundup as proof, then again the next morning automatically
+- Ask "What's the weather?" → daemon uses web_fetch tool to get the answer
+- Ask "Read my project's README" → daemon uses file_read tool
+- Send `/tools` → see list of available tools with descriptions
+- Ask something impossible → daemon says "I don't have a tool for that yet" not "Sure, I'll do it!"
 
-**Priority Score:** 124 (Vision: 5, Reliability: 3, Token Efficiency: 3, MVP: 5)
+**Priority Score:** 140 (Vision: 5, Reliability: 4, Token Efficiency: 4, MVP: 5)
 
 **🔧 Tasks (internal):**
-- Task 041: Capability manifest system — registry of installed capabilities, dynamic generation, system prompt injection
-- Task 042: Capability gap detection — intercept LLM responses, detect promises outside manifest
-- Task 043: Self-extension research loop — web search for how to accomplish unknown tasks
-- Task 044: Capability builder — create lightweight scripts/integrations from research findings
-- Task 045: Capability persistence — store built capabilities, make them available for future requests
+- Task 055: Tool registry — typed schema system, registration, discovery, manifest generation
+- Task 056: Built-in tools — web_fetch (HTTP client), file_read, file_write, shell_exec
+- Task 057: Tool executor — sandboxed execution with typed input validation and output parsing
+- Task 058: Brain Runtime tool integration — inject tool manifest into system prompts, handle tool-use responses
+- Task 059: Dynamic tool registration — runtime capability extension, persistence across restarts
+
+---
+
+### 📋 Outcome 13: Task Ledger — Durable Agent State
+
+> So every piece of work the daemon takes on — from reminders to research tasks to multi-step projects — lives in a durable task ledger that survives restarts, tracks progress, and produces artifacts.
+
+**Agent System**: #3 (Task Ledger)
+
+**Acceptance Criteria:**
+- [ ] General-purpose task table: id, title, type, status (queued/running/blocked/done/failed), priority, deadline
+- [ ] Tasks store checkpoints (what's been tried, outputs so far)
+- [ ] Tasks produce artifacts (files, links, results) with standard locations
+- [ ] Commitment engine migrated to use task ledger (commitments become a task type)
+- [ ] Task status queryable via Telegram: `/tasks`, `/task <id>`
+- [ ] If daemon restarts, queued and running tasks resume automatically
+- [ ] Blocked tasks have clear reasons and what's needed to unblock
+
+**Demo / Proof:**
+- Ask the daemon to research something → see it appear as a task in `/tasks`
+- Restart the daemon → task is still there, resumes on next tick
+- A task gets stuck → see "blocked: waiting for API response" status
+- Ask "what are you working on?" → daemon lists active tasks with progress
+
+**Priority Score:** 138 (Vision: 5, Reliability: 5, Token Efficiency: 4, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 060: Task ledger schema — SQLite table with status machine, checkpoints, artifacts
+- Task 061: Task lifecycle — create, start, checkpoint, block, complete, fail, resume
+- Task 062: Commitment migration — commitments become task type, preserve existing behavior
+- Task 063: Telegram task commands — /tasks, /task <id>, natural language task queries
+- Task 064: Restart recovery — detect interrupted tasks on startup, resume or fail gracefully
+
+---
+
+### 📋 Outcome 14: Planner/Executor/Verifier Pipeline
+
+> So the daemon doesn't just "do things" — it plans them, executes them step by step, and verifies the results with evidence. The planner proposes, the executor acts, and the verifier confirms. Three separate roles, even if using the same LLM.
+
+**Agent System**: #5 (Planner/Executor Separation) + #6 (Observation/Verification)
+
+**Acceptance Criteria:**
+- [ ] Planner produces a structured plan: steps, tool calls, success criteria, expected output
+- [ ] Executor runs the plan step by step, recording outputs at each checkpoint
+- [ ] Verifier checks "definition of done" against actual evidence (API response, file content, build output)
+- [ ] Failed verification triggers retry or escalation, not silent "done"
+- [ ] For code tasks: build passes + tests pass = verified (existing verification engine)
+- [ ] For non-code tasks: evidence must exist (HTTP response, file on disk, data in DB)
+- [ ] Task ledger updated at each stage (planned → executing → verifying → done/failed)
+
+**Demo / Proof:**
+- Ask daemon to fetch IGN articles → see plan ("1. fetch RSS, 2. parse articles, 3. summarize") → execution → verification ("found 5 articles, summary generated") → result delivered
+- Ask for something that fails → verifier catches it, daemon reports "I tried but the API returned 404" with evidence
+- View task in `/task <id>` → see the plan, execution log, and verification result
+
+**Priority Score:** 136 (Vision: 5, Reliability: 5, Token Efficiency: 3, MVP: 5)
+
+**🔧 Tasks (internal):**
+- Task 065: Plan schema — structured plan with steps, tool calls, success criteria
+- Task 066: Planner agent — LLM call that produces a plan (not direct execution)
+- Task 067: Step executor — runs plan steps sequentially, records outputs, handles errors
+- Task 068: Evidence verifier — checks success criteria against actual outputs
+- Task 069: Pipeline orchestrator — planner → executor → verifier flow with task ledger updates
+
+---
+
+### 📋 Outcome 15: Human-in-the-Loop Gates
+
+> So the daemon asks before doing anything risky or irreversible — sending messages, spending money, deleting data, posting to APIs. The user stays in control without micromanaging every action.
+
+**Agent System**: #10 (Human-in-the-Loop)
+
+**Acceptance Criteria:**
+- [ ] Actions are classified by risk level: low (read-only), medium (write/modify), high (irreversible/external)
+- [ ] Low-risk actions execute automatically (fetch data, read files)
+- [ ] Medium/high-risk actions require Telegram approval before execution
+- [ ] Approval request shows: what will happen, why, estimated cost/impact
+- [ ] User can approve, reject, or modify the proposed action
+- [ ] Timeout on approvals (auto-skip after configurable period, default: don't execute)
+- [ ] Audit log of all approved/rejected actions
+
+**Demo / Proof:**
+- Daemon fetches data → executes automatically (low risk)
+- Daemon wants to send an email → sends approval request in Telegram → user approves → sent
+- Daemon wants to delete a file → sends approval → user rejects → action cancelled
+- View `/audit` → see history of all gated actions and their outcomes
+
+**Priority Score:** 130 (Vision: 4, Reliability: 5, Token Efficiency: 4, MVP: 4)
+
+**🔧 Tasks (internal):**
+- Task 070: Risk classifier — categorize tool calls by risk level (low/medium/high)
+- Task 071: Approval gate — Telegram inline buttons for approve/reject/modify
+- Task 072: Approval queue — store pending approvals, handle timeouts
+- Task 073: Audit log — record all gated actions with outcomes in SQLite
 
 ---
 
@@ -390,20 +490,29 @@
 ## MVP Checkpoint (End of Phase 1)
 
 ✅ **Phase 1 Complete When ALL acceptance criteria verified for:**
-- Outcome 1: Daemon lifecycle management
-- Outcome 2: Autonomous task execution
-- Outcome 3: Verification gates
-- Outcome 4: Budget control
-- Outcome 5: Scheduled operation
-- Outcome 6: Telegram communication
-- Outcome 7: Conversational onboarding & identity
-- Outcome 8: Self-optimization of token usage
-- Outcome 9: Brain Runtime — full Mother Brain process over Telegram
-- Outcome 10: Self-extending capabilities (figure it out)
-- Outcome 11: Commitment engine (promises → actions)
-- Outcome 12: LLM tier configuration (correct model assignments)
 
-**Validation Method**: Run the daemon, ask it to do something new — it figures it out and delivers. Commitments become real scheduled actions. Wake up to results.
+**Foundation (Done):**
+- Outcome 1: Daemon lifecycle management ✅
+- Outcome 2: Autonomous task execution ✅
+- Outcome 3: Verification gates ✅
+- Outcome 4: Budget control ✅
+- Outcome 5: Scheduled operation ✅
+- Outcome 6: Telegram communication ✅
+- Outcome 7: Conversational onboarding & identity ✅
+- Outcome 8: Self-optimization of token usage ✅
+- Outcome 9: Brain Runtime — full Mother Brain process over Telegram ✅
+- Outcome 11: Commitment engine (promises → actions) ✅
+- Outcome 12: LLM tier configuration ✅
+
+**Agent Architecture (Remaining):**
+- Outcome 10: Typed Tool Layer — the agent's hands
+- Outcome 13: Task Ledger — durable agent state
+- Outcome 14: Planner/Executor/Verifier Pipeline
+- Outcome 15: Human-in-the-Loop Gates
+
+**Architecture Reference**: See `agent-architecture.md` for the 12 agent systems.
+
+**Validation Method**: Run the daemon, ask it to do something real (fetch IGN articles). It plans the task, uses tools to execute, verifies the result with evidence, and delivers. Tasks survive restarts. Risky actions require approval.
 
 **Next Step After MVP**: Begin Phase 2 based on real usage experience.
 
@@ -518,11 +627,6 @@
 | 038 | Outcome 9: Brain Runtime | ✅ |
 | 039 | Outcome 9: Brain Runtime | ✅ |
 | 040 | Outcome 9: Brain Runtime | ✅ |
-| 041 | Outcome 10: Self-extension | ⬜ |
-| 042 | Outcome 10: Self-extension | ⬜ |
-| 043 | Outcome 10: Self-extension | ⬜ |
-| 044 | Outcome 10: Self-extension | ⬜ |
-| 045 | Outcome 10: Self-extension | ⬜ |
 | 046 | Outcome 11: Commitment engine | ✅ |
 | 047 | Outcome 11: Commitment engine | ✅ |
 | 048 | Outcome 11: Commitment engine | ✅ |
@@ -532,6 +636,25 @@
 | 052 | Outcome 12: LLM tier config | ✅ |
 | 053 | Outcome 12: LLM tier config | ✅ |
 | 054 | Outcome 12: LLM tier config | ✅ |
+| 055 | Outcome 10: Tool layer | ⬜ |
+| 056 | Outcome 10: Tool layer | ⬜ |
+| 057 | Outcome 10: Tool layer | ⬜ |
+| 058 | Outcome 10: Tool layer | ⬜ |
+| 059 | Outcome 10: Tool layer | ⬜ |
+| 060 | Outcome 13: Task ledger | ⬜ |
+| 061 | Outcome 13: Task ledger | ⬜ |
+| 062 | Outcome 13: Task ledger | ⬜ |
+| 063 | Outcome 13: Task ledger | ⬜ |
+| 064 | Outcome 13: Task ledger | ⬜ |
+| 065 | Outcome 14: Planner/Executor/Verifier | ⬜ |
+| 066 | Outcome 14: Planner/Executor/Verifier | ⬜ |
+| 067 | Outcome 14: Planner/Executor/Verifier | ⬜ |
+| 068 | Outcome 14: Planner/Executor/Verifier | ⬜ |
+| 069 | Outcome 14: Planner/Executor/Verifier | ⬜ |
+| 070 | Outcome 15: Human-in-the-loop | ⬜ |
+| 071 | Outcome 15: Human-in-the-loop | ⬜ |
+| 072 | Outcome 15: Human-in-the-loop | ⬜ |
+| 073 | Outcome 15: Human-in-the-loop | ⬜ |
 
 ---
 
@@ -547,6 +670,6 @@
 
 ---
 
-**Total Tasks**: 54  
-**Phase 1 (MVP) Tasks**: 54 (40 complete, 14 remaining)  
+**Total Tasks**: 73  
+**Phase 1 (MVP) Tasks**: 73 (54 complete, 19 remaining)  
 **Post-MVP Tasks**: TBD based on usage experience

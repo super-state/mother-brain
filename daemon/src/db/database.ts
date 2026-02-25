@@ -149,4 +149,31 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_projects_active ON projects(active);
     `,
   },
+  {
+    name: '003_task_ledger',
+    sql: `
+      CREATE TABLE tasks (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('commitment', 'research', 'coding', 'general')),
+        status TEXT NOT NULL DEFAULT 'queued' CHECK(status IN ('queued', 'running', 'blocked', 'done', 'failed')),
+        priority INTEGER NOT NULL DEFAULT 0,
+        parent_task_id TEXT REFERENCES tasks(id),
+        deadline TEXT,
+        block_reason TEXT,
+        checkpoint_data TEXT DEFAULT '{}',
+        artifacts TEXT DEFAULT '[]',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        started_at TEXT,
+        completed_at TEXT,
+        execution_count INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT
+      );
+
+      CREATE INDEX idx_tasks_status ON tasks(status);
+      CREATE INDEX idx_tasks_type ON tasks(type);
+      CREATE INDEX idx_tasks_parent ON tasks(parent_task_id);
+    `,
+  },
 ];

@@ -23,6 +23,7 @@ import { ConversationMemory } from '../conversation/memory.js';
 import { ConversationHandler } from '../conversation/handler.js';
 import { ToolRegistry } from '../tools/index.js';
 import { registerBuiltinTools } from '../tools/builtin/index.js';
+import { TaskLedger } from '../tasks/index.js';
 import { CommitmentStore } from '../commitment/store.js';
 import { CommitmentScheduler } from '../commitment/scheduler.js';
 import type { DaemonModule, DaemonState } from './lifecycle.js';
@@ -173,6 +174,20 @@ export class Daemon {
     registerBuiltinTools(toolRegistry, this.logger);
     conversationHandler.setToolRegistry(toolRegistry);
     reporter?.onTools(toolRegistry);
+
+    // Task ledger — durable task management with checkpoint/resume
+    const taskLedger = new TaskLedger(db.connection, this.logger);
+    reporter?.onTaskLedger(taskLedger);
+
+    // Restart recovery — handle tasks that were running when daemon last stopped
+    const interrupted = taskLedger.findInterrupted();
+    if (interrupted.length > 0) {
+      this.logger.warn({ count: interrupted.length }, 'Found interrupted tasks from previous run');
+      for (const task of interrupted) {
+        taskLedger.fail(task.id, 'Daemon restarted while task was running');
+        this.logger.info({ taskId: task.id, title: task.title }, 'Interrupted task marked as failed');
+      }
+    }
 
     // Commitment engine — tracks and executes promises from conversation
     const commitmentStore = new CommitmentStore(db.connection, this.logger);

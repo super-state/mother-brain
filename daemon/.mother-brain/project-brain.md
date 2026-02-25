@@ -102,3 +102,4 @@ The daemon is a real agent — not a chat model that talks like it's doing stuff
 - [ ] Reminders and simple notifications must NOT use LLM calls — direct notification is the fulfillment
 - [ ] Regex matching LLM output must handle Unicode variants (curly quotes U+2019, em-dashes, etc.)
 - [ ] Time parsing must support both 12h (3:00pm) and 24h (15:00) formats — LLMs use both
+- [ ] Run `git status` before every commit to catch untracked new files — missed files cause deploy failures

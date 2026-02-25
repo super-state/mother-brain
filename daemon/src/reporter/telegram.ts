@@ -8,6 +8,7 @@ import type { UsageOptimizer, OptimizationReport } from '../budget/optimizer.js'
 import type { ConversationHandler } from '../conversation/handler.js';
 import type { CommitmentStore, Commitment, CommitmentResult } from '../commitment/index.js';
 import type { ToolRegistry } from '../tools/index.js';
+import type { TaskLedger, Task } from '../tasks/index.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,6 +57,7 @@ export class TelegramReporter implements DaemonModule {
   private commitmentStore: CommitmentStore | null = null;
   private commitmentScheduler: import('../commitment/scheduler.js').CommitmentScheduler | null = null;
   private toolRegistry: ToolRegistry | null = null;
+  private taskLedger: TaskLedger | null = null;
 
   constructor(
     private config: TelegramConfig,
@@ -95,6 +97,11 @@ export class TelegramReporter implements DaemonModule {
   /** Register the tool registry for tool commands. */
   onTools(registry: ToolRegistry): void {
     this.toolRegistry = registry;
+  }
+
+  /** Register the task ledger for task commands. */
+  onTaskLedger(ledger: TaskLedger): void {
+    this.taskLedger = ledger;
   }
 
   /** Register the commitment store for commitment commands. */
@@ -281,6 +288,63 @@ export class TelegramReporter implements DaemonModule {
       }
       this.conversationHandler.resetConversation();
       await ctx.reply("🔄 Conversation reset. Let's start fresh! What are you working on?");
+    });
+
+    // /tasks — list active tasks from the task ledger
+    this.bot.command('tasks', async (ctx) => {
+      if (!this.taskLedger) {
+        await ctx.reply('Task ledger not available.');
+        return;
+      }
+      const active = this.taskLedger.listActive();
+      if (active.length === 0) {
+        await ctx.reply('📋 No active tasks right now.');
+        return;
+      }
+      const statusEmoji: Record<string, string> = { queued: '⏳', running: '🔄', blocked: '🚫' };
+      const lines = active.map(t => {
+        const emoji = statusEmoji[t.status] ?? '📋';
+        const deadline = t.deadline ? ` (due ${t.deadline})` : '';
+        const blocked = t.blockReason ? ` — ${escapeHtml(t.blockReason)}` : '';
+        return `${emoji} <b>${escapeHtml(t.id)}</b>: ${escapeHtml(t.title)}${deadline}${blocked}`;
+      });
+      await ctx.reply(`📋 <b>Active Tasks (${active.length})</b>\n\n${lines.join('\n')}`, { parse_mode: 'HTML' });
+    });
+
+    // /task <id> — show task detail
+    this.bot.command('task', async (ctx) => {
+      if (!this.taskLedger) {
+        await ctx.reply('Task ledger not available.');
+        return;
+      }
+      const taskId = ctx.message?.text?.split(/\s+/)[1];
+      if (!taskId) {
+        await ctx.reply('Usage: /task &lt;id&gt;');
+        return;
+      }
+      const task = this.taskLedger.getById(taskId);
+      if (!task) {
+        await ctx.reply(`❌ No task found with ID "${escapeHtml(taskId)}"`);
+        return;
+      }
+      const statusEmoji: Record<string, string> = { queued: '⏳', running: '🔄', blocked: '🚫', done: '✅', failed: '❌' };
+      const parts = [
+        `${statusEmoji[task.status] ?? '📋'} <b>${escapeHtml(task.title)}</b>`,
+        `Type: ${task.type} | Priority: ${task.priority}`,
+        `Status: ${task.status}`,
+      ];
+      if (task.deadline) parts.push(`Deadline: ${task.deadline}`);
+      if (task.blockReason) parts.push(`Blocked: ${escapeHtml(task.blockReason)}`);
+      if (task.lastError) parts.push(`Error: ${escapeHtml(task.lastError)}`);
+      if (task.artifacts.length > 0) {
+        parts.push(`Artifacts: ${task.artifacts.map(a => escapeHtml(a.label)).join(', ')}`);
+      }
+      parts.push(`Created: ${task.createdAt}`);
+      if (task.startedAt) parts.push(`Started: ${task.startedAt}`);
+      if (task.completedAt) parts.push(`Completed: ${task.completedAt}`);
+      parts.push(`Executions: ${task.executionCount}`);
+
+      await ctx.reply(parts.join('\n'), { parse_mode: 'HTML' });
     });
 
     // /tools — list available tools and their risk levels

@@ -67,10 +67,13 @@ const RECURRING_PATTERNS: Array<{
 
 // One-time promise patterns: "I'll do X", "I will send you X", "Let me do X"
 // Note: match both straight (') and curly (\u2019) apostrophes from LLM output
+// Common verbs LLMs use when committing to actions
+const COMMITMENT_VERBS = 'send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize|gather|share|collect|provide|deliver|curate|organize|schedule|arrange|pull together|put together|grab';
+
 const PROMISE_PATTERNS: RegExp[] = [
-  /I['\u2019]?ll\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
-  /I\s+will\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
-  /(?:Let me|I['\u2019]m going to|I['\u2019]ll go ahead and)\s+(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)\s+(.{5,120})/i,
+  new RegExp(`I['\u2019]?ll\\s+(?:${COMMITMENT_VERBS})\\s+(.{5,120})`, 'i'),
+  new RegExp(`I\\s+will\\s+(?:${COMMITMENT_VERBS})\\s+(.{5,120})`, 'i'),
+  new RegExp(`(?:Let me|I['\u2019]m going to|I['\u2019]ll go ahead and)\\s+(?:${COMMITMENT_VERBS})\\s+(.{5,120})`, 'i'),
 ];
 
 // Time references for one-time commitments
@@ -125,9 +128,14 @@ const TIME_PATTERNS: Array<{
     },
   },
   {
-    // "right now" / "now" / "right away" / "immediately"
-    regex: /(?:right now|right away|immediately|straightaway)/i,
+    // "right now" / "now" / "right away" / "immediately" / "shortly"
+    regex: /(?:right now|right away|immediately|straightaway|shortly)/i,
     toTimestamp: () => 'now',
+  },
+  {
+    // "today" (execute within the hour — treat as near-immediate)
+    regex: /\btoday\b/i,
+    toTimestamp: () => new Date(Date.now() + 5 * 60_000).toISOString(), // 5 min from now
   },
 ];
 
@@ -170,7 +178,7 @@ export function detectCommitments(llmOutput: string, logger: Logger): DetectedCo
         const sentenceEnd = rawAction.search(/[.!?](?:\s|$)/);
         const cleanAction = sentenceEnd > 0 ? rawAction.slice(0, sentenceEnd) : rawAction;
         // Prepend the verb for readability (e.g., "send you a reminder..." not "you a reminder...")
-        const verbMatch = match[0].match(/(?:send|get|fetch|find|compile|prepare|create|build|write|generate|research|look up|check|analyze|review|summarize)/i);
+        const verbMatch = match[0].match(new RegExp(`(?:${COMMITMENT_VERBS})`, 'i'));
         const actionDesc = verbMatch ? `${verbMatch[0]} ${cleanAction}` : cleanAction;
 
         // Try to find a time reference

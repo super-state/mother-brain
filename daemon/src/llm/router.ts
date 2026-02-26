@@ -131,6 +131,21 @@ function createClientForProvider(
       return new CopilotLLMClient({ githubToken, model }, logger);
     }
 
+    case 'openai': {
+      // Prefer OAuth tokens (ChatGPT subscription), fall back to API key
+      const oauth = config.llm.openaiOAuth;
+      const openaiKey = oauth?.accessToken ?? config.llm.openaiApiKey;
+      if (!openaiKey) {
+        throw new Error(`OpenAI tier "${tier}" requires openaiOAuth or openaiApiKey in llm config`);
+      }
+      const authMethod = oauth ? 'oauth' : 'api-key';
+      logger.info({ model, provider: 'openai', tier, authMethod }, `Using direct OpenAI API for ${tier} tier`);
+      return new CopilotLLMClient(
+        { githubToken: openaiKey, model, baseUrl: 'https://api.openai.com/v1' },
+        logger,
+      );
+    }
+
     case 'cloud': {
       if (!config.llm.cloud) {
         throw new Error(`Cloud tier "${tier}" requires llm.cloud config`);

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Lifecycle } from './lifecycle.js';
 import { loadConfig, defaultConfigPath } from './config.js';
+import type { OpenAIOAuthConfig } from './config.js';
 import { ensureDataDir } from './logger.js';
 import { DatabaseManager } from '../db/database.js';
 import { ProjectManager } from '../db/projects.js';
@@ -77,6 +78,46 @@ export class Daemon {
       await this.lifecycle.startAll();
       this.logger.info('Mother Brain Daemon started (skeleton mode)');
       return;
+    }
+
+    // Auto-refresh OpenAI OAuth token if present and near expiry
+    if (this.config.llm.openaiOAuth) {
+      const oauth = this.config.llm.openaiOAuth;
+      const fiveMinutes = 5 * 60 * 1000;
+      if (oauth.expires - Date.now() < fiveMinutes) {
+        this.logger.info('OpenAI OAuth token expired or near expiry, refreshing...');
+        try {
+          const { refreshOpenAIToken } = await import('../llm/openai-oauth.js');
+          const refreshed = await refreshOpenAIToken(oauth.refreshToken);
+          if (refreshed) {
+            this.config.llm.openaiOAuth = {
+              accessToken: refreshed.accessToken,
+              refreshToken: refreshed.refreshToken,
+              expires: refreshed.expires,
+              accountId: refreshed.accountId,
+            };
+            // Persist refreshed token to config file
+            try {
+              const { readFileSync, writeFileSync } = await import('node:fs');
+              const raw = JSON.parse(readFileSync(cfgPath, 'utf-8')) as Record<string, unknown>;
+              const llm = (raw['llm'] ?? {}) as Record<string, unknown>;
+              llm['openaiOAuth'] = this.config.llm.openaiOAuth;
+              raw['llm'] = llm;
+              writeFileSync(cfgPath, JSON.stringify(raw, null, 2), 'utf-8');
+              this.logger.info('OpenAI OAuth token refreshed and saved');
+            } catch (writeErr) {
+              this.logger.warn({ err: writeErr }, 'Failed to persist refreshed OAuth token');
+            }
+          } else {
+            this.logger.warn('OpenAI OAuth token refresh failed — token may be expired');
+          }
+        } catch (err) {
+          this.logger.warn({ err }, 'OpenAI OAuth token refresh error');
+        }
+      } else {
+        const minutesLeft = Math.round((oauth.expires - Date.now()) / 60000);
+        this.logger.info({ minutesLeft }, 'OpenAI OAuth token valid');
+      }
     }
 
     // Register and start database FIRST (other modules depend on it)

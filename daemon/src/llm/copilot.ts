@@ -7,6 +7,7 @@ import type { FileChange, LLMResult } from './cloud.js';
 // ---------------------------------------------------------------------------
 
 const GITHUB_MODELS_BASE_URL = 'https://models.github.ai/inference';
+const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 
 /**
  * Configuration for the Copilot/GitHub Models provider.
@@ -15,6 +16,7 @@ const GITHUB_MODELS_BASE_URL = 'https://models.github.ai/inference';
 export interface CopilotLLMConfig {
   githubToken: string;       // GitHub PAT with models:read scope
   model: string;             // e.g., "openai/gpt-4.1" — all models accessed via Copilot
+  baseUrl?: string;          // Override base URL (for direct OpenAI API)
 }
 
 // Tool definitions (OpenAI function calling format)
@@ -67,7 +69,7 @@ export class CopilotLLMClient {
     private logger: Logger,
   ) {
     this.client = new OpenAI({
-      baseURL: GITHUB_MODELS_BASE_URL,
+      baseURL: config.baseUrl ?? GITHUB_MODELS_BASE_URL,
       apiKey: config.githubToken,
     });
   }

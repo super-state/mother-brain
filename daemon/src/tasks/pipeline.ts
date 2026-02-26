@@ -388,7 +388,9 @@ export async function verifyPlan(
 export interface PipelineConfig {
   client: OpenAI;
   model: string;            // Default model (chat tier)
+  plannerClient?: OpenAI;   // Separate client for planning (may use different provider)
   plannerModel?: string;    // Override for planning phase
+  verifierClient?: OpenAI;  // Separate client for verification
   verifierModel?: string;   // Override for verification phase
   toolRegistry: ToolRegistry;
   taskLedger: TaskLedger;
@@ -411,7 +413,7 @@ export async function runPipeline(
   taskId: string,
   config: PipelineConfig,
 ): Promise<PipelineResult | null> {
-  const { client, model, plannerModel, verifierModel, toolRegistry, taskLedger, logger, blockerMemory, onHeartbeat } = config;
+  const { client, model, plannerClient, plannerModel, verifierClient, verifierModel, toolRegistry, taskLedger, logger, blockerMemory, onHeartbeat } = config;
 
   const emit = (hb: Omit<ProgressHeartbeat, 'taskId' | 'timestamp'>) => {
     if (!onHeartbeat) return;
@@ -430,7 +432,7 @@ export async function runPipeline(
   // Phase 1: Plan
   emit({ phase: 'planning', action: `Planning: ${task.title}` });
   const toolManifest = toolRegistry.generateManifest();
-  const plan = await generatePlan(task.title, toolManifest, client, plannerModel ?? model, logger);
+  const plan = await generatePlan(task.title, toolManifest, plannerClient ?? client, plannerModel ?? model, logger);
 
   if (!plan || plan.steps.length === 0) {
     emit({ phase: 'failed', action: 'Planning failed — no valid plan generated' });
@@ -452,7 +454,7 @@ export async function runPipeline(
 
   // Phase 3: Verify
   emit({ phase: 'verifying', action: 'Verifying results against success criteria' });
-  const verification = await verifyPlan(executedPlan, client, verifierModel ?? model, logger);
+  const verification = await verifyPlan(executedPlan, verifierClient ?? client, verifierModel ?? model, logger);
 
   if (verification.verified) {
     executedPlan.status = 'verified';

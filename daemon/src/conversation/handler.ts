@@ -89,6 +89,8 @@ export class ConversationHandler {
   private blockerMemory: BlockerMemory | null = null;
   private plannerModel: string | undefined;
   private verifierModel: string | undefined;
+  private plannerClient: OpenAI | undefined;
+  private verifierClient: OpenAI | undefined;
 
   constructor(
     config: DaemonConfig,
@@ -101,8 +103,16 @@ export class ConversationHandler {
   ) {
     const chatTier = config.llm.tiers?.chat;
     const githubToken = config.llm.githubToken ?? config.llm.copilot?.githubToken;
+    const openaiKey = config.llm.openaiOAuth?.accessToken ?? config.llm.openaiApiKey;
 
-    if (chatTier && chatTier.provider === 'copilot' && githubToken) {
+    // Resolve chat client + model
+    if (chatTier && chatTier.provider === 'openai' && openaiKey) {
+      this.client = new OpenAI({
+        baseURL: 'https://api.openai.com/v1',
+        apiKey: openaiKey,
+      });
+      this.model = chatTier.model;
+    } else if (chatTier && chatTier.provider === 'copilot' && githubToken) {
       this.client = new OpenAI({
         baseURL: GITHUB_MODELS_BASE_URL,
         apiKey: githubToken,
@@ -118,9 +128,36 @@ export class ConversationHandler {
       throw new Error('No LLM provider available for conversation.');
     }
 
-    // Use separate models for planning and verification if configured
-    this.plannerModel = config.llm.tiers?.planning?.model;
-    this.verifierModel = config.llm.tiers?.review?.model;
+    // Resolve planner/verifier — may use different provider than chat
+    const planningTier = config.llm.tiers?.planning;
+    const reviewTier = config.llm.tiers?.review;
+    this.plannerModel = planningTier?.model;
+    this.verifierModel = reviewTier?.model;
+
+    // Create separate client for planning/verification if different provider
+    if (planningTier && planningTier.provider === 'openai' && openaiKey) {
+      this.plannerClient = new OpenAI({
+        baseURL: 'https://api.openai.com/v1',
+        apiKey: openaiKey,
+      });
+    } else if (planningTier && planningTier.provider === 'copilot' && githubToken) {
+      this.plannerClient = new OpenAI({
+        baseURL: GITHUB_MODELS_BASE_URL,
+        apiKey: githubToken,
+      });
+    }
+
+    if (reviewTier && reviewTier.provider === 'openai' && openaiKey) {
+      this.verifierClient = new OpenAI({
+        baseURL: 'https://api.openai.com/v1',
+        apiKey: openaiKey,
+      });
+    } else if (reviewTier && reviewTier.provider === 'copilot' && githubToken) {
+      this.verifierClient = new OpenAI({
+        baseURL: GITHUB_MODELS_BASE_URL,
+        apiKey: githubToken,
+      });
+    }
 
     this.logger.info({
       chatModel: this.model,
@@ -354,7 +391,9 @@ export class ConversationHandler {
     return runPipeline(taskId, {
       client: this.client,
       model: this.model,
+      plannerClient: this.plannerClient,
       plannerModel: this.plannerModel,
+      verifierClient: this.verifierClient,
       verifierModel: this.verifierModel,
       toolRegistry: this.toolRegistry,
       taskLedger: this.taskLedger,

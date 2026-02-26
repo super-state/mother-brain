@@ -4,9 +4,10 @@
  * Mother Brain Daemon — Entry Point
  *
  * Commands:
- *   mother-brain-daemon init   — Interactive setup wizard
- *   mother-brain-daemon start  — Start the daemon
- *   mother-brain-daemon        — Default: start
+ *   mother-brain-daemon init       — Interactive setup wizard
+ *   mother-brain-daemon auth openai — Authenticate with OpenAI (ChatGPT subscription)
+ *   mother-brain-daemon start      — Start the daemon
+ *   mother-brain-daemon            — Default: start
  */
 
 export {};  // Make this a module for top-level await
@@ -16,6 +17,9 @@ const command = process.argv[2];
 if (command === 'init') {
   const { runInitWizard } = await import('./cli/init.js');
   await runInitWizard();
+} else if (command === 'auth') {
+  const { runAuth } = await import('./cli/auth.js');
+  await runAuth(process.argv[3]);
 } else {
   // start (default)
   const { Daemon } = await import('./core/daemon.js');

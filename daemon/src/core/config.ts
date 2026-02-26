@@ -44,7 +44,7 @@ export interface CopilotLLMConfig {
  *   coding     → implementation — premium coder
  *   review     → code review — codex/reasoning
  */
-export type LLMTierProvider = 'local' | 'copilot' | 'cloud';
+export type LLMTierProvider = 'local' | 'copilot' | 'cloud' | 'openai';
 
 export interface LLMTierConfig {
   provider: LLMTierProvider;
@@ -63,8 +63,17 @@ export interface LLMTiers {
   review: LLMTierConfig;      // Code review (Codex 5.3)
 }
 
+export interface OpenAIOAuthConfig {
+  accessToken: string;         // JWT access token (usable as API key)
+  refreshToken: string;        // For auto-refresh when expired
+  expires: number;             // Epoch ms when access token expires
+  accountId: string;           // OpenAI account ID from JWT claims
+}
+
 export interface LLMConfig {
   githubToken?: string;          // Shared GitHub PAT for all copilot tiers
+  openaiApiKey?: string;         // Direct OpenAI API key (for openai provider)
+  openaiOAuth?: OpenAIOAuthConfig; // ChatGPT subscription OAuth tokens
   local?: LocalLLMConfig;        // Ollama/local model config
   cloud?: CloudLLMConfig;        // Direct cloud API config (fallback)
   copilot?: CopilotLLMConfig;    // Legacy single-tier config (still supported)
@@ -183,8 +192,10 @@ function validateLLM(raw: unknown): LLMConfig {
   const hasTiers = obj['tiers'] && typeof obj['tiers'] === 'object';
 
   // Must have at least one LLM source
-  if (!copilot && !hasCloud && !hasTiers && !githubToken) {
-    throw new ConfigError('llm must have tiers, copilot, cloud, or githubToken config');
+  const openaiApiKey = typeof obj['openaiApiKey'] === 'string' ? obj['openaiApiKey'] : undefined;
+  const hasOpenaiOAuth = obj['openaiOAuth'] && typeof obj['openaiOAuth'] === 'object';
+  if (!copilot && !hasCloud && !hasTiers && !githubToken && !openaiApiKey && !hasOpenaiOAuth) {
+    throw new ConfigError('llm must have tiers, copilot, cloud, githubToken, or openai config');
   }
 
   let tiers: LLMTiers | undefined;
@@ -199,8 +210,22 @@ function validateLLM(raw: unknown): LLMConfig {
     };
   }
 
+  // Parse OpenAI OAuth credentials
+  let openaiOAuth: OpenAIOAuthConfig | undefined;
+  if (hasOpenaiOAuth) {
+    const o = obj['openaiOAuth'] as Record<string, unknown>;
+    openaiOAuth = {
+      accessToken: typeof o['accessToken'] === 'string' ? o['accessToken'] : '',
+      refreshToken: typeof o['refreshToken'] === 'string' ? o['refreshToken'] : '',
+      expires: typeof o['expires'] === 'number' ? o['expires'] : 0,
+      accountId: typeof o['accountId'] === 'string' ? o['accountId'] : '',
+    };
+  }
+
   return {
     githubToken,
+    openaiApiKey,
+    openaiOAuth,
     copilot,
     cloud: hasCloud ? validateCloudLLM(obj['cloud']) : undefined,
     tiers,
@@ -213,16 +238,16 @@ function validateTierConfig(raw: unknown, tierName: string): LLMTierConfig {
   }
   const obj = raw as Record<string, unknown>;
   const provider = assertString(obj, 'provider') as LLMTierProvider;
-  if (!['local', 'copilot', 'cloud'].includes(provider)) {
-    throw new ConfigError(`llm.tiers.${tierName}.provider must be local, copilot, or cloud`);
+  if (!['local', 'copilot', 'cloud', 'openai'].includes(provider)) {
+    throw new ConfigError(`llm.tiers.${tierName}.provider must be local, copilot, cloud, or openai`);
   }
 
   let fallback: LLMTierConfig['fallback'];
   if (obj['fallback'] && typeof obj['fallback'] === 'object') {
     const fb = obj['fallback'] as Record<string, unknown>;
     const fbProvider = assertString(fb, 'provider') as LLMTierProvider;
-    if (!['local', 'copilot', 'cloud'].includes(fbProvider)) {
-      throw new ConfigError(`llm.tiers.${tierName}.fallback.provider must be local, copilot, or cloud`);
+    if (!['local', 'copilot', 'cloud', 'openai'].includes(fbProvider)) {
+      throw new ConfigError(`llm.tiers.${tierName}.fallback.provider must be local, copilot, cloud, or openai`);
     }
     fallback = { provider: fbProvider, model: assertString(fb, 'model') };
   }

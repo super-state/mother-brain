@@ -201,7 +201,7 @@ export class ConversationHandler {
       while (toolRound <= MAX_TOOL_ROUNDS) {
         const response = await this.client.chat.completions.create({
           model: this.model,
-          max_tokens: openAITools ? 1024 : 512,
+          max_completion_tokens: openAITools ? 1024 : 512,
           messages: currentMessages,
           ...(openAITools ? { tools: openAITools } : {}),
         });
@@ -264,7 +264,7 @@ export class ConversationHandler {
 
           const retryResponse = await this.client.chat.completions.create({
             model: this.model,
-            max_tokens: 512,
+            max_completion_tokens: 512,
             messages: reducedMessages,
           });
           reply = retryResponse.choices[0]?.message?.content ?? "I fetched data but it was too large. Try a more specific request.";

@@ -88,7 +88,7 @@ export class CopilotLLMClient {
 
     let response = await this.client.chat.completions.create({
       model: this.config.model,
-      max_tokens: 8192,
+      max_completion_tokens: 8192,
       tools: TOOLS,
       messages,
     });
@@ -136,7 +136,7 @@ export class CopilotLLMClient {
 
       response = await this.client.chat.completions.create({
         model: this.config.model,
-        max_tokens: 8192,
+        max_completion_tokens: 8192,
         tools: TOOLS,
         messages,
       });

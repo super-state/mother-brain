@@ -271,7 +271,7 @@ export async function runInitWizard(): Promise<void> {
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: 'Say "hello" and nothing else.' }],
-          max_tokens: 10,
+          max_completion_tokens: 10,
         }),
       });
       if (res.ok) {

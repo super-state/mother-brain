@@ -216,7 +216,7 @@ async function classifyCommitment(
   try {
     const response = await llm.client.chat.completions.create({
       model: llm.model,
-      max_tokens: 150,
+      max_completion_tokens: 150,
       temperature: 0,
       messages: [
         { role: 'system', content: CLASSIFICATION_PROMPT },

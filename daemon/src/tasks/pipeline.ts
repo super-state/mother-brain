@@ -58,7 +58,7 @@ export async function generatePlan(
   try {
     const response = await client.chat.completions.create({
       model,
-      max_tokens: 1024,
+      max_completion_tokens: 1024,
       messages: [
         { role: 'system', content: PLANNER_PROMPT },
         { role: 'user', content: `AVAILABLE TOOLS:\n${toolManifest}\n\nTASK: ${taskDescription}` },
@@ -347,7 +347,7 @@ export async function verifyPlan(
 
       const response = await client.chat.completions.create({
         model,
-        max_tokens: 256,
+        max_completion_tokens: 256,
         messages: [
           { role: 'system', content: VERIFIER_PROMPT },
           { role: 'user', content: `OVERALL CRITERIA: ${plan.overallCriteria}\n\nPLAN RESULTS:\n${planSummary}` },

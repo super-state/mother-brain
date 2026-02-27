@@ -570,7 +570,7 @@ export class TelegramReporter implements DaemonModule {
         try {
           const response = await this.conversationHandler.handleMessage(text);
           clearInterval(typingInterval);
-          await ctx.reply(response.text, { parse_mode: 'Markdown' }).catch(() =>
+          await ctx.reply(markdownToTelegramHtml(response.text), { parse_mode: 'HTML' }).catch(() =>
             ctx.reply(response.text),
           );
 
@@ -770,6 +770,35 @@ function escapeHtml(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+/**
+ * Convert LLM Markdown output to Telegram-compatible HTML.
+ * Handles: headings → bold, **bold**, *italic*, `code`, ```blocks```, ---
+ */
+function markdownToTelegramHtml(md: string): string {
+  // First escape HTML entities in the raw text
+  let html = escapeHtml(md);
+
+  // Code blocks (``` ... ```) → <pre>
+  html = html.replace(/```(?:\w*)\n?([\s\S]*?)```/g, '<pre>$1</pre>');
+
+  // Inline code (`text`) → <code>
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Headings (##+ text) → bold line
+  html = html.replace(/^#{1,6}\s+(.+)$/gm, '<b>$1</b>');
+
+  // Bold (**text**) → <b>
+  html = html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+  // Italic (*text*) — but not bullet points (* item)
+  html = html.replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<i>$1</i>');
+
+  // Horizontal rules (--- or ***) → empty line
+  html = html.replace(/^[-*]{3,}$/gm, '');
+
+  return html.trim();
 }
 
 function formatProjectsList(projects: Project[]): string {

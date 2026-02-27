@@ -269,10 +269,10 @@ export class Daemon {
       });
     }
 
-    // Run startup usage optimization analysis (daily retrospective)
+    // Run startup usage optimization analysis (daily retrospective) — only send if significant
     if (reporter) {
       const optReport = usageOptimizer.analyze(7);
-      if (optReport.totalRequests > 0 && optReport.insights.length > 0) {
+      if (optReport.totalRequests > 10 && optReport.insights.some(i => i.severity === 'high')) {
         reporter.sendOptimizationReport(optReport).catch((err) => {
           this.logger.warn({ error: err }, 'Failed to send optimization report');
         });

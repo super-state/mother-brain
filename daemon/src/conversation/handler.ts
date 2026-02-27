@@ -12,6 +12,8 @@ import type { TaskLedger } from '../tasks/index.js';
 import { runPipeline } from '../tasks/index.js';
 import type { PipelineResult, HeartbeatCallback } from '../tasks/index.js';
 import type { BlockerMemory } from '../tasks/index.js';
+import { ChatGPTCodexClient } from '../llm/chatgpt-codex.js';
+import type { ResponsesInput, ResponsesTool } from '../llm/chatgpt-codex.js';
 import {
   BrainStateManager,
   getPhasePrompt,
@@ -91,6 +93,7 @@ export class ConversationHandler {
   private verifierModel: string | undefined;
   private plannerClient: OpenAI | undefined;
   private verifierClient: OpenAI | undefined;
+  private codexClient: ChatGPTCodexClient | null = null;
 
   constructor(
     config: DaemonConfig,
@@ -103,15 +106,18 @@ export class ConversationHandler {
   ) {
     const chatTier = config.llm.tiers?.chat;
     const githubToken = config.llm.githubToken ?? config.llm.copilot?.githubToken;
-    const openaiKey = config.llm.openaiOAuth?.accessToken ?? config.llm.openaiApiKey;
+    const oauthCreds = config.llm.openaiOAuth;
 
-    // Resolve chat client + model
-    if (chatTier && chatTier.provider === 'openai' && openaiKey) {
-      this.client = new OpenAI({
-        baseURL: 'https://api.openai.com/v1',
-        apiKey: openaiKey,
-      });
+    // ChatGPT subscription path: use Codex Responses API for chat
+    if (chatTier && chatTier.provider === 'openai' && oauthCreds?.accessToken) {
+      this.codexClient = new ChatGPTCodexClient(oauthCreds.accessToken, chatTier.model, logger);
       this.model = chatTier.model;
+      // Still set up a fallback OpenAI client for auxiliary tasks (commitment detection)
+      if (githubToken) {
+        this.client = new OpenAI({ baseURL: GITHUB_MODELS_BASE_URL, apiKey: githubToken });
+      } else {
+        this.client = new OpenAI({ baseURL: 'https://api.openai.com/v1', apiKey: 'unused' });
+      }
     } else if (chatTier && chatTier.provider === 'copilot' && githubToken) {
       this.client = new OpenAI({
         baseURL: GITHUB_MODELS_BASE_URL,
@@ -135,24 +141,14 @@ export class ConversationHandler {
     this.verifierModel = reviewTier?.model;
 
     // Create separate client for planning/verification if different provider
-    if (planningTier && planningTier.provider === 'openai' && openaiKey) {
-      this.plannerClient = new OpenAI({
-        baseURL: 'https://api.openai.com/v1',
-        apiKey: openaiKey,
-      });
-    } else if (planningTier && planningTier.provider === 'copilot' && githubToken) {
+    if (planningTier && planningTier.provider === 'copilot' && githubToken) {
       this.plannerClient = new OpenAI({
         baseURL: GITHUB_MODELS_BASE_URL,
         apiKey: githubToken,
       });
     }
 
-    if (reviewTier && reviewTier.provider === 'openai' && openaiKey) {
-      this.verifierClient = new OpenAI({
-        baseURL: 'https://api.openai.com/v1',
-        apiKey: openaiKey,
-      });
-    } else if (reviewTier && reviewTier.provider === 'copilot' && githubToken) {
+    if (reviewTier && reviewTier.provider === 'copilot' && githubToken) {
       this.verifierClient = new OpenAI({
         baseURL: GITHUB_MODELS_BASE_URL,
         apiKey: githubToken,
@@ -161,6 +157,7 @@ export class ConversationHandler {
 
     this.logger.info({
       chatModel: this.model,
+      chatProvider: this.codexClient ? 'chatgpt-codex' : 'openai-sdk',
       plannerModel: this.plannerModel ?? '(same as chat)',
       verifierModel: this.verifierModel ?? '(same as chat)',
     }, 'LLM model routing configured');
@@ -228,6 +225,19 @@ export class ConversationHandler {
       ? this.toolRegistry.toOpenAITools() as OpenAI.ChatCompletionTool[]
       : undefined;
 
+    // Route through ChatGPT Codex Responses API when subscription auth is active
+    if (this.codexClient) {
+      try {
+        const result = await this.handleMessageCodex(systemPrompt, messages, openAITools);
+        reply = result.reply;
+        inputTokens = result.inputTokens;
+        outputTokens = result.outputTokens;
+      } catch (error: unknown) {
+        this.logger.error({ error: String(error) }, 'Codex API error — sending graceful response');
+        reply = "I had a brief connection issue. Could you say that again?";
+      }
+    } else {
+    // Standard OpenAI SDK path (GitHub Models / direct API)
     try {
       let currentMessages = [...messages as OpenAI.ChatCompletionMessageParam[]];
       const MAX_TOOL_ROUNDS = 5;
@@ -314,6 +324,7 @@ export class ConversationHandler {
         throw error;
       }
     }
+    } // end else (standard SDK path)
 
     this.memory.addMessage('assistant', reply, intent);
 
@@ -324,8 +335,9 @@ export class ConversationHandler {
     // Record token usage
     if (this.budgetTracker && this.sessionId && (inputTokens > 0 || outputTokens > 0)) {
       const activeProject = this.projectManager.getActiveProject();
+      const provider = this.codexClient ? 'chatgpt-codex' : 'copilot';
       this.budgetTracker.recordUsage(
-        this.sessionId, 'copilot', this.model, inputTokens, outputTokens,
+        this.sessionId, provider, this.model, inputTokens, outputTokens,
         'chat', activeProject?.id,
       );
     }
@@ -406,6 +418,83 @@ export class ConversationHandler {
   // -------------------------------------------------------------------------
   // Private
   // -------------------------------------------------------------------------
+
+  /**
+   * Handle a message via the ChatGPT Codex Responses API.
+   * Converts chat history to Responses API format and handles tool calls.
+   */
+  private async handleMessageCodex(
+    systemPrompt: string,
+    messages: Array<{ role: string; content?: string | null }>,
+    tools?: OpenAI.ChatCompletionTool[],
+  ): Promise<{ reply: string; inputTokens: number; outputTokens: number }> {
+    // Convert chat history to Responses API input format
+    const input: ResponsesInput[] = [];
+    for (const msg of messages) {
+      if (msg.role === 'system') continue;
+      if ((msg.role === 'user' || msg.role === 'assistant') && msg.content) {
+        input.push({ role: msg.role, content: msg.content });
+      }
+    }
+
+    // Convert OpenAI tool definitions to Responses API format
+    const codexTools: ResponsesTool[] | undefined = tools?.map(t => ({
+      type: 'function' as const,
+      name: t.function.name,
+      description: t.function.description ?? '',
+      parameters: (t.function.parameters ?? {}) as Record<string, unknown>,
+    }));
+
+    let reply = '';
+    let inputTokens = 0;
+    let outputTokens = 0;
+    const MAX_TOOL_ROUNDS = 5;
+    let toolRound = 0;
+
+    while (toolRound <= MAX_TOOL_ROUNDS) {
+      const response = await this.codexClient!.chat(systemPrompt, input, codexTools);
+      inputTokens += response.inputTokens;
+      outputTokens += response.outputTokens;
+
+      // If the LLM wants to call tools, execute them and loop
+      if (response.toolCalls.length > 0 && this.toolRegistry) {
+        toolRound++;
+        for (const tc of response.toolCalls) {
+          input.push({
+            type: 'function_call',
+            name: tc.name,
+            arguments: tc.arguments,
+            call_id: tc.callId,
+          });
+
+          let args: Record<string, unknown> = {};
+          try { args = JSON.parse(tc.arguments); } catch { /* empty args */ }
+
+          this.logger.info({ tool: tc.name, args, round: toolRound }, 'Executing tool call from Codex');
+          const result = await this.toolRegistry.execute(tc.name, args, this.logger);
+
+          input.push({
+            type: 'function_call_output',
+            call_id: tc.callId,
+            output: result.success
+              ? truncateToolOutput(JSON.stringify(result.output))
+              : `Error: ${result.error ?? 'Unknown error'}`,
+          });
+        }
+        continue;
+      }
+
+      // No tool calls — extract text response
+      reply = response.text || "Let me think about that...";
+      break;
+    }
+
+    if (!reply) {
+      reply = "I used several tools but ran out of rounds. Please ask again if you need more.";
+    }
+
+    return { reply, inputTokens, outputTokens };
+  }
 
   /** Build phase-aware system prompt with project context. */
   private buildPhasePrompt(phase: ConversationPhase, data: DiscoveryData): string {

@@ -64,9 +64,11 @@ export interface LLMTiers {
 }
 
 export interface OpenAIOAuthConfig {
-  accessToken: string;         // JWT access token (usable as API key)
+  apiKey: string;              // Exchanged API key (use this for OpenAI API calls)
+  accessToken: string;         // OAuth access token
   refreshToken: string;        // For auto-refresh when expired
-  expires: number;             // Epoch ms when access token expires
+  idToken: string;             // ID token (for API key re-exchange)
+  expires: number;             // Epoch ms when tokens expire
   accountId: string;           // OpenAI account ID from JWT claims
 }
 
@@ -215,8 +217,10 @@ function validateLLM(raw: unknown): LLMConfig {
   if (hasOpenaiOAuth) {
     const o = obj['openaiOAuth'] as Record<string, unknown>;
     openaiOAuth = {
+      apiKey: typeof o['apiKey'] === 'string' ? o['apiKey'] : '',
       accessToken: typeof o['accessToken'] === 'string' ? o['accessToken'] : '',
       refreshToken: typeof o['refreshToken'] === 'string' ? o['refreshToken'] : '',
+      idToken: typeof o['idToken'] === 'string' ? o['idToken'] : '',
       expires: typeof o['expires'] === 'number' ? o['expires'] : 0,
       accountId: typeof o['accountId'] === 'string' ? o['accountId'] : '',
     };

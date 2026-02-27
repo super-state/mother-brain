@@ -15,6 +15,13 @@ import { homedir } from 'node:os';
 import { startLoginServer, createOpenAIAuthUrl, loginOpenAIManual } from '../llm/openai-oauth.js';
 import type { OpenAIOAuthCredentials } from '../llm/openai-oauth.js';
 
+// Simple console logger matching pino Logger interface (info/warn/error)
+const cliLogger = {
+  info: (...args: unknown[]) => { if (typeof args[0] === 'string') console.log(`  ${DIM}[info] ${args[0]}${RESET}`); else console.log(`  ${DIM}[info]${RESET}`, args[0]); },
+  warn: (...args: unknown[]) => { if (typeof args[0] === 'string') console.log(`  ${YELLOW}[warn] ${args[0]}${RESET}`); else console.log(`  ${YELLOW}[warn]${RESET}`, args[0]); },
+  error: (...args: unknown[]) => { if (typeof args[0] === 'string') console.log(`  ${RED}[error] ${args[0]}${RESET}`); else console.log(`  ${RED}[error]${RESET}`, args[0]); },
+} as unknown as import('pino').Logger;
+
 // ---------------------------------------------------------------------------
 // Terminal formatting
 // ---------------------------------------------------------------------------
@@ -94,7 +101,7 @@ async function authOpenAI(): Promise<void> {
       // Browser flow
       console.log(`\n  Starting local callback server on port 1455...`);
 
-      const login = startLoginServer();
+      const login = startLoginServer(cliLogger);
       if (!login) {
         error('Could not start callback server (port 1455 in use?).');
         return;
@@ -118,7 +125,7 @@ async function authOpenAI(): Promise<void> {
         // Ignore — user can open manually
       }
 
-      console.log(`  Waiting for callback (120s timeout)...`);
+      console.log(`  Waiting for callback (5 min timeout)...`);
       credentials = await login.waitForCallback();
     } else {
       // Manual flow
@@ -149,8 +156,10 @@ async function authOpenAI(): Promise<void> {
     const config = loadConfigRaw();
     const llm = (config['llm'] ?? {}) as Record<string, unknown>;
     llm['openaiOAuth'] = {
+      apiKey: credentials.apiKey,
       accessToken: credentials.accessToken,
       refreshToken: credentials.refreshToken,
+      idToken: credentials.idToken,
       expires: credentials.expires,
       accountId: credentials.accountId,
     };
@@ -158,6 +167,7 @@ async function authOpenAI(): Promise<void> {
     saveConfig(config);
 
     success(`Authenticated with OpenAI (account: ${credentials.accountId})`);
+    success(`API key obtained: ${credentials.apiKey ? 'yes' : 'no (will use access token fallback)'}`);
     success(`Token expires: ${new Date(credentials.expires).toLocaleString()}`);
     success(`Saved to: ${getConfigPath()}`);
 
@@ -166,18 +176,27 @@ async function authOpenAI(): Promise<void> {
     console.log(`  ${DIM}  "coding": { "provider": "openai", "model": "codex-mini-latest" }${RESET}`);
     console.log(`  ${DIM}  "planning": { "provider": "openai", "model": "o3" }${RESET}\n`);
 
-    // Test the token
+    // Test the API key with a real completion
+    const testKey = credentials.apiKey || credentials.accessToken;
     console.log(`  Testing OpenAI API access...`);
     try {
-      const res = await fetch('https://api.openai.com/v1/models', {
-        headers: { 'Authorization': `Bearer ${credentials.accessToken}` },
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${testKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: 'Say hi' }],
+          max_completion_tokens: 5,
+        }),
       });
       if (res.ok) {
-        const data = await res.json() as { data?: { id: string }[] };
-        const modelCount = data.data?.length ?? 0;
-        success(`API access verified (${modelCount} models available)`);
+        success('API access verified — chat completions working');
       } else {
-        warn(`API returned ${res.status} — token may need time to propagate`);
+        const body = await res.text();
+        warn(`API returned ${res.status}: ${body.slice(0, 200)}`);
       }
     } catch (err) {
       warn(`Could not verify API access: ${err}`);

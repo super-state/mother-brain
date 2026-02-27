@@ -91,8 +91,10 @@ export class Daemon {
           const refreshed = await refreshOpenAIToken(oauth.refreshToken);
           if (refreshed) {
             this.config.llm.openaiOAuth = {
+              apiKey: refreshed.apiKey,
               accessToken: refreshed.accessToken,
               refreshToken: refreshed.refreshToken,
+              idToken: refreshed.idToken,
               expires: refreshed.expires,
               accountId: refreshed.accountId,
             };

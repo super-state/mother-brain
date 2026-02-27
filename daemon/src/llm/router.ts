@@ -2,6 +2,7 @@ import type { Logger } from 'pino';
 import type { LLMResult } from './cloud.js';
 import { CloudLLMClient } from './cloud.js';
 import { CopilotLLMClient } from './copilot.js';
+import { ChatGPTCodexClient } from './chatgpt-codex.js';
 import { LocalLLMClient } from './local.js';
 import type { DaemonConfig, LLMTierProvider } from '../core/config.js';
 
@@ -132,14 +133,18 @@ function createClientForProvider(
     }
 
     case 'openai': {
-      // Prefer OAuth tokens (ChatGPT subscription), fall back to API key
+      // Prefer ChatGPT subscription (OAuth access_token → chatgpt.com/backend-api/codex)
       const oauth = config.llm.openaiOAuth;
-      const openaiKey = oauth?.accessToken ?? config.llm.openaiApiKey;
+      if (oauth?.accessToken) {
+        logger.info({ model, provider: 'openai-subscription', tier }, `Using ChatGPT subscription for ${tier} tier`);
+        return new ChatGPTCodexClient(oauth.accessToken, model, logger);
+      }
+      // Fallback to API key (api.openai.com — requires credits)
+      const openaiKey = oauth?.apiKey ?? config.llm.openaiApiKey;
       if (!openaiKey) {
         throw new Error(`OpenAI tier "${tier}" requires openaiOAuth or openaiApiKey in llm config`);
       }
-      const authMethod = oauth ? 'oauth' : 'api-key';
-      logger.info({ model, provider: 'openai', tier, authMethod }, `Using direct OpenAI API for ${tier} tier`);
+      logger.info({ model, provider: 'openai-apikey', tier }, `Using OpenAI API key for ${tier} tier`);
       return new CopilotLLMClient(
         { githubToken: openaiKey, model, baseUrl: 'https://api.openai.com/v1' },
         logger,

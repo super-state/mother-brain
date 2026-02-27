@@ -27,9 +27,11 @@ const JWT_CLAIM_PATH = 'https://api.openai.com/auth';
 // ---------------------------------------------------------------------------
 
 export interface OpenAIOAuthCredentials {
-  accessToken: string;
-  refreshToken: string;
-  expires: number;      // epoch ms
+  apiKey: string;          // Exchanged API key (use this for OpenAI API calls)
+  accessToken: string;     // OAuth access token
+  refreshToken: string;    // For auto-refresh when expired
+  idToken: string;         // ID token (needed for API key re-exchange)
+  expires: number;         // epoch ms
   accountId: string;
 }
 
@@ -70,7 +72,8 @@ function extractAccountId(accessToken: string): string | null {
 async function exchangeCode(
   code: string,
   verifier: string,
-): Promise<{ access: string; refresh: string; expiresIn: number } | null> {
+  logger?: Logger,
+): Promise<{ access: string; refresh: string; idToken: string; expiresIn: number } | null> {
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -82,14 +85,50 @@ async function exchangeCode(
       redirect_uri: REDIRECT_URI,
     }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    logger?.error({ status: res.status, body: errText }, 'Code exchange failed');
+    return null;
+  }
   const json = await res.json() as {
     access_token?: string;
     refresh_token?: string;
+    id_token?: string;
     expires_in?: number;
   };
+  logger?.info({ hasAccess: !!json.access_token, hasRefresh: !!json.refresh_token, hasId: !!json.id_token }, 'Token exchange response');
   if (!json.access_token || !json.refresh_token || typeof json.expires_in !== 'number') return null;
-  return { access: json.access_token, refresh: json.refresh_token, expiresIn: json.expires_in };
+  return {
+    access: json.access_token,
+    refresh: json.refresh_token,
+    idToken: json.id_token ?? '',
+    expiresIn: json.expires_in,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Token exchange: id_token → OpenAI API key
+// ---------------------------------------------------------------------------
+
+async function exchangeForApiKey(
+  idToken: string,
+): Promise<string | null> {
+  const randomId = crypto.randomBytes(4).toString('hex');
+  const res = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+      client_id: CLIENT_ID,
+      requested_token: 'openai-api-key',
+      subject_token: idToken,
+      subject_token_type: 'urn:ietf:params:oauth:token-type:id_token',
+      name: `MotherBrain [auto-generated] (${new Date().toISOString().slice(0, 10)}) [${randomId}]`,
+    }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json() as { access_token?: string };
+  return json.access_token ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -112,14 +151,24 @@ export async function refreshOpenAIToken(
   const json = await res.json() as {
     access_token?: string;
     refresh_token?: string;
+    id_token?: string;
     expires_in?: number;
   };
   if (!json.access_token || !json.refresh_token || typeof json.expires_in !== 'number') return null;
   const accountId = extractAccountId(json.access_token);
   if (!accountId) return null;
+
+  // Exchange id_token for API key (if id_token present)
+  let apiKey = '';
+  if (json.id_token) {
+    apiKey = await exchangeForApiKey(json.id_token) ?? '';
+  }
+
   return {
+    apiKey,
     accessToken: json.access_token,
     refreshToken: json.refresh_token,
+    idToken: json.id_token ?? '',
     expires: Date.now() + json.expires_in * 1000,
     accountId,
   };
@@ -158,6 +207,7 @@ export function startLoginServer(
   authUrl.searchParams.set('code_challenge_method', 'S256');
   authUrl.searchParams.set('state', state);
   authUrl.searchParams.set('id_token_add_organizations', 'true');
+  authUrl.searchParams.set('codex_cli_simplified_flow', 'true');
 
   let resolveCallback: (creds: OpenAIOAuthCredentials | null) => void;
   const callbackPromise = new Promise<OpenAIOAuthCredentials | null>((resolve) => {
@@ -189,7 +239,7 @@ export function startLoginServer(
       res.end(SUCCESS_HTML);
 
       logger?.info('OAuth callback received, exchanging code for tokens');
-      const tokens = await exchangeCode(code, verifier);
+      const tokens = await exchangeCode(code, verifier, logger);
       if (!tokens) {
         logger?.error('Token exchange failed');
         server.close();
@@ -205,10 +255,19 @@ export function startLoginServer(
         return;
       }
 
+      // Exchange id_token for API key
+      logger?.info('Exchanging id_token for OpenAI API key');
+      const apiKey = await exchangeForApiKey(tokens.idToken);
+      if (!apiKey) {
+        logger?.warn('API key exchange failed — will use access token as fallback');
+      }
+
       server.close();
       resolveCallback({
+        apiKey: apiKey ?? '',
         accessToken: tokens.access,
         refreshToken: tokens.refresh,
+        idToken: tokens.idToken,
         expires: Date.now() + tokens.expiresIn * 1000,
         accountId,
       });
@@ -231,11 +290,11 @@ export function startLoginServer(
     resolveCallback(null);
   });
 
-  // Timeout after 120 seconds
+  // Timeout after 5 minutes
   const timer = setTimeout(() => {
     server.close();
     resolveCallback(null);
-  }, 120_000);
+  }, 300_000);
 
   return {
     authUrl: authUrl.toString(),
@@ -268,9 +327,13 @@ export async function loginOpenAIManual(
     const accountId = extractAccountId(tokens.access);
     if (!accountId) return null;
 
+    const apiKey = await exchangeForApiKey(tokens.idToken);
+
     return {
+      apiKey: apiKey ?? '',
       accessToken: tokens.access,
       refreshToken: tokens.refresh,
+      idToken: tokens.idToken,
       expires: Date.now() + tokens.expiresIn * 1000,
       accountId,
     };
@@ -300,6 +363,7 @@ export function createOpenAIAuthUrl(): {
   authUrl.searchParams.set('code_challenge_method', 'S256');
   authUrl.searchParams.set('state', state);
   authUrl.searchParams.set('id_token_add_organizations', 'true');
+  authUrl.searchParams.set('codex_cli_simplified_flow', 'true');
 
   return { authUrl: authUrl.toString(), verifier, state };
 }

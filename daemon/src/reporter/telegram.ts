@@ -570,7 +570,7 @@ export class TelegramReporter implements DaemonModule {
         try {
           const response = await this.conversationHandler.handleMessage(text);
           clearInterval(typingInterval);
-          await ctx.reply(response.text);
+          await ctx.reply(response.text, { parse_mode: 'Markdown' });
 
           if (response.detectedCommitments?.length && this.commitmentStore && this.commitmentScheduler) {
             for (const detected of response.detectedCommitments) {
